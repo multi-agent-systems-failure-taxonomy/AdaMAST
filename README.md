@@ -12,7 +12,9 @@ milestone is **BASELINE**:
 5. optionally render the resulting taxonomy as a standalone browser view.
 
 BASELINE is one taxonomy-generation strategy. It is not the generation process
-for every future AdaMAST integration.
+for every future AdaMAST integration. Its prompts and agreement process are
+provider-neutral: OpenAI, Anthropic, Google Gemini, and AWS Bedrock are
+interchangeable model transports.
 
 ## Install for development
 
@@ -20,15 +22,19 @@ for every future AdaMAST integration.
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev,all]"
 ```
 
-Set `OPENAI_API_KEY`, then validate and generate:
+Choose a provider, set that provider's normal credentials, then validate and
+generate. For example, with OpenAI:
 
 ```powershell
+$env:OPENAI_API_KEY = "..."
 adamast traces validate .\examples\traces.jsonl
 adamast taxonomy generate `
   --strategy baseline `
+  --provider openai `
+  --model gpt-5-nano `
   --traces .\examples\traces.jsonl `
   --output .\run
 ```
@@ -40,5 +46,5 @@ taxonomy. It can also be opened later:
 adamast taxonomy view .\run\taxonomy.json
 ```
 
-See [BASELINE](docs/BASELINE.md) and
+See [model providers](docs/PROVIDERS.md), [BASELINE](docs/BASELINE.md), and
 [accepted trace formats](docs/TRACE_FORMATS.md) for the complete contracts.

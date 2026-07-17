@@ -10,6 +10,13 @@ import sys
 
 from .generation import GenerationRequest
 from .generation.baseline import BaselineStrategy
+from .generation.providers import (
+    DEFAULT_MAX_OUTPUT_TOKENS,
+    SUPPORTED_PROVIDERS,
+    normalize_provider_name,
+    resolve_model,
+    validate_provider_credentials,
+)
 from .generation.traces import (
     TraceFormatError,
     load_trace_bundle,
@@ -43,7 +50,30 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--traces", type=Path, required=True)
     generate.add_argument("--output", type=Path, required=True)
     generate.add_argument(
-        "--model", default=os.getenv("OPENAI_MODEL", "gpt-5-nano")
+        "--provider",
+        choices=SUPPORTED_PROVIDERS,
+        default=os.getenv("ADAMAST_PROVIDER"),
+        help="model API transport; generation prompts are unchanged",
+    )
+    generate.add_argument(
+        "--model",
+        help="provider model ID; provider-specific environment variables are supported",
+    )
+    generate.add_argument(
+        "--max-output-tokens",
+        type=int,
+        default=DEFAULT_MAX_OUTPUT_TOKENS,
+        help="maximum output tokens for each model call",
+    )
+    generate.add_argument(
+        "--aws-region",
+        default=os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION"),
+        help="Bedrock region; otherwise use the AWS configuration chain",
+    )
+    generate.add_argument(
+        "--aws-profile",
+        default=os.getenv("AWS_PROFILE"),
+        help="optional AWS profile for Bedrock",
     )
     generate.add_argument("--max-rounds", type=int, default=5)
     generate.add_argument("--kappa-target", type=float, default=0.75)
@@ -80,7 +110,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(f"AdaMAST taxonomy view: {path}")
             return 0
-        return _run_generation(args, parser)
+        return _run_generation(args)
     except (TraceFormatError, ValueError, RuntimeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
@@ -95,23 +125,26 @@ def _run_traces(args: argparse.Namespace) -> int:
     return 0
 
 
-def _run_generation(
-    args: argparse.Namespace, parser: argparse.ArgumentParser
-) -> int:
-    if not os.getenv("OPENAI_API_KEY"):
-        parser.error("BASELINE requires OPENAI_API_KEY")
+def _run_generation(args: argparse.Namespace) -> int:
+    provider = normalize_provider_name(args.provider)
+    model = resolve_model(provider, args.model)
+    validate_provider_credentials(provider)
     strategy = BaselineStrategy()
     result = strategy.generate(
         GenerationRequest(
             traces=args.traces,
             output=args.output,
-            model=args.model,
+            provider=provider,
+            model=model,
             open_viewer=args.view,
             options={
                 "max_rounds": args.max_rounds,
                 "kappa_target": args.kappa_target,
                 "coverage_floor": args.coverage_floor,
                 "no_early_stop": args.no_early_stop,
+                "max_output_tokens": args.max_output_tokens,
+                "aws_region": args.aws_region,
+                "aws_profile": args.aws_profile,
             },
         )
     )

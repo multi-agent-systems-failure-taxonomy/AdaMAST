@@ -53,6 +53,7 @@
     }
   ],
   "generation": {
+    "provider": "sample-provider",
     "model": "sample-model",
     "trace_count": 24,
     "agreement": {

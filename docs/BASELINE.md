@@ -28,14 +28,22 @@ The default gates are:
 
 ## Generate
 
+Choose any supported provider. The generation strategy and prompt content stay
+the same:
+
 ```powershell
 $env:OPENAI_API_KEY = "..."
 adamast taxonomy generate `
   --strategy baseline `
+  --provider openai `
+  --model gpt-5-nano `
   --traces .\traces `
   --output .\run `
   --view
 ```
+
+OpenAI, Anthropic, Google Gemini, and AWS Bedrock setup and command examples
+are documented in [PROVIDERS.md](PROVIDERS.md).
 
 `--view` is optional. It creates `taxonomy.html` and opens it in the default
 browser. The HTML is a self-contained, read-only view of this one taxonomy.
@@ -56,8 +64,9 @@ run/
     └── agreement/
 ```
 
-`manifest.json` records the strategy, model, input report, thresholds, observed
-metrics, status, and artifact paths. A completed run can have either:
+`manifest.json` records the strategy, provider, model, input report,
+thresholds, observed metrics, status, and artifact paths. A completed run can
+have either:
 
 - `accepted`: κ and coverage both passed; or
 - `review_required`: artifacts were produced but the agreement gate failed.

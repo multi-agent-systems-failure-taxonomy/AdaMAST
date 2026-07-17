@@ -9,10 +9,27 @@ description = "Adaptive failure-mode taxonomy generation and integration"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "openai>=1.30,<3",
 ]
 
 [project.optional-dependencies]
+openai = [
+  "openai>=2,<3",
+]
+anthropic = [
+  "anthropic>=0.79,<1",
+]
+google = [
+  "google-genai>=1,<2",
+]
+bedrock = [
+  "boto3>=1.43,<2",
+]
+all = [
+  "openai>=2,<3",
+  "anthropic>=0.79,<1",
+  "google-genai>=1,<2",
+  "boto3>=1.43,<2",
+]
 dev = [
   "pytest>=8,<9",
 ]

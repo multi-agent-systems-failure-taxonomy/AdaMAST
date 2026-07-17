@@ -39,8 +39,8 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Any, Tuple, Optional, Set
 from collections import Counter
-from openai import OpenAI
 
+from ..providers import TextProvider, create_provider, resolve_model
 from ..traces import load_traces
 
 
@@ -49,7 +49,8 @@ from ..traces import load_traces
 # =============================================================================
 
 class Config:
-    MODEL = os.getenv("OPENAI_MODEL", "gpt-5-nano")
+    PROVIDER = os.getenv("ADAMAST_PROVIDER", "")
+    MODEL = os.getenv("ADAMAST_MODEL", "")
     TIMEOUT = 180
     MAX_WORKERS = 8
     TRACES_FOR_ANALYSIS = 20
@@ -193,23 +194,13 @@ def progress(msg: str):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
 
 
-def call_llm(client: OpenAI, prompt: str, system: str = "") -> str:
-    """Call LLM with configured model."""
-    messages = []
-    if system:
-        messages.append({"role": "system", "content": system})
-    messages.append({"role": "user", "content": prompt})
-
+def call_llm(client: TextProvider, prompt: str, system: str = "") -> str:
+    """Call the configured provider without changing prompt content."""
     try:
-        response = client.chat.completions.create(
-            model=Config.MODEL,
-            messages=messages,
-            timeout=Config.TIMEOUT
-        )
-        return response.choices[0].message.content.strip()
+        return client.complete(prompt, system=system)
     except Exception as e:
         progress(f"  [!] LLM error: {e}")
-        return "{}"
+        raise
 
 
 def extract_json(text: str) -> Dict:
@@ -707,7 +698,7 @@ class SystemDomainAnalyzer:
     - Common error patterns in this domain
     """
 
-    def __init__(self, client: OpenAI):
+    def __init__(self, client: TextProvider):
         self.client = client
 
     def analyze(self, traces: List[Dict]) -> Dict:
@@ -804,7 +795,7 @@ class TraceStructureExtractor:
     any agent naming convention to be properly classified.
     """
 
-    def __init__(self, client: OpenAI):
+    def __init__(self, client: TextProvider):
         self.client = client
 
     def _extract_agents_from_trajectories(self, traces: List[Dict]) -> Set[str]:
@@ -1478,7 +1469,7 @@ class CategoryGenerator:
       - Stage 2 (Empirical): Generate from actual trace analysis
     """
 
-    def __init__(self, client: OpenAI, category: str,
+    def __init__(self, client: TextProvider, category: str,
                  domain_info: Dict, structure_info: Dict,
                  trace_signals: Dict = None):
         self.client = client
@@ -2335,7 +2326,7 @@ OUTPUT JSON:
 class CrossCategoryDeduplicator:
     """Ensure no concept overlap between A, B, and C categories."""
 
-    def __init__(self, client: OpenAI):
+    def __init__(self, client: TextProvider):
         self.client = client
 
     def deduplicate(self, a_codes: List[Dict], b_codes: List[Dict], c_codes: List[Dict]) -> Dict:
@@ -2432,7 +2423,7 @@ OUTPUT JSON:
 class CrossCategoryValidator:
     """Validate codes are in the correct category and fix misplacements."""
 
-    def __init__(self, client: OpenAI, structure_info: Dict):
+    def __init__(self, client: TextProvider, structure_info: Dict):
         self.client = client
         self.structure_info = structure_info
 
@@ -2602,7 +2593,7 @@ class TaxonomyChecker:
         ],
     }
 
-    def __init__(self, client: OpenAI, structure_info: Dict, domain_info: Dict):
+    def __init__(self, client: TextProvider, structure_info: Dict, domain_info: Dict):
         self.client = client
         self.structure_info = structure_info
         self.domain_info = domain_info
@@ -3528,8 +3519,13 @@ OUTPUT JSON:
 class LLMNomos:
     """LLM_Nomos v13.0 - Architectural Risk Analysis + Behavioral Signal Extraction"""
 
-    def __init__(self, traces_dir: Path, output_dir: Path):
-        self.client = OpenAI()
+    def __init__(
+        self,
+        traces_dir: Path,
+        output_dir: Path,
+        client: TextProvider | None = None,
+    ):
+        self.client = client or create_provider(Config.PROVIDER, Config.MODEL)
         self.traces_dir = traces_dir
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -4167,14 +4163,20 @@ def main():
     parser = argparse.ArgumentParser(description="LLM_Nomos v13.0")
     parser.add_argument("--traces", type=str, required=True, help="Path to traces")
     parser.add_argument("--output", type=str, required=True, help="Output directory")
+    parser.add_argument(
+        "--provider",
+        choices=["openai", "anthropic", "google", "bedrock"],
+        default=os.getenv("ADAMAST_PROVIDER"),
+        help="Model API provider",
+    )
     parser.add_argument("--model", type=str, default=None, help="Model to use")
     parser.add_argument("--max-codes", type=int, default=0,
                         help="Max total codes (0 = no cap, default: 0)")
 
     args = parser.parse_args()
 
-    if args.model:
-        Config.MODEL = args.model
+    Config.PROVIDER = args.provider
+    Config.MODEL = resolve_model(args.provider, args.model)
     if args.max_codes > 0:
         Config.MAX_CODES = args.max_codes
 

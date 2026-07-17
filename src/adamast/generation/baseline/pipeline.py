@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
+from ..providers import DEFAULT_MAX_OUTPUT_TOKENS, create_provider
 from ..protocols import GenerationRequest, GenerationResult
 from ..traces import load_trace_bundle, write_normalized_jsonl
 from .agreement import Config as AgreementConfig
@@ -53,9 +54,27 @@ class BaselineStrategy:
             request.options.get("coverage_floor", DEFAULT_COVERAGE_FLOOR)
         )
         no_early_stop = bool(request.options.get("no_early_stop", False))
+        max_output_tokens = int(
+            request.options.get(
+                "max_output_tokens", DEFAULT_MAX_OUTPUT_TOKENS
+            )
+        )
+        aws_region = _optional_string(request.options.get("aws_region"))
+        aws_profile = _optional_string(request.options.get("aws_profile"))
 
+        DraftConfig.PROVIDER = request.provider
         DraftConfig.MODEL = request.model
-        draft = LLMNomos(normalized_path, draft_dir).run()
+        draft_provider = create_provider(
+            request.provider,
+            request.model,
+            timeout=DraftConfig.TIMEOUT,
+            max_output_tokens=max_output_tokens,
+            aws_region=aws_region,
+            aws_profile=aws_profile,
+        )
+        draft = LLMNomos(
+            normalized_path, draft_dir, client=draft_provider
+        ).run()
         if not isinstance(draft, dict):
             raise RuntimeError("BASELINE draft generation did not return a taxonomy")
 
@@ -65,14 +84,26 @@ class BaselineStrategy:
             agreement_dir / "taxonomy.input.json", agreement_input
         )
 
+        AgreementConfig.PROVIDER = request.provider
         AgreementConfig.MODEL = request.model
         AgreementConfig.MAX_ROUNDS = max_rounds
         AgreementConfig.KAPPA_TARGET = kappa_target
         AgreementConfig.COVERAGE_FLOOR = coverage_floor
         AgreementConfig.NO_EARLY_STOP = no_early_stop
 
+        agreement_provider = create_provider(
+            request.provider,
+            request.model,
+            timeout=120,
+            max_output_tokens=max_output_tokens,
+            aws_region=aws_region,
+            aws_profile=aws_profile,
+        )
         agreement = TaxonomyRefinerPipeline(
-            agreement_input_path, normalized_path, agreement_dir
+            agreement_input_path,
+            normalized_path,
+            agreement_dir,
+            client=agreement_provider,
         )
         agreement_summary = agreement.run()
         if not isinstance(agreement_summary, dict):
@@ -89,6 +120,7 @@ class BaselineStrategy:
             agreement.taxonomy,
             draft=draft,
             status=status,
+            provider=request.provider,
             model=request.model,
             trace_count=len(bundle.traces),
             agreement_summary=agreement_summary,
@@ -105,6 +137,11 @@ class BaselineStrategy:
                 "traces": str(request.traces),
                 "output": str(request.output),
                 "options": dict(request.options),
+            },
+            "model_provider": {
+                "provider": request.provider,
+                "model": request.model,
+                "max_output_tokens": max_output_tokens,
             },
             "acceptance": {
                 "kappa_metric": "macro Fleiss kappa over used codes",
@@ -175,6 +212,7 @@ def build_public_taxonomy(
     *,
     draft: Mapping[str, Any],
     status: str,
+    provider: str,
     model: str,
     trace_count: int,
     agreement_summary: Mapping[str, Any],
@@ -243,6 +281,7 @@ def build_public_taxonomy(
         or f"Failure modes generated and agreement-checked from {trace_count} traces.",
         "codes": sorted(codes, key=lambda item: item["id"]),
         "generation": {
+            "provider": provider,
             "model": model,
             "trace_count": trace_count,
             "agreement": dict(agreement_summary),
@@ -261,3 +300,10 @@ def _write_json(path: Path, payload: Mapping[str, Any]) -> Path:
 
 def _relative(path: Path, root: Path) -> str:
     return path.resolve().relative_to(root.resolve()).as_posix()
+
+
+def _optional_string(value: Any) -> str | None:
+    if value is None:
+        return None
+    normalized = str(value).strip()
+    return normalized or None

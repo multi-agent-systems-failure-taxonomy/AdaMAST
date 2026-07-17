@@ -13,6 +13,7 @@ class GenerationRequest:
 
     traces: Path
     output: Path
+    provider: str
     model: str
     open_viewer: bool = False
     options: Mapping[str, Any] = field(default_factory=dict)

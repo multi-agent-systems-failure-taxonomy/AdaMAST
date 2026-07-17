@@ -574,6 +574,7 @@
         ["Domain", taxonomy.domain || "Not specified"],
         ["Strategy", taxonomy.strategy || manifest.strategy || "baseline"],
         ["Schema", taxonomy.schema_version || "1"],
+        ["Provider", taxonomy.generation?.provider || manifest.request?.provider || "Not recorded"],
         ["Model", taxonomy.generation?.model || manifest.request?.model || "Not recorded"]
       ];
       for (const [label, value] of facts) {

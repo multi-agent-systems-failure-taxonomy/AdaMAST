@@ -38,8 +38,8 @@ from pathlib import Path
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Any, Tuple, Optional, Set
-from openai import OpenAI
 
+from ..providers import TextProvider, create_provider, resolve_model
 from ..traces import load_traces
 
 
@@ -50,7 +50,8 @@ from ..traces import load_traces
 class Config:
     """Configuration constants."""
     # Single model for all operations
-    MODEL = os.getenv("OPENAI_MODEL", "gpt-5-nano")
+    PROVIDER = os.getenv("ADAMAST_PROVIDER", "")
+    MODEL = os.getenv("ADAMAST_MODEL", "")
 
     # Pipeline settings
     MAX_ROUNDS = 5
@@ -136,19 +137,13 @@ def extract_json(text: str) -> Dict:
 # LLM UTILITIES
 # =============================================================================
 
-def call_llm(client: OpenAI, prompt: str, timeout: int = 120) -> str:
-    """Call LLM with unified model."""
+def call_llm(client: TextProvider, prompt: str, timeout: int = 120) -> str:
+    """Call the configured provider without changing prompt content."""
     try:
-        response = client.chat.completions.create(
-            model=Config.MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
-            timeout=timeout
-        )
-        return response.choices[0].message.content or ""
+        return client.complete(prompt, response_format="json")
     except Exception as e:
         progress(f"  [!] LLM error: {e}")
-        return ""
+        raise
 
 
 # =============================================================================
@@ -783,7 +778,7 @@ class SharedKnowledgeBase:
         """Get the most frequently confused code pairs."""
         return [(p[0], p[1], count) for p, count in self.confusion_pairs.most_common(n)]
 
-    def detect_overlapping_codes(self, taxonomy: Dict, client: OpenAI):
+    def detect_overlapping_codes(self, taxonomy: Dict, client: TextProvider):
         """Analyze taxonomy to find codes with similar/overlapping definitions."""
         progress("  Detecting overlapping codes in taxonomy...")
 
@@ -1001,7 +996,7 @@ class ErrorDiscovery:
     Output: Raw list of proposed errors from each annotator.
     """
 
-    def __init__(self, client: OpenAI, annotator_memories: List[AnnotatorMemory],
+    def __init__(self, client: TextProvider, annotator_memories: List[AnnotatorMemory],
                  shared_kb: SharedKnowledgeBase):
         self.client = client
         self.annotator_memories = annotator_memories
@@ -1144,7 +1139,7 @@ class ErrorReconciliation:
     Have them discuss and vote to create a unified error list.
     """
 
-    def __init__(self, client: OpenAI, annotator_memories: List[AnnotatorMemory],
+    def __init__(self, client: TextProvider, annotator_memories: List[AnnotatorMemory],
                  shared_kb: SharedKnowledgeBase):
         self.client = client
         self.annotator_memories = annotator_memories
@@ -1565,7 +1560,7 @@ class FailureTyping:
     This happens AFTER agreeing on what the failures are, but BEFORE coding.
     """
 
-    def __init__(self, client: OpenAI, annotator_memories: List[AnnotatorMemory],
+    def __init__(self, client: TextProvider, annotator_memories: List[AnnotatorMemory],
                  shared_kb: SharedKnowledgeBase):
         self.client = client
         self.annotator_memories = annotator_memories
@@ -1711,7 +1706,7 @@ class CodeAssignment:
     Includes validation to reject invalid codes.
     """
 
-    def __init__(self, client: OpenAI, annotator_memories: List[AnnotatorMemory],
+    def __init__(self, client: TextProvider, annotator_memories: List[AnnotatorMemory],
                  shared_kb: SharedKnowledgeBase):
         self.client = client
         self.annotator_memories = annotator_memories
@@ -2001,7 +1996,7 @@ class CodeDeliberation:
     Shows annotators what others assigned and why.
     """
 
-    def __init__(self, client: OpenAI, annotator_memories: List[AnnotatorMemory],
+    def __init__(self, client: TextProvider, annotator_memories: List[AnnotatorMemory],
                  shared_kb: SharedKnowledgeBase):
         self.client = client
         self.annotator_memories = annotator_memories
@@ -2400,7 +2395,7 @@ class CoverageTracker:
 class TaxonomyRefiner:
     """Refine taxonomy based on round data."""
 
-    def __init__(self, client: OpenAI, shared_kb: SharedKnowledgeBase):
+    def __init__(self, client: TextProvider, shared_kb: SharedKnowledgeBase):
         self.client = client
         self.shared_kb = shared_kb
 
@@ -2558,8 +2553,14 @@ class TaxonomyRefinerPipeline:
     MATRS v14.1 - Main refinement pipeline with deliberative phases.
     """
 
-    def __init__(self, taxonomy_path: Path, traces_path: Path, output_dir: Path):
-        self.client = OpenAI()
+    def __init__(
+        self,
+        taxonomy_path: Path,
+        traces_path: Path,
+        output_dir: Path,
+        client: TextProvider | None = None,
+    ):
+        self.client = client or create_provider(Config.PROVIDER, Config.MODEL)
 
         self.taxonomy_path = Path(taxonomy_path).resolve()
         self.traces_path = Path(traces_path).resolve()
@@ -3236,13 +3237,20 @@ def main():
     parser.add_argument("--taxonomy", required=True, help="Path to taxonomy JSON")
     parser.add_argument("--traces", required=True, help="Path to traces file/directory")
     parser.add_argument("--output", required=True, help="Output directory")
-    parser.add_argument("--model", default="gpt-5-nano", help="Model to use")
+    parser.add_argument(
+        "--provider",
+        choices=["openai", "anthropic", "google", "bedrock"],
+        default=os.getenv("ADAMAST_PROVIDER"),
+        help="Model API provider",
+    )
+    parser.add_argument("--model", default=None, help="Model to use")
     parser.add_argument("--max-rounds", type=int, default=5, help="Max rounds")
     parser.add_argument("--no-early-stop", action="store_true", help="Disable early stopping")
 
     args = parser.parse_args()
 
-    Config.MODEL = args.model
+    Config.PROVIDER = args.provider
+    Config.MODEL = resolve_model(args.provider, args.model)
     Config.MAX_ROUNDS = args.max_rounds
     Config.NO_EARLY_STOP = args.no_early_stop
 
