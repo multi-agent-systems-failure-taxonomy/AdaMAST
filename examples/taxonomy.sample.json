@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "strategy": "baseline",
+  "status": "accepted",
+  "display_name": "Research agent failure taxonomy",
+  "domain": "Evidence-grounded research agents",
+  "summary": "A compact field guide for diagnosing how research agents lose evidence, misuse tools, or overstate conclusions.",
+  "codes": [
+    {
+      "id": "A.1",
+      "name": "Missing evidence payload",
+      "description": "The trajectory reaches a conclusion without preserving the source material needed to verify it.",
+      "category": "A",
+      "when_to_use": "The answer cites a result but the trace contains no retrievable supporting passage.",
+      "when_not_to_use": "Evidence is present but interpreted incorrectly."
+    },
+    {
+      "id": "A.2",
+      "name": "Tool response truncated",
+      "description": "A tool result ends before the information required by the next step becomes available.",
+      "category": "A",
+      "severity": "high"
+    },
+    {
+      "id": "B.1",
+      "name": "Verification role accepts weak support",
+      "description": "The designated checker approves a claim whose cited evidence does not establish it.",
+      "category": "B",
+      "applies_to_role": "checker"
+    },
+    {
+      "id": "B.2",
+      "name": "Research role abandons the requested scope",
+      "description": "The researcher substitutes a nearby question for the user’s actual information need.",
+      "category": "B",
+      "applies_to_role": "researcher"
+    },
+    {
+      "id": "C.1",
+      "name": "Temporal evidence conflation",
+      "description": "Evidence from different time periods is combined as though it describes one unchanged state.",
+      "category": "C",
+      "examples": [
+        "Using a former executive’s title as evidence of the current leadership team."
+      ]
+    },
+    {
+      "id": "C.2",
+      "name": "Correlation promoted to cause",
+      "description": "The final reasoning asserts a causal mechanism when the trace establishes only association.",
+      "category": "C",
+      "when_to_use": "The conclusion uses causal language without an intervention, mechanism, or equivalent evidence."
+    }
+  ],
+  "generation": {
+    "model": "sample-model",
+    "trace_count": 24,
+    "agreement": {
+      "final_kappa": 0.82,
+      "final_coverage": 0.91,
+      "rounds_completed": 3
+    }
+  }
+}

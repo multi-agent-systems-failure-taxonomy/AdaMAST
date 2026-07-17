@@ -1,0 +1,2 @@
+{"trace_id":"demo-1","task":"Return the final calculation","messages":[{"role":"user","content":"What is 17 * 8?"},{"role":"assistant","content":"17 * 8 = 126."}],"outcome":{"status":"failure","score":0.0},"metadata":{"system":"demo-calculator"}}
+{"trace_id":"demo-2","task":"Return the final calculation","messages":[{"role":"user","content":"What is 9 * 7?"},{"role":"assistant","content":"9 * 7 = 63."}],"outcome":{"status":"success","score":1.0},"metadata":{"system":"demo-calculator"}}
