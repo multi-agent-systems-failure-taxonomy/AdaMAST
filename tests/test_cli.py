@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import io
+import json
 import sys
+from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from adamast.cli import build_parser, main
+from adamast.judges import Diagnosis
 
 
 def test_generate_parser_exposes_provider_model_and_bedrock_options() -> None:
@@ -30,6 +34,30 @@ def test_generate_parser_exposes_provider_model_and_bedrock_options() -> None:
     assert args.model == "provider.model-id"
     assert args.aws_region == "us-west-2"
     assert args.aws_profile == "research"
+
+
+def test_judge_parser_exposes_batch_provider_and_safety_options() -> None:
+    args = build_parser().parse_args(
+        [
+            "judge",
+            "--taxonomy",
+            "taxonomy.json",
+            "--traces",
+            "traces.jsonl",
+            "--provider",
+            "bedrock",
+            "--model",
+            "provider.model-id",
+            "--max-trace-chars",
+            "9000",
+            "--allow-review-required",
+        ]
+    )
+
+    assert args.provider == "bedrock"
+    assert args.model == "provider.model-id"
+    assert args.max_trace_chars == 9000
+    assert args.allow_review_required is True
 
 
 @patch("adamast.cli.generate_taxonomy")
@@ -130,3 +158,60 @@ def test_cli_requires_explicit_provider(
 
     assert exit_code == 2
     assert "--provider or ADAMAST_PROVIDER" in capsys.readouterr().err
+
+
+@patch("adamast.cli.create_judge")
+def test_cli_judges_all_loaded_traces_and_writes_structured_output(
+    create_judge, tmp_path: Path
+) -> None:
+    taxonomy = tmp_path / "taxonomy.json"
+    taxonomy.write_text('{"status":"accepted","codes":[]}', encoding="utf-8")
+    traces = tmp_path / "traces.jsonl"
+    traces.write_text(
+        '{"trace_id":"one","raw_trajectory":"first"}\n'
+        '{"trace_id":"two","raw_trajectory":"second"}\n',
+        encoding="utf-8",
+    )
+    output = tmp_path / "judgments.json"
+    judge = SimpleNamespace(
+        provider=SimpleNamespace(name="anthropic", model="model-a"),
+        judge_many=lambda records: [
+            Diagnosis(
+                trace_id=record["problem_id"],
+                code="A.1",
+                label="Failure",
+                category="A",
+                confidence=0.8,
+            )
+            for record in records
+        ],
+    )
+    create_judge.return_value = judge
+
+    exit_code = main(
+        [
+            "judge",
+            "--taxonomy",
+            str(taxonomy),
+            "--traces",
+            str(traces),
+            "--provider",
+            "anthropic",
+            "--model",
+            "model-a",
+            "--output",
+            str(output),
+        ]
+    )
+
+    assert exit_code == 0
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["judge"] == {
+        "provider": "anthropic",
+        "model": "model-a",
+    }
+    assert payload["trace_count"] == 2
+    assert [item["trace_id"] for item in payload["diagnoses"]] == [
+        "one",
+        "two",
+    ]

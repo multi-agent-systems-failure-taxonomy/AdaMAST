@@ -52,7 +52,7 @@ class TextProvider(Protocol):
 def normalize_provider_name(name: str | None) -> str:
     if not name:
         raise ProviderConfigurationError(
-            "taxonomy generation requires --provider or ADAMAST_PROVIDER"
+            "AdaMAST model workflows require --provider or ADAMAST_PROVIDER"
         )
     normalized = name.strip().lower()
     if normalized not in SUPPORTED_PROVIDERS:
