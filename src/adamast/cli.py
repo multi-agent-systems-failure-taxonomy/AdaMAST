@@ -95,7 +95,26 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _force_utf8_output() -> None:
+    """Keep console output from crashing on non-ASCII characters.
+
+    Windows defaults redirected streams to a legacy code page such as cp1252,
+    which cannot encode every character the pipeline prints (progress rules,
+    model-written taxonomy text). UTF-8 can encode all of them.
+    """
+
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(encoding="utf-8")
+        except (ValueError, OSError):
+            pass
+
+
 def main(argv: list[str] | None = None) -> int:
+    _force_utf8_output()
     parser = build_parser()
     args = parser.parse_args(argv)
     try:

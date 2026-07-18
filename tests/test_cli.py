@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import io
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -95,6 +97,32 @@ def test_cli_reports_missing_provider_credentials(
 
     assert exit_code == 2
     assert "GEMINI_API_KEY or GOOGLE_API_KEY" in capsys.readouterr().err
+
+
+def test_main_forces_utf8_output_on_legacy_console(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    legacy_out = io.TextIOWrapper(io.BytesIO(), encoding="cp1252")
+    legacy_err = io.TextIOWrapper(io.BytesIO(), encoding="cp1252")
+    monkeypatch.setattr(sys, "stdout", legacy_out)
+    monkeypatch.setattr(sys, "stderr", legacy_err)
+
+    traces = tmp_path / "traces.jsonl"
+    traces.write_text(
+        '{"trace_id":"t-1","messages":[{"role":"user","content":"2+2?"},'
+        '{"role":"assistant","content":"4"}]}\n',
+        encoding="utf-8",
+    )
+
+    exit_code = main(["traces", "validate", str(traces)])
+
+    assert exit_code == 0
+    assert legacy_out.encoding.lower() == "utf-8"
+    assert legacy_err.encoding.lower() == "utf-8"
+    # The exact line that crashed generation on cp1252 consoles must print.
+    print("─" * 40)
+    legacy_out.flush()
 
 
 def test_cli_requires_explicit_provider(
