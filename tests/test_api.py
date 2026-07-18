@@ -4,10 +4,9 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from adamast.generation import GenerationRequest
-from adamast.generation.baseline.pipeline import (
-    BaselineStrategy,
+from adamast.api import (
     build_public_taxonomy,
+    generate_taxonomy,
     prepare_taxonomy_for_agreement,
 )
 
@@ -67,12 +66,13 @@ def test_builds_integration_neutral_taxonomy() -> None:
     ]
 
 
-@patch("adamast.generation.baseline.pipeline.create_provider")
-@patch("adamast.generation.baseline.pipeline.TaxonomyRefinerPipeline")
-@patch("adamast.generation.baseline.pipeline.LLMNomos")
-def test_strategy_persists_gate_and_browser_artifacts(
-    draft_class, agreement_class, provider_factory, tmp_path: Path
+@patch("adamast.api.create_provider")
+@patch("adamast.api.TaxonomyRefinerPipeline")
+@patch("adamast.api.LLMNomos")
+def test_generate_persists_gate_and_browser_artifacts(
+    draft_class, agreement_class, provider_factory, tmp_path: Path, monkeypatch
 ) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-only")
     traces = tmp_path / "traces.jsonl"
     traces.write_text(
         '{"trace_id":"one","raw_trajectory":"agent output"}\n',
@@ -90,19 +90,15 @@ def test_strategy_persists_gate_and_browser_artifacts(
     agreement_provider = object()
     provider_factory.side_effect = [draft_provider, agreement_provider]
 
-    result = BaselineStrategy().generate(
-        GenerationRequest(
-            traces=traces,
-            output=tmp_path / "run",
-            provider="anthropic",
-            model="test-model",
-        )
+    output = tmp_path / "run"
+    taxonomy = generate_taxonomy(
+        traces, output, provider="anthropic", model="test-model"
     )
 
-    assert result.accepted
-    assert result.taxonomy_path.exists()
-    assert result.viewer_path and result.viewer_path.exists()
-    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    assert taxonomy["status"] == "accepted"
+    assert (output / "taxonomy.json").exists()
+    assert (output / "taxonomy.html").exists()
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["status"] == "accepted"
     assert manifest["acceptance"]["kappa_metric"].startswith("macro Fleiss")
     assert manifest["trace_input"]["formats"] == {"adamast": 1}
@@ -115,12 +111,13 @@ def test_strategy_persists_gate_and_browser_artifacts(
     assert agreement_class.call_args.kwargs["client"] is agreement_provider
 
 
-@patch("adamast.generation.baseline.pipeline.create_provider")
-@patch("adamast.generation.baseline.pipeline.TaxonomyRefinerPipeline")
-@patch("adamast.generation.baseline.pipeline.LLMNomos")
-def test_strategy_never_marks_failed_gate_accepted(
-    draft_class, agreement_class, provider_factory, tmp_path: Path
+@patch("adamast.api.create_provider")
+@patch("adamast.api.TaxonomyRefinerPipeline")
+@patch("adamast.api.LLMNomos")
+def test_generate_never_marks_failed_gate_accepted(
+    draft_class, agreement_class, provider_factory, tmp_path: Path, monkeypatch
 ) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-only")
     traces = tmp_path / "traces.jsonl"
     traces.write_text(
         '{"trace_id":"one","raw_trajectory":"agent output"}\n',
@@ -136,15 +133,11 @@ def test_strategy_never_marks_failed_gate_accepted(
     agreement_instance.taxonomy = prepare_taxonomy_for_agreement(_draft_taxonomy())
     provider_factory.side_effect = [object(), object()]
 
-    result = BaselineStrategy().generate(
-        GenerationRequest(
-            traces=traces,
-            output=tmp_path / "run",
-            provider="openai",
-            model="test-model",
-        )
+    output = tmp_path / "run"
+    taxonomy = generate_taxonomy(
+        traces, output, provider="openai", model="test-model"
     )
 
-    assert result.status == "review_required"
-    taxonomy = json.loads(result.taxonomy_path.read_text(encoding="utf-8"))
     assert taxonomy["status"] == "review_required"
+    on_disk = json.loads((output / "taxonomy.json").read_text(encoding="utf-8"))
+    assert on_disk["status"] == "review_required"

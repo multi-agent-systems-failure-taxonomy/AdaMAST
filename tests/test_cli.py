@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import io
 import sys
-from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import patch
 
 from adamast.cli import build_parser, main
@@ -12,7 +10,6 @@ from adamast.cli import build_parser, main
 def test_generate_parser_exposes_provider_model_and_bedrock_options() -> None:
     args = build_parser().parse_args(
         [
-            "taxonomy",
             "generate",
             "--provider",
             "bedrock",
@@ -35,23 +32,14 @@ def test_generate_parser_exposes_provider_model_and_bedrock_options() -> None:
     assert args.aws_profile == "research"
 
 
-@patch("adamast.cli.BaselineStrategy")
+@patch("adamast.cli.generate_taxonomy")
 def test_cli_passes_provider_configuration_to_generation(
-    strategy_class,
-    monkeypatch,
+    generate,
 ) -> None:
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-only")
-    strategy_class.return_value.generate.return_value = SimpleNamespace(
-        status="accepted",
-        taxonomy_path=Path("taxonomy.json"),
-        manifest_path=Path("manifest.json"),
-        viewer_path=Path("taxonomy.html"),
-        accepted=True,
-    )
+    generate.return_value = {"status": "accepted"}
 
     exit_code = main(
         [
-            "taxonomy",
             "generate",
             "--provider",
             "anthropic",
@@ -67,10 +55,10 @@ def test_cli_passes_provider_configuration_to_generation(
     )
 
     assert exit_code == 0
-    request = strategy_class.return_value.generate.call_args.args[0]
-    assert request.provider == "anthropic"
-    assert request.model == "model-a"
-    assert request.options["max_output_tokens"] == 4096
+    kwargs = generate.call_args.kwargs
+    assert kwargs["provider"] == "anthropic"
+    assert kwargs["model"] == "model-a"
+    assert kwargs["max_output_tokens"] == 4096
 
 
 def test_cli_reports_missing_provider_credentials(
@@ -82,7 +70,6 @@ def test_cli_reports_missing_provider_credentials(
 
     exit_code = main(
         [
-            "taxonomy",
             "generate",
             "--provider",
             "google",
@@ -115,7 +102,7 @@ def test_main_forces_utf8_output_on_legacy_console(
         encoding="utf-8",
     )
 
-    exit_code = main(["traces", "validate", str(traces)])
+    exit_code = main(["validate", str(traces)])
 
     assert exit_code == 0
     assert legacy_out.encoding.lower() == "utf-8"
@@ -133,7 +120,6 @@ def test_cli_requires_explicit_provider(
 
     exit_code = main(
         [
-            "taxonomy",
             "generate",
             "--traces",
             "traces.jsonl",

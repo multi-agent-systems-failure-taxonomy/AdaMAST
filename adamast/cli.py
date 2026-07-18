@@ -1,4 +1,4 @@
-"""Command-line interface for AdaMAST."""
+"""Command-line interface for AdaMAST: ``adamast`` / ``python -m adamast``."""
 
 from __future__ import annotations
 
@@ -8,16 +8,9 @@ import os
 from pathlib import Path
 import sys
 
-from .generation import GenerationRequest
-from .generation.baseline import BaselineStrategy
-from .generation.providers import (
-    DEFAULT_MAX_OUTPUT_TOKENS,
-    SUPPORTED_PROVIDERS,
-    normalize_provider_name,
-    resolve_model,
-    validate_provider_credentials,
-)
-from .generation.traces import (
+from .api import generate_taxonomy
+from .providers import DEFAULT_MAX_OUTPUT_TOKENS, SUPPORTED_PROVIDERS
+from .traces import (
     TraceFormatError,
     load_trace_bundle,
     write_normalized_jsonl,
@@ -29,24 +22,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="adamast")
     commands = parser.add_subparsers(dest="command", required=True)
 
-    traces = commands.add_parser("traces", help="validate or normalize trace inputs")
-    trace_commands = traces.add_subparsers(dest="trace_command", required=True)
-    validate = trace_commands.add_parser("validate", help="validate accepted trace formats")
-    validate.add_argument("source", type=Path)
-    normalize = trace_commands.add_parser(
-        "normalize", help="write canonical AdaMAST JSONL"
+    generate = commands.add_parser(
+        "generate", help="generate an agreement-gated taxonomy from traces"
     )
-    normalize.add_argument("source", type=Path)
-    normalize.add_argument("--output", type=Path, required=True)
-
-    taxonomy = commands.add_parser("taxonomy", help="generate or view taxonomies")
-    taxonomy_commands = taxonomy.add_subparsers(
-        dest="taxonomy_command", required=True
-    )
-    generate = taxonomy_commands.add_parser(
-        "generate", help="run a named taxonomy-generation strategy"
-    )
-    generate.add_argument("--strategy", choices=["baseline"], default="baseline")
     generate.add_argument("--traces", type=Path, required=True)
     generate.add_argument("--output", type=Path, required=True)
     generate.add_argument(
@@ -85,7 +63,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="create and open the read-only taxonomy field guide",
     )
 
-    view = taxonomy_commands.add_parser(
+    validate = commands.add_parser(
+        "validate", help="validate accepted trace formats"
+    )
+    validate.add_argument("source", type=Path)
+
+    normalize = commands.add_parser(
+        "normalize", help="write canonical AdaMAST JSONL"
+    )
+    normalize.add_argument("source", type=Path)
+    normalize.add_argument("--output", type=Path, required=True)
+
+    view = commands.add_parser(
         "view", help="open one taxonomy as a read-only browser field guide"
     )
     view.add_argument("taxonomy", type=Path)
@@ -118,9 +107,17 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
-        if args.command == "traces":
-            return _run_traces(args)
-        if args.taxonomy_command == "view":
+        if args.command == "validate":
+            bundle = load_trace_bundle(args.source)
+            print(json.dumps(bundle.report(), indent=2, ensure_ascii=False))
+            return 0
+        if args.command == "normalize":
+            bundle = load_trace_bundle(args.source)
+            output = write_normalized_jsonl(bundle.traces, args.output)
+            print(f"Normalized {len(bundle.traces)} traces: {output}")
+            print(json.dumps(bundle.report(), indent=2, ensure_ascii=False))
+            return 0
+        if args.command == "view":
             path = render_taxonomy_html(
                 args.taxonomy,
                 manifest=args.manifest,
@@ -129,49 +126,35 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(f"AdaMAST taxonomy view: {path}")
             return 0
-        return _run_generation(args)
+        return _run_generate(args)
     except (TraceFormatError, ValueError, RuntimeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
 
-def _run_traces(args: argparse.Namespace) -> int:
-    bundle = load_trace_bundle(args.source)
-    if args.trace_command == "normalize":
-        output = write_normalized_jsonl(bundle.traces, args.output)
-        print(f"Normalized {len(bundle.traces)} traces: {output}")
-    print(json.dumps(bundle.report(), indent=2, ensure_ascii=False))
-    return 0
-
-
-def _run_generation(args: argparse.Namespace) -> int:
-    provider = normalize_provider_name(args.provider)
-    model = resolve_model(provider, args.model)
-    validate_provider_credentials(provider)
-    strategy = BaselineStrategy()
-    result = strategy.generate(
-        GenerationRequest(
-            traces=args.traces,
-            output=args.output,
-            provider=provider,
-            model=model,
-            open_viewer=args.view,
-            options={
-                "max_rounds": args.max_rounds,
-                "kappa_target": args.kappa_target,
-                "coverage_floor": args.coverage_floor,
-                "no_early_stop": args.no_early_stop,
-                "max_output_tokens": args.max_output_tokens,
-                "aws_region": args.aws_region,
-                "aws_profile": args.aws_profile,
-            },
-        )
+def _run_generate(args: argparse.Namespace) -> int:
+    output = Path(args.output)
+    taxonomy = generate_taxonomy(
+        args.traces,
+        output,
+        provider=args.provider,
+        model=args.model,
+        max_rounds=args.max_rounds,
+        kappa_target=args.kappa_target,
+        coverage_floor=args.coverage_floor,
+        no_early_stop=args.no_early_stop,
+        max_output_tokens=args.max_output_tokens,
+        aws_region=(args.aws_region or "").strip() or None,
+        aws_profile=(args.aws_profile or "").strip() or None,
+        open_viewer=args.view,
     )
-    print(f"BASELINE status: {result.status}")
-    print(f"Taxonomy: {result.taxonomy_path}")
-    print(f"Agreement manifest: {result.manifest_path}")
-    print(f"Browser view: {result.viewer_path}")
-    return 0 if result.accepted else 3
+    status = taxonomy["status"]
+    output = output.expanduser().resolve()
+    print(f"Status: {status}")
+    print(f"Taxonomy: {output / 'taxonomy.json'}")
+    print(f"Agreement manifest: {output / 'manifest.json'}")
+    print(f"Browser view: {output / 'taxonomy.html'}")
+    return 0 if status == "accepted" else 3
 
 
 if __name__ == "__main__":

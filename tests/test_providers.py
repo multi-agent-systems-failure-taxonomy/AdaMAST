@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from adamast.generation.baseline import agreement, draft
-from adamast.generation.providers import (
+from adamast.pipeline import agreement, draft
+from adamast.providers import (
     AnthropicProvider,
     BedrockProvider,
     GoogleProvider,

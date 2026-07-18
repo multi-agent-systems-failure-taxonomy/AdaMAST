@@ -39,7 +39,7 @@ jobs:
         run: python -m pytest
 
       - name: Validate documented traces
-        run: adamast traces validate examples/traces.jsonl
+        run: adamast validate examples/traces.jsonl
 
       - name: Build wheel
         run: python -m pip wheel . --no-deps --wheel-dir dist

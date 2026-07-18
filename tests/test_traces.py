@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from adamast.generation.traces import (
+from adamast.traces import (
     TraceFormatError,
     load_trace_bundle,
     load_traces,
