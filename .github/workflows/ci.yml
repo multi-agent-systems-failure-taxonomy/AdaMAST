@@ -1,0 +1,45 @@
+name: BASELINE
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - baseline
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+        python:
+          - "3.10"
+          - "3.12"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+
+      - name: Install
+        run: python -m pip install ".[dev,all]"
+
+      - name: Test
+        run: python -m pytest
+
+      - name: Validate documented traces
+        run: adamast validate examples/traces.jsonl
+
+      - name: Build wheel
+        run: python -m pip wheel . --no-deps --wheel-dir dist
