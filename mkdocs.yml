@@ -55,6 +55,9 @@ markdown_extensions:
 extra_css:
   - assets/stylesheets/extra.css
 
+extra:
+  generator: false
+
 # README.md is the GitHub file-view index; it would collide with index.md
 # in the built site.
 exclude_docs: |

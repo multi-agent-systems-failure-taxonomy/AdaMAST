@@ -163,6 +163,49 @@ pre {
   font-weight: 700;
 }
 
+/* Keep page-to-page navigation inside the documentation reading frame. */
+.md-footer {
+  margin-top: 0;
+  border-top: 1px solid var(--adamast-line);
+  color: var(--md-default-fg-color);
+  background: var(--md-default-bg-color);
+}
+
+.md-footer__inner {
+  min-height: 4.8rem;
+}
+
+.md-footer__link {
+  color: var(--adamast-muted);
+}
+
+.md-footer__link:hover,
+.md-footer__link:focus-visible {
+  color: var(--md-typeset-a-color);
+}
+
+.md-footer__direction {
+  color: var(--adamast-muted);
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.55rem;
+  font-weight: 650;
+  letter-spacing: 0.065em;
+  text-transform: uppercase;
+}
+
+.md-footer__title {
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
+.md-footer__button {
+  color: var(--adamast-muted);
+}
+
+.md-footer-meta {
+  display: none;
+}
+
 @media screen and (min-width: 76.25em) {
   .md-sidebar--primary {
     width: 16rem;
@@ -263,6 +306,21 @@ pre {
   .md-sidebar--secondary {
     display: none;
   }
+
+  .md-footer {
+    box-sizing: border-box;
+    width: calc(100% - 16rem);
+    margin-left: 16rem;
+    box-shadow: -16rem 0 0 var(--adamast-nav);
+  }
+
+  .md-footer__inner,
+  .md-footer-meta__inner {
+    max-width: 62rem;
+    margin: 0;
+    padding-right: 2.6rem;
+    padding-left: 2.4rem;
+  }
 }
 
 @media screen and (max-width: 76.234375em) {
@@ -302,6 +360,29 @@ pre {
   .md-typeset h2 {
     margin-top: 2.2rem;
     font-size: 1.24rem;
+  }
+
+  .md-footer__inner {
+    min-height: 4.25rem;
+    padding-right: 0.8rem;
+    padding-left: 0.8rem;
+  }
+
+  .md-footer__title {
+    font-size: 0.64rem;
+  }
+
+  .md-footer__link {
+    flex: 0 1 50%;
+    min-width: 0;
+  }
+
+  .md-footer__link--prev .md-footer__title {
+    display: block;
+  }
+
+  .md-footer__title {
+    min-width: 0;
   }
 }
 
