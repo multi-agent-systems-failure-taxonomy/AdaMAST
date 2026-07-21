@@ -1,152 +1,61 @@
----
-hide:
-  - navigation
-  - toc
----
+# AdaMAST documentation
 
-<div class="adamast-home" markdown="1">
+AdaMAST adds a failure-mode taxonomy layer to agent workflows. It records
+evidence from completed traces, supports taxonomy generation and refinement,
+and applies the active taxonomy at evaluation or runtime boundaries.
 
-<section class="adamast-intro" markdown="1">
+This documentation covers installation, the taxonomy lifecycle, supported
+integrations, and the operational interfaces used to inspect and maintain an
+AdaMAST deployment.
 
-<p class="adamast-eyebrow">Adaptive failure taxonomies</p>
+## Quickstart
 
-# AdaMAST
+- **[Installation](INSTALLATION.md)** — install AdaMAST and the optional
+  provider dependencies needed by your workflow.
+- **[AdaMAST 5-minute start](GETTING_STARTED.md)** — configure one project and
+  run the core session lifecycle.
+- **[Interactive setup](INTERACTIVE_SETUP.md)** — install AdaMAST for ordinary
+  Codex or Claude Code conversations.
+- **[Example run](EXAMPLE_RUN.md)** — follow a checkpoint, diagnosis, trace,
+  and taxonomy update from beginning to end.
 
-AdaMAST checks work, records failures, and learns a project vocabulary from
-completed traces.
+## Understand the taxonomy lifecycle
 
-<div class="adamast-actions">
-  <a class="adamast-action adamast-action--primary" href="INTERACTIVE_SETUP/">Install in Codex or Claude</a>
-  <a class="adamast-action" href="EXAMPLE_RUN/">See a complete run</a>
-  <a class="adamast-action" href="ARCHITECTURE/">View architecture</a>
-</div>
+- **[Concepts](CONCEPTS.md)** defines the vocabulary used throughout the
+  documentation.
+- **[Traces and learning](TRACES_AND_LEARNING.md)** explains what AdaMAST
+  records and when generation or refinement runs.
+- **[Taxonomies](TAXONOMIES.md)** documents taxonomy records, identifiers,
+  inheritance, and activation.
+- **[Native taxonomy learning](NATIVE_LEARNING.md)** describes generation and
+  refinement inside Codex and Claude Code.
+- **[Architecture](ARCHITECTURE.md)** shows which component owns each part of
+  the system.
 
-<div class="adamast-runtime-rail" aria-label="AdaMAST reflection sequence">
-  <span><b>Observe</b> concrete activity</span>
-  <span><b>Correlate</b> supported causes</span>
-  <span><b>Map</b> failure codes</span>
-  <span><b>Decide</b> continue or repair</span>
-</div>
+## Choose an integration
 
-</section>
-
-<section class="adamast-install" markdown="1">
-
-## Install where you work
-
-No `adamast.json`, external model API key, standalone host CLI, or second login
-is required for the interactive path.
-
-<div class="adamast-host-grid">
-
-<article class="adamast-host" markdown="1">
-
-### Codex
-
-Install once for every Codex task:
-
-```bash
-adamast-codex-install --user-level
-adamast-doctor --codex
-```
-
-[Codex guide ->](CODEX.md)
-
-</article>
-
-<article class="adamast-host" markdown="1">
-
-### Claude Code
-
-Install once for every Claude session:
-
-```bash
-adamast-claude-install --user-level
-adamast-doctor --claude-code
-```
-
-[Claude Code guide ->](CLAUDE_CODE.md)
-
-</article>
-
-<article class="adamast-host" markdown="1">
-
-### Your harness
-
-Wrap a direct call or use the runtime API:
-
-```python
-from adamast_runtime import start_session
-```
-
-[Integration guide ->](INTEGRATION.md)
-
-</article>
-
-</div>
-
-Install the package first:
-
-```bash
-python -m pip install --upgrade adamast
-```
-
-</section>
-
-<section class="adamast-flow" markdown="1">
-
-## From MAST to your taxonomy
-
-1. **Select.** A new conversation opens the local taxonomy library. Choose
-   MAST, a stored project taxonomy, or No taxonomy.
-2. **Work.** The main agent keeps owning the task. One completed assistant
-   episode becomes one canonical trace.
-3. **Learn.** At the default five-trace threshold, a native generator proposes
-   an evidence-grounded taxonomy while normal work continues.
-4. **Validate.** Foreground checks verify exact spans, then a separate native
-   support reviewer evaluates every replacement code before atomic activation.
-   The current taxonomy stays active on failure.
-
-<div class="adamast-note">
-When a project already has a learned taxonomy, choosing MAST creates an
-isolated <code>fresh-*</code> task group for that conversation. The shared
-project taxonomy remains unchanged.
-</div>
-
-[Read the native learning contract ->](NATIVE_LEARNING.md)
-
-</section>
-
-<section class="adamast-proof" markdown="1">
-
-## Inspect what AdaMAST recorded
-
-The local dashboard shows fired codes, clean checkpoints, affected task IDs,
-and evidence without changing the taxonomy record.
-
-![AdaMAST runtime dashboard showing taxonomy evidence](assets/screenshots/dashboard-demo.png)
-
-<div class="adamast-proof-links">
-  <a href="EXAMPLE_RUN/">Walk through this example</a>
-  <a href="DASHBOARD/">Run the dashboard locally</a>
-  <a href="TAXONOMIES/">Inspect taxonomy records</a>
-</div>
-
-</section>
-
-<section class="adamast-start" markdown="1">
-
-## Continue from here
-
-| You want to... | Read... |
+| Use case | Guide |
 |---|---|
-| understand the vocabulary and runtime loop | [Concepts](CONCEPTS.md) |
-| see which package owns each behavior | [Architecture](ARCHITECTURE.md) |
-| configure one repository | [Getting started](GETTING_STARTED.md) |
-| change thresholds or providers | [Configuration reference](CONFIGURATION.md) |
-| diagnose a queued worker or missing hook | [Troubleshooting](TROUBLESHOOTING.md) |
-| review the research and evaluation artifacts | [Paper](https://arxiv.org/abs/2607.16387) and [example results](EXAMPLE_RUN.md) |
+| Use AdaMAST in Codex | [Codex integration](CODEX.md) |
+| Use AdaMAST in Claude Code | [Claude Code integration](CLAUDE_CODE.md) |
+| Wrap a script, notebook, benchmark, or model call | [Single-LLM integration](SINGLE_LLM.md) |
+| Add AdaMAST to a custom agent harness | [Runtime API and custom harnesses](API_OR_RUNTIME.md) |
+| Own the complete pipeline lifecycle | [Pipeline integration](INTEGRATION.md) |
 
-</section>
+## Operate and extend AdaMAST
 
-</div>
+- **[Configuration reference](CONFIGURATION.md)** lists every supported
+  `adamast.json` field, default, and precedence rule.
+- **[Dashboard](DASHBOARD.md)** explains the local taxonomy and trace viewer.
+- **[Local web API](WEB_API.md)** documents the read-only monitoring endpoints.
+- **[Troubleshooting](TROUBLESHOOTING.md)** starts with health checks and common
+  recovery steps.
+- **[Compatibility](COMPATIBILITY.md)** records supported hosts and current
+  limits.
+- **[Customization](CUSTOMIZATION.md)** points to the prompts, hooks, judges,
+  schemas, and model profiles intended for extension.
+
+## Research
+
+The AdaMAST method and evaluation are described in
+[Fantastic Adaptive Taxonomies and How to Use Them](https://arxiv.org/abs/2607.16387).

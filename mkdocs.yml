@@ -30,6 +30,7 @@ theme:
         name: Switch to light mode
   features:
     - navigation.sections
+    - navigation.expand
     - navigation.top
     - navigation.footer
     - toc.follow
@@ -57,7 +58,7 @@ exclude_docs: |
   README.md
 
 nav:
-  - Home: index.md
+  - Documentation: index.md
   - Start:
       - Install in Codex or Claude: INTERACTIVE_SETUP.md
       - Five-minute project setup: GETTING_STARTED.md
