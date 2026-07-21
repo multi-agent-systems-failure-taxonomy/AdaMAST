@@ -9,6 +9,7 @@ description = "Adaptive failure-mode taxonomy generation and integration"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+  "openai>=2,<3",
 ]
 
 [project.optional-dependencies]

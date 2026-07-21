@@ -7,7 +7,7 @@ The prompts and output validation stay the same when the provider changes.
 
 | Provider flag | Install extra | Credential environment | Model environment |
 | --- | --- | --- | --- |
-| `openai` | `[openai]` | `OPENAI_API_KEY` | `OPENAI_MODEL` |
+| `openai` | Included with `pip install adamast` | `OPENAI_API_KEY` | `OPENAI_MODEL` |
 | `anthropic` | `[anthropic]` | `ANTHROPIC_API_KEY` | `ANTHROPIC_MODEL` |
 | `google` | `[google]` | `GEMINI_API_KEY` or `GOOGLE_API_KEY` | `GEMINI_MODEL` or `GOOGLE_MODEL` |
 | `bedrock` | `[bedrock]` | AWS bearer token or normal AWS credential chain | `BEDROCK_MODEL_ID` |
@@ -19,7 +19,7 @@ environment variable.
 ## OpenAI
 
 ```bash
-python -m pip install -e ".[openai]"
+pip install adamast
 export OPENAI_API_KEY="..."
 
 adamast generate \
@@ -35,7 +35,7 @@ If neither `--model` nor `OPENAI_MODEL` is set, the current package defaults to
 ## Anthropic
 
 ```bash
-python -m pip install -e ".[anthropic]"
+pip install "adamast[anthropic]"
 export ANTHROPIC_API_KEY="..."
 export ANTHROPIC_MODEL="YOUR_MODEL_ID"
 
@@ -48,7 +48,7 @@ adamast generate \
 ## Google
 
 ```bash
-python -m pip install -e ".[google]"
+pip install "adamast[google]"
 export GEMINI_API_KEY="..."
 export GEMINI_MODEL="YOUR_MODEL_ID"
 
@@ -63,7 +63,7 @@ adamast generate \
 ## AWS Bedrock
 
 ```bash
-python -m pip install -e ".[bedrock]"
+pip install "adamast[bedrock]"
 export AWS_REGION="us-east-1"
 export BEDROCK_MODEL_ID="YOUR_BEDROCK_MODEL_ID"
 

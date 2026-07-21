@@ -7,37 +7,42 @@ repeatable environments.
 ## Requirements
 
 - Python 3.10 or newer
-- `pip` with editable-install support
+- `pip`
 - a writable output directory
 - model-provider credentials for generation and model-backed judging
 
-## Install from the public repository
+## Standard installation
 
 ```bash
-git clone https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST.git
-cd AdaMAST
-python -m pip install -e ".[all]"
+pip install adamast
 ```
 
-## Install one provider only
+This includes the OpenAI adapter and is the installation path used throughout
+the quick start.
+
+## Install another provider
 
 ```bash
-python -m pip install -e ".[openai]"
-python -m pip install -e ".[anthropic]"
-python -m pip install -e ".[google]"
-python -m pip install -e ".[bedrock]"
+pip install "adamast[anthropic]"
+pip install "adamast[google]"
+pip install "adamast[bedrock]"
 ```
 
 Install only one of these commands unless the environment needs multiple
 provider SDKs.
 
-## Development install
+## Source and development installation
 
 ```bash
-python -m pip install -e ".[all,dev,docs]"
+git clone https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST.git
+cd AdaMAST
+pip install -e ".[all,dev,docs]"
 pytest
 python -m mkdocs build --strict
 ```
+
+The editable installation is for contributors working from a checkout. It is
+not required to use AdaMAST.
 
 ## Verify core commands
 

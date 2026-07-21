@@ -22,12 +22,15 @@ What makes AdaMAST different is the **agreement gate**: after drafting, four ann
 **1. Install**
 
 ```bash
-git clone https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST.git
-cd AdaMAST
-pip install -e ".[all]"          # or a single provider: ".[openai]", ".[bedrock]", ...
+pip install adamast
 ```
 
-**2. Set a provider credential** (any one of these works)
+The standard installation includes the OpenAI adapter used below. Install a
+different provider only when you need it; see
+[Providers and models](docs/PROVIDERS.md).
+
+**2. Set a provider credential** (OpenAI works with the standard install;
+the others use the optional installs linked above)
 
 ```bash
 export OPENAI_API_KEY=sk-...                 # OpenAI

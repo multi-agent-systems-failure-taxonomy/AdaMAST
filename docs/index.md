@@ -17,23 +17,16 @@ to generate a taxonomy or judge a trace.
 - credentials for one supported model provider when running generation or a
   model-backed judge
 
-### Install the current public package
+### Install from PyPI
 
 ```bash
-git clone https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST.git
-cd AdaMAST
-python -m pip install -e ".[all]"
+pip install adamast
 ```
 
-`[all]` installs the OpenAI, Anthropic, Google, and AWS Bedrock adapters. To
-install only one adapter, replace it with `[openai]`, `[anthropic]`, `[google]`,
-or `[bedrock]`.
-
-For documentation development, include the docs dependency:
-
-```bash
-python -m pip install -e ".[all,docs]"
-```
+The standard installation includes the OpenAI adapter used in the first
+example. Anthropic, Google, and AWS Bedrock are optional provider installs;
+see [Providers and models](PROVIDERS.md). Source and contributor installations
+are kept in the [installation reference](INSTALLATION.md).
 
 ### Verify the installation
 
