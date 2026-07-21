@@ -33,9 +33,19 @@ all = [
 dev = [
   "pytest>=8,<9",
 ]
+docs = [
+  "mkdocs-material>=9.5",
+]
 
 [project.scripts]
 adamast = "adamast.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST"
+Documentation = "https://multi-agent-systems-failure-taxonomy.github.io/ADAMAST/docs/"
+Repository = "https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST"
+Issues = "https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/issues"
+Paper = "https://arxiv.org/abs/2607.16387"
 
 [tool.setuptools]
 include-package-data = true

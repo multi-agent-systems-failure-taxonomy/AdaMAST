@@ -1,5 +1,8 @@
 # AdaMAST
 
+[![Paper](https://img.shields.io/badge/paper-arXiv-B31B1B?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2607.16387)
+[![Docs](https://img.shields.io/badge/docs-website-2457D6)](https://multi-agent-systems-failure-taxonomy.github.io/ADAMAST/docs/)
+
 **AdaMAST** generates a structured failure taxonomy from a set of agent traces — and only calls it done when four independent LLM annotators can actually agree on how to apply it. Its separate **JUDGES** layer can then apply that taxonomy to new traces without coupling it to a benchmark or agent harness.
 
 Give it traces from any agent system, get back a JSON taxonomy with three categories:

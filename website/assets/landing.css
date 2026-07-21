@@ -1,0 +1,327 @@
+:root {
+  color-scheme: light;
+  --ink: #17233d;
+  --paper: #f5f7fb;
+  --surface: #ffffff;
+  --cobalt: #2d5bce;
+  --mint: #1f8a70;
+  --coral: #d9574e;
+  --graphite: #526078;
+  --line: #ccd5e6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--paper);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--ink);
+  background:
+    linear-gradient(rgba(45, 91, 206, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45, 91, 206, 0.045) 1px, transparent 1px),
+    var(--paper);
+  background-size: 48px 48px;
+  font-family: "Aptos", "Segoe UI", Arial, sans-serif;
+}
+
+a {
+  color: inherit;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 10;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  color: #ffffff;
+  background: var(--ink);
+  transform: translateY(-180%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.site-header {
+  display: flex;
+  width: min(100% - 3rem, 1160px);
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 auto;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 1.05rem;
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  text-decoration: none;
+}
+
+.wordmark__mark {
+  width: 2rem;
+  height: 2rem;
+  overflow: visible;
+}
+
+.wordmark__mark path {
+  fill: none;
+  stroke: var(--cobalt);
+  stroke-linecap: square;
+  stroke-width: 2;
+}
+
+.wordmark__mark circle {
+  fill: var(--surface);
+  stroke: var(--cobalt);
+  stroke-width: 2;
+}
+
+.build-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--graphite);
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.build-status__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--coral);
+  box-shadow: 0 0 0 5px rgba(217, 87, 78, 0.12);
+  animation: status-pulse 2.8s ease-in-out infinite;
+}
+
+.landing {
+  position: relative;
+  display: grid;
+  width: min(100% - 3rem, 1160px);
+  min-height: calc(100vh - 82px);
+  align-items: center;
+  margin: 0 auto;
+  padding: clamp(4rem, 11vh, 8rem) 0 7rem;
+  grid-template-columns: minmax(160px, 0.7fr) minmax(0, 1.5fr);
+  gap: clamp(2.5rem, 8vw, 7rem);
+}
+
+.landing__content {
+  max-width: 720px;
+}
+
+.eyebrow {
+  margin: 0 0 1rem;
+  color: var(--mint);
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 700px;
+  margin: 0;
+  font-family: "Aptos Display", "Segoe UI", Arial, sans-serif;
+  font-size: clamp(3.5rem, 8vw, 7.8rem);
+  font-weight: 750;
+  letter-spacing: -0.065em;
+  line-height: 0.9;
+}
+
+.lede {
+  max-width: 570px;
+  margin: 2rem 0 2.25rem;
+  color: var(--graphite);
+  font-size: clamp(1rem, 1.7vw, 1.22rem);
+  line-height: 1.65;
+}
+
+.docs-link {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  gap: 1.4rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ink);
+  color: #ffffff;
+  background: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 150ms ease, background 150ms ease, gap 150ms ease;
+}
+
+.docs-link:hover {
+  gap: 1.8rem;
+  color: var(--ink);
+  background: transparent;
+}
+
+.docs-link:focus-visible,
+.wordmark:focus-visible {
+  outline: 3px solid rgba(45, 91, 206, 0.45);
+  outline-offset: 4px;
+}
+
+.taxonomy-path {
+  position: relative;
+  width: min(100%, 300px);
+  aspect-ratio: 1;
+}
+
+.taxonomy-path::before,
+.taxonomy-path::after,
+.taxonomy-path__line {
+  position: absolute;
+  height: 2px;
+  background: var(--cobalt);
+  content: "";
+  transform-origin: left center;
+}
+
+.taxonomy-path__line {
+  top: 50%;
+  left: 0;
+  width: 48%;
+}
+
+.taxonomy-path::before {
+  top: 50%;
+  left: 48%;
+  width: 46%;
+  transform: rotate(-34deg);
+}
+
+.taxonomy-path::after {
+  top: 50%;
+  left: 48%;
+  width: 46%;
+  transform: rotate(34deg);
+}
+
+.taxonomy-path__node {
+  position: absolute;
+  z-index: 1;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 3px solid var(--cobalt);
+  border-radius: 50%;
+  background: var(--paper);
+  transform: translate(-50%, -50%);
+}
+
+.taxonomy-path__node--origin {
+  top: 50%;
+  left: 0;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-color: var(--mint);
+}
+
+.taxonomy-path__node--upper {
+  top: 24%;
+  left: 87%;
+}
+
+.taxonomy-path__node--lower {
+  top: 76%;
+  left: 87%;
+  border-color: var(--coral);
+}
+
+.runtime-sequence {
+  position: absolute;
+  right: 0;
+  bottom: 2rem;
+  left: 0;
+  display: grid;
+  margin: 0;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--line);
+}
+
+.runtime-sequence span {
+  padding-top: 0.75rem;
+  color: var(--graphite);
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.runtime-sequence span + span {
+  padding-left: 1rem;
+  border-left: 1px solid var(--line);
+}
+
+@keyframes status-pulse {
+  50% {
+    box-shadow: 0 0 0 8px rgba(217, 87, 78, 0.02);
+  }
+}
+
+@media (max-width: 760px) {
+  .site-header,
+  .landing {
+    width: min(100% - 2rem, 1160px);
+  }
+
+  .build-status {
+    font-size: 0;
+  }
+
+  .landing {
+    min-height: calc(100vh - 82px);
+    align-content: start;
+    padding-top: 3.5rem;
+    grid-template-columns: 1fr;
+    gap: 2.75rem;
+  }
+
+  .taxonomy-path {
+    width: 150px;
+  }
+
+  h1 {
+    font-size: clamp(3.4rem, 18vw, 5.2rem);
+  }
+
+  .runtime-sequence {
+    position: static;
+    grid-column: 1;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .runtime-sequence span {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

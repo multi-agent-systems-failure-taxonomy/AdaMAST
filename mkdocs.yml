@@ -1,0 +1,86 @@
+site_name: AdaMAST
+site_description: >-
+  Failure-mode taxonomies for LLM agents: runtime reflection gates,
+  trace capture, and taxonomy learning from traces.
+site_url: https://multi-agent-systems-failure-taxonomy.github.io/ADAMAST/docs/
+site_dir: site/docs
+repo_url: https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST
+repo_name: AdaMAST
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  font: false
+  icon:
+    logo: material/radar
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - md_in_html
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+# README.md is the GitHub file-view index; it would collide with index.md
+# in the built site.
+exclude_docs: |
+  README.md
+
+nav:
+  - Home: index.md
+  - Start:
+      - Install in Codex or Claude: INTERACTIVE_SETUP.md
+      - Five-minute project setup: GETTING_STARTED.md
+      - See a complete run: EXAMPLE_RUN.md
+      - Install the package: INSTALLATION.md
+  - Understand:
+      - Concepts: CONCEPTS.md
+      - Architecture: ARCHITECTURE.md
+      - Native taxonomy learning: NATIVE_LEARNING.md
+      - Traces and learning: TRACES_AND_LEARNING.md
+      - Taxonomies: TAXONOMIES.md
+  - Integrations:
+      - Claude Code: CLAUDE_CODE.md
+      - Codex: CODEX.md
+      - Single LLM: SINGLE_LLM.md
+      - Runtime API: API_OR_RUNTIME.md
+      - Pipeline integration: INTEGRATION.md
+  - Operate:
+      - Dashboard: DASHBOARD.md
+      - Web API: WEB_API.md
+      - Configuration reference: CONFIGURATION.md
+      - Troubleshooting: TROUBLESHOOTING.md
+  - Reference:
+      - Compatibility: COMPATIBILITY.md
+      - Customization: CUSTOMIZATION.md
+      - Interactive runtime design: INTERACTIVE_CONVERSATIONS_RFC.md
