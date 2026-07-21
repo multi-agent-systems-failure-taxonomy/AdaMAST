@@ -2,9 +2,9 @@
 
 This folder contains the detailed AdaMAST reference. The documentation site is
 published at
-[multi-agent-systems-failure-taxonomy.github.io/ADAMAST/docs](https://multi-agent-systems-failure-taxonomy.github.io/ADAMAST/docs/).
+[multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/).
 
-The project root at `/ADAMAST/` is a separate placeholder sourced from
+The project root at `/AdaMAST/` is a separate placeholder sourced from
 [`website/`](../website/). The complete Pages tree is assembled by
 [`scripts/build_site.py`](../scripts/build_site.py), then deployed by the public
 [`docs` workflow](../.github/workflows/docs.yml). The docs home is

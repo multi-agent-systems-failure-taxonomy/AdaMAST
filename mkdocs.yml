@@ -2,7 +2,7 @@ site_name: AdaMAST
 site_description: >-
   Failure-mode taxonomies for LLM agents: runtime reflection gates,
   trace capture, and taxonomy learning from traces.
-site_url: https://multi-agent-systems-failure-taxonomy.github.io/ADAMAST/docs/
+site_url: https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/
 site_dir: site/docs
 repo_url: https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST
 repo_name: AdaMAST
