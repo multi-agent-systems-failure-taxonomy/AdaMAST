@@ -206,6 +206,14 @@ pre {
   display: none;
 }
 
+/* A quiet end cap closes the page below both navigation columns. */
+.md-footer::after {
+  display: block;
+  height: 0.55rem;
+  background: #0c1015;
+  content: "";
+}
+
 @media screen and (min-width: 76.25em) {
   .md-sidebar--primary {
     width: 16rem;
@@ -285,14 +293,22 @@ pre {
   }
 
   .md-sidebar--primary .md-nav__link--active::before {
-    width: 0.36rem;
-    height: 0.36rem;
-    flex: 0 0 0.36rem;
-    border: 2px solid var(--adamast-mint);
-    border-radius: 50%;
-    margin-left: -0.7rem;
-    background: var(--adamast-nav);
-    content: "";
+    content: none;
+  }
+
+  /* Highlight the section currently in view without displacing its label. */
+  .md-sidebar--primary
+    .md-nav
+    .md-nav
+    .md-nav
+    .md-nav__link--active[href^="#"] {
+    width: fit-content;
+    margin-left: -0.4rem;
+    padding: 0.12rem 0.4rem;
+    border-radius: 2px;
+    color: #edfffb;
+    background: rgba(98, 201, 180, 0.14);
+    font-weight: 650;
   }
 
   .md-content {
@@ -320,6 +336,11 @@ pre {
     margin: 0;
     padding-right: 2.6rem;
     padding-left: 2.4rem;
+  }
+
+  .md-footer::after {
+    width: calc(100% + 16rem);
+    margin-left: -16rem;
   }
 }
 

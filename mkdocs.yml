@@ -53,7 +53,7 @@ markdown_extensions:
   - md_in_html
 
 extra_css:
-  - assets/stylesheets/extra.css
+  - assets/stylesheets/extra.css?v=20260721-1
 
 extra:
   generator: false
