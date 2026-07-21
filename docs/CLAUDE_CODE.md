@@ -5,6 +5,10 @@ session start, user-prompt submission, checkpoints, and final submission. It
 supports both project-local operation and a user-level interactive mode shared
 with Codex.
 
+This page assumes the general AdaMAST package is already installed from the
+[documentation home](index.md#install-adamast). Everything below is specific to
+Claude Code.
+
 ## Install for every Claude Code conversation
 
 ```powershell
@@ -169,4 +173,4 @@ This removes AdaMAST hook config from the project. It does not delete learned ta
 
 ## More implementation detail
 
-See [adamast_integration/claude_code/README.md](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/blob/main/adamast_integration/claude_code/README.md) for the adapter file map.
+See [adamast_integration/claude_code/README.md](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/blob/main/adamast_integration/claude_code/README.md) for the adapter file map.

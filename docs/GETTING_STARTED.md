@@ -1,48 +1,29 @@
-# AdaMAST 5-minute start
+# Adaptive runtime overview
 
-This page covers explicit project-local and pipeline integration. For the
-shortest user-level Codex or Claude Code path, use
-[Interactive setup](INTERACTIVE_SETUP.md).
+Use the adaptive runtime when AdaMAST must do more than process a fixed trace
+dataset. A runtime integration keeps a taxonomy active during tasks, records
+completed traces, and starts generation or refinement as new evidence
+accumulates.
 
-If you want the full reference, start from the [documentation home](index.md).
+Complete the standalone [Foundation](BASELINE_GENERATION.md) and
+[Evaluation](JUDGING.md) guides first if you only need a fixed taxonomy and a
+judge.
 
-## 1. Install
+## What changes at runtime
 
-From GitHub:
+| Standalone workflow | Adaptive runtime |
+| --- | --- |
+| You provide a finished trace dataset | The integration records one canonical trace per completed task or episode |
+| Generation runs when you invoke it | Generation/refinement runs when configured trace thresholds are reached |
+| `taxonomy.json` is a file you select | A program tracks its active taxonomy and successor lineage |
+| Judging is a separate batch call | Checkpoints and the final gate can apply taxonomy guidance during work |
+| No persistent counters | Pending traces, generation state, and refinement counters persist |
 
-```bash
-python -m pip install adamast
-```
+## Install and configure
 
-From a local checkout:
-
-```bash
-cd /path/to/AdaMAST
-python -m pip install .
-```
-
-Optional Anthropic SDK support:
-
-```bash
-python -m pip install "adamast[anthropic]"
-```
-
-Optional AWS Bedrock bearer-token support:
-
-```bash
-python -m pip install "adamast[bedrock]"
-```
-
-For Bedrock, set `AWS_BEARER_TOKEN_BEDROCK` and `AWS_REGION` /
-`AWS_DEFAULT_REGION` in your shell. AdaMAST uses boto3's Bedrock Converse API
-for this credential form.
-
-AdaMAST never stores credential values. Set provider keys in your environment
-instead.
-
-## 2. Create one config file
-
-Create `adamast.json` in your project:
+Install the package as described on the
+[documentation home](index.md#install-adamast), then create `adamast.json` in
+the project using the runtime:
 
 ```json
 {
@@ -52,179 +33,124 @@ Create `adamast.json` in your project:
 }
 ```
 
-Use `adamast_model` for AdaMAST generation, judge, and refinement calls. If your
-own program has a task-solving model, keep that separate.
+`trace_output` identifies one learning stream. Reusing it means the active
+taxonomy, pending traces, and counters are shared. Use a different path when
+two task streams must learn independently.
 
-Relative paths are resolved relative to the config file. Every other field has
-a sensible default; the full reference is [CONFIGURATION.md](CONFIGURATION.md).
+`adamast_model` is the model used for generation, judging, and refinement. It
+is separate from the model used by the task-solving agent.
 
-## 3. Check the install
+## Verify runtime configuration
 
 ```bash
 adamast-doctor --config adamast.json
 ```
 
-For Claude Code projects:
+Relative paths are resolved from the config file. Unknown fields fail loudly.
+See the [configuration reference](CONFIGURATION.md) for every threshold,
+storage path, learning mode, and gate option.
 
-```bash
-adamast-doctor --config adamast.json --claude-code
+## Choose an integration surface
+
+### Single model call or batch program
+
+Use the [single-LLM integration](SINGLE_LLM.md) when a script, notebook,
+benchmark runner, or batch job owns the model call and can define task
+boundaries explicitly.
+
+### Custom agent harness
+
+Use the [custom harness guide](INTEGRATION.md) when an application owns agent
+events, tool boundaries, and transcript capture. The harness calls the runtime
+API at session start, meaningful checkpoints, final submission, and trace
+commit.
+
+### Codex or Claude Code
+
+Use a host installer only after choosing the runtime behavior you want. The
+[Codex](CODEX.md) and [Claude Code](CLAUDE_CODE.md) guides cover only their
+host-specific hooks, selector behavior, event contracts, and uninstall steps.
+
+## Minimal runtime lifecycle
+
+```python
+from adamast_runtime import (
+    GenerationTrace,
+    end_session,
+    pre_submission,
+    record_trace,
+    start_session,
+)
+
+session = start_session(
+    trace_output="./adamast-program",
+    adamast_model="gpt-5",
+)
+
+# Deliver session.delivery.runtime_protocol at task start.
+# Invoke checkpoint handling at boundaries owned by your harness.
+
+decision = pre_submission(session, gate_text)
+if not decision.allow:
+    # Ask the agent to repair or re-emit the required gate response.
+    pass
+
+record_trace(
+    session,
+    GenerationTrace(
+        problem_id="task-17",
+        task="original task",
+        raw_trajectory="complete redacted trajectory",
+        metadata={"harness": "my-pipeline"},
+    ),
+)
+
+result = end_session(session)
 ```
 
-For Codex projects:
+`end_session()` checks learning thresholds. It may start generation when MAST
+is active or refinement when a stored taxonomy is active.
 
-```bash
-adamast-doctor --config adamast.json --codex
-```
+## Default learning cadence
 
-Warnings usually mean "AdaMAST can run, but a useful optional capability may be
-missing." Errors mean the requested setup is not ready.
+| Transition | Default threshold |
+| --- | ---: |
+| MAST warm-up to first generated taxonomy | `generation_threshold = 5` traces |
+| First refinement after activation | `k_init = 10` new traces |
+| Later refinement reviews | `k = 20` new traces |
 
-## 4A. Use AdaMAST with Claude Code
+The active taxonomy remains stable while a worker runs. A generated or refined
+candidate must pass its configured validation before activation. Rejected
+candidates preserve their input traces for later review.
 
-For every Claude Code project with native in-session learning, the shorter path
-is `adamast-claude-install --user-level`. The command below is the explicit,
-project-local provider-backed path.
+## Taxonomy selection
 
-Install project-local hooks:
+| Input | Runtime behavior |
+| --- | --- |
+| no inherit value | Start from built-in MAST |
+| explicit `taxonomy_id` | Start from that stored taxonomy |
+| explicit picker request | Open the local taxonomy selector |
+| `No taxonomy` in an interactive host | Disable AdaMAST for that conversation |
 
-```bash
-adamast-claude-install --project-dir . --config adamast.json
-```
+Repository and domain fields are display metadata; they never route taxonomy
+selection.
 
-Start Claude Code in that project. AdaMAST will:
+## Privacy boundary
 
-1. start with inherited taxonomy if configured, otherwise built-in MAST;
-2. deliver checkpoint instructions at configured hook boundaries;
-3. require the final submission gate before completion;
-4. record one canonical trace for each completed assistant episode;
-5. trigger generation/refinement when configured thresholds are reached.
+The runtime stores traces and can send trace excerpts to the configured
+AdaMAST model. Redact credentials, cookies, private data, sensitive paths, and
+benchmark oracle information before calling `record_trace()`.
 
-Useful hook customization examples:
+Bundled adapters include conservative redaction, but a custom harness remains
+responsible for domain-specific secrets.
 
-```bash
-# Do not fire the built-in subagent checkpoint.
-adamast-claude-install --project-dir . --config adamast.json --disable-hook SubagentStop
+## Continue by responsibility
 
-# Only nudge after selected successful tool calls.
-adamast-claude-install --project-dir . --config adamast.json --post-tool-use-matchers Bash,Edit,Write
-
-# Add a custom blocking gate before Bash calls.
-adamast-claude-add-hook --project-dir . --name pre-bash --event PreToolUse --matcher Bash --mode blocking
-```
-
-List installed custom hooks:
-
-```bash
-adamast-claude-list-hooks --project-dir .
-```
-
-Remove AdaMAST hooks without deleting learned traces or taxonomies:
-
-```bash
-adamast-claude-uninstall --project-dir .
-```
-
-## 4B. Use AdaMAST with Codex hooks
-
-For every Codex project with native in-task learning, the shorter path is
-`adamast-codex-install --user-level`. The command below is the explicit,
-project-local provider-backed path.
-
-Install project-local Codex hooks:
-
-```bash
-adamast-codex-install --project-dir . --config adamast.json
-```
-
-This writes `.codex/hooks.json` and `.codex/adamast.json`. Open `/hooks`
-inside Codex and trust the AdaMAST hooks before relying on them.
-
-Default Codex events:
-
-1. `SessionStart`: recover standing AdaMAST context for a selected conversation.
-2. `UserPromptSubmit`: open the taxonomy library for a new conversation and handle episode boundaries.
-3. `Stop`: capture the compact final checkpoint and commit the episode once.
-4. `SubagentStop`: capture a checkpoint when present without blocking.
-5. `PostToolUse`: poll durable AdaMAST state after supported successful tools.
-
-Routine polls remain silent apart from Codex's transient hook status. The
-managed skill tells the agent to show one compact checkpoint after an actual
-tool failure. Generation/refinement state changes appear once through the next
-`SessionStart` or `UserPromptSubmit`; ordinary successful hooks do not add
-assistant messages to the conversation.
-
-Optional skill guidance:
-
-```bash
-adamast-codex-install --project-dir . --config adamast.json --install-skill
-```
-
-Remove it with:
-
-```bash
-adamast-codex-uninstall --project-dir .
-```
-
-## 4C. Use AdaMAST around one LLM call
-
-This path is for scripts, notebooks, benchmarks, or any application where you
-own the model call.
-
-```bash
-adamast-single-run \
-  --config adamast.json \
-  --task "Solve the task, then pass through AdaMAST before final answer." \
-  --model gpt-5
-```
-
-The `--model` flag is the task-solving model. `adamast_model` in `adamast.json` is
-still the AdaMAST judge/generation/refinement model.
-
-## 5. Watch the dashboard
-
-If `dashboard` is true, integrations can launch the dashboard automatically.
-To open it manually:
-
-```bash
-adamast-dashboard \
-  --trace-output ./adamast-program \
-  --store-dir ~/.adamast/taxonomies
-```
-
-The dashboard is read-only and binds to localhost by default.
-
-## 6. Verify data is being written
-
-After a run, inspect trace state:
-
-```bash
-adamast-traces status --config adamast.json
-```
-
-List stored taxonomies:
-
-```bash
-adamast-find --list
-```
-
-If `--inherit` is omitted, the run starts with built-in MAST. MAST is not stored
-as a picker record. Generated/refined taxonomies become stored records only
-after acceptance.
-
-## 7. Common first-run choices
-
-The fields most people touch first:
-
-| Choice | Default | When to change it |
-|---|---:|---|
-| `generation_threshold` | `5` | Raise it if early traces are noisy or not representative. |
-| `freeze` | `false` | Turn on for inference-only evaluation: record traces/evidence, but skip generation and refinement. |
-| `repair_rounds` | `3` | Final-gate repair opportunities before honest unresolved release (`max_retries` is the legacy alias). |
-
-Every field, with defaults and semantics, is in
-[CONFIGURATION.md](CONFIGURATION.md).
-
-## 8. Where to customize
-
-Most user-facing behavior is now in Markdown or JSON assets. Start with
-[`CUSTOMIZATION.md`](CUSTOMIZATION.md) before editing Python.
+- [Traces and learning](TRACES_AND_LEARNING.md): generation/refinement timing,
+  counters, freeze mode, retention, and evidence exports.
+- [Taxonomy lifecycle](TAXONOMIES.md): records, IDs, inheritance, activation,
+  and lineage.
+- [Custom agent harness](INTEGRATION.md): complete ownership boundary and call
+  sequence.
+- [Native taxonomy learning](NATIVE_LEARNING.md): native Codex/Claude worker
+  protocol.

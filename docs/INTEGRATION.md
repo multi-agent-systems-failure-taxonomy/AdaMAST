@@ -6,8 +6,8 @@ trace capture, generation, refinement, and lineage.
 
 If you only want a ready-made integration, start with:
 
-- Claude Code: [`adamast_integration/claude_code/`](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/blob/main/adamast_integration/claude_code/)
-- Single LLM call: [`adamast_integration/single_llm/`](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/blob/main/adamast_integration/single_llm/)
+- Claude Code: [`adamast_integration/claude_code/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/blob/main/adamast_integration/claude_code/)
+- Single LLM call: [`adamast_integration/single_llm/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/blob/main/adamast_integration/single_llm/)
 
 ## The boundary
 

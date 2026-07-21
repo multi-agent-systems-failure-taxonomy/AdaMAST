@@ -1,34 +1,37 @@
 :root {
-  --adamast-ink: #17233d;
-  --adamast-nav: #222b3b;
-  --adamast-nav-muted: #c7d0de;
+  --adamast-ink: #1f2937;
+  --adamast-nav: #242a33;
+  --adamast-nav-deep: #1d222a;
+  --adamast-nav-text: #d8dee8;
+  --adamast-nav-muted: #9faaba;
   --adamast-paper: #ffffff;
-  --adamast-cobalt: #2f78a7;
-  --adamast-mint: #56c7b2;
-  --adamast-graphite: #526078;
-  --adamast-line: #dce2eb;
+  --adamast-blue: #2d7eb1;
+  --adamast-cyan: #5db7d9;
+  --adamast-mint: #62c9b4;
+  --adamast-muted: #5c6879;
+  --adamast-line: #e1e5ea;
+  --adamast-surface: #f6f7f9;
+  --adamast-code: #f1f3f6;
   --md-primary-fg-color: var(--adamast-ink);
-  --md-primary-fg-color--light: #314262;
-  --md-primary-fg-color--dark: #10192c;
-  --md-accent-fg-color: var(--adamast-cobalt);
+  --md-primary-fg-color--light: #344155;
+  --md-primary-fg-color--dark: #141b25;
+  --md-accent-fg-color: var(--adamast-blue);
 }
 
 [data-md-color-scheme="default"] {
   --md-default-bg-color: var(--adamast-paper);
-  --md-default-fg-color: #202938;
-  --md-typeset-a-color: #236a98;
-  --adamast-surface: #f5f7fa;
-  --adamast-code: #f1f4f8;
+  --md-default-fg-color: #252d38;
+  --md-typeset-a-color: #236f9d;
 }
 
 [data-md-color-scheme="slate"] {
-  --md-default-bg-color: #121923;
-  --md-default-fg-color: #e6ebf2;
-  --md-typeset-a-color: #79bce7;
-  --adamast-surface: #192231;
-  --adamast-code: #1d2839;
-  --adamast-line: #344155;
-  --adamast-graphite: #aeb9ca;
+  --md-default-bg-color: #12171e;
+  --md-default-fg-color: #e5e9ef;
+  --md-typeset-a-color: #7bc2e7;
+  --adamast-surface: #1a222d;
+  --adamast-code: #1d2733;
+  --adamast-line: #35404e;
+  --adamast-muted: #aeb8c6;
 }
 
 body,
@@ -44,35 +47,43 @@ pre {
   letter-spacing: 0;
 }
 
-.md-grid {
-  max-width: 90rem;
-}
-
 .md-header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: none;
 }
 
+.md-header__inner {
+  max-width: none;
+  padding-right: 1.1rem;
+  padding-left: 1.1rem;
+}
+
 .md-header__title,
-.md-tabs__link,
 .md-nav__title {
   font-weight: 650;
   letter-spacing: 0;
 }
 
-.md-main__inner {
-  margin-top: 0;
+/* The primary documentation rail is part of the viewport, not a centered card. */
+.md-main__inner.md-grid {
+  max-width: none;
+  margin: 0;
+}
+
+.md-content {
+  min-width: 0;
 }
 
 .md-content__inner {
-  max-width: 58rem;
-  padding-top: 2.2rem;
-  padding-bottom: 4rem;
+  max-width: 54rem;
+  margin: 0;
+  padding-top: 2.45rem;
+  padding-bottom: 5rem;
 }
 
 .md-typeset {
   font-size: 0.82rem;
-  line-height: 1.7;
+  line-height: 1.72;
 }
 
 .md-typeset h1,
@@ -80,32 +91,34 @@ pre {
 .md-typeset h3 {
   font-family: "Aptos Display", "Segoe UI", Arial, sans-serif;
   font-weight: 700;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.012em;
 }
 
 .md-typeset h1 {
-  margin: 0 0 0.8rem;
+  margin: 0 0 0.85rem;
   color: var(--md-default-fg-color);
-  font-size: 1.8rem;
-  line-height: 1.15;
+  font-size: 1.86rem;
+  line-height: 1.18;
 }
 
 .md-typeset h1 + p {
-  max-width: 48rem;
-  color: var(--adamast-graphite);
-  font-size: 0.86rem;
+  max-width: 49rem;
+  margin-bottom: 1.6rem;
+  color: var(--adamast-muted);
+  font-size: 0.89rem;
   line-height: 1.7;
 }
 
 .md-typeset h2 {
-  margin-top: 2.6rem;
+  margin-top: 2.75rem;
   padding-bottom: 0.45rem;
   border-bottom: 1px solid var(--adamast-line);
-  font-size: 1.42rem;
+  font-size: 1.38rem;
 }
 
 .md-typeset h3 {
-  font-size: 1.08rem;
+  margin-top: 1.9rem;
+  font-size: 1.06rem;
 }
 
 .md-typeset a {
@@ -136,6 +149,12 @@ pre {
   border-color: var(--adamast-line);
 }
 
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: 2px;
+  box-shadow: none;
+}
+
 .md-nav__link {
   line-height: 1.35;
 }
@@ -144,37 +163,31 @@ pre {
   font-weight: 700;
 }
 
-.md-sidebar--secondary {
-  border-left: 1px solid var(--adamast-line);
-}
-
-.md-sidebar--secondary .md-nav__title {
-  color: var(--adamast-graphite);
-  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
 @media screen and (min-width: 76.25em) {
   .md-sidebar--primary {
-    width: 15rem;
-    padding: 1rem 0.9rem 2rem;
+    width: 16rem;
+    height: calc(100vh - 2.4rem);
+    padding: 0;
     background: var(--adamast-nav);
-    box-shadow: -50vw 0 var(--adamast-nav);
-  }
-
-  .md-sidebar--primary,
-  .md-sidebar--primary .md-sidebar__scrollwrap,
-  .md-sidebar--primary .md-sidebar__inner,
-  .md-sidebar--primary .md-nav,
-  .md-sidebar--primary .md-nav__title {
-    background-color: var(--adamast-nav);
+    box-shadow: none;
   }
 
   .md-sidebar--primary .md-sidebar__scrollwrap {
-    min-height: calc(100vh - 2.4rem);
-    scrollbar-color: #5d6879 transparent;
+    min-height: 100%;
+    margin: 0;
+    padding: 1.05rem 1.15rem 2rem 1.25rem;
+    background: var(--adamast-nav);
+    scrollbar-color: #566171 transparent;
+  }
+
+  .md-sidebar--primary .md-sidebar__inner,
+  .md-sidebar--primary .md-nav,
+  .md-sidebar--primary .md-nav__title {
+    background: transparent;
+  }
+
+  .md-sidebar--primary .md-nav {
+    color: var(--adamast-nav-text);
   }
 
   .md-sidebar--primary .md-nav__title {
@@ -182,17 +195,10 @@ pre {
     box-shadow: none;
   }
 
-  .md-sidebar--primary .md-nav {
-    color: var(--adamast-nav-muted);
-    background: transparent;
-  }
-
-  .md-sidebar--primary > .md-sidebar__scrollwrap {
-    margin: 0;
-  }
-
   .md-sidebar--primary .md-nav__link {
-    color: var(--adamast-nav-muted);
+    margin-top: 0.32rem;
+    color: var(--adamast-nav-text);
+    font-size: 0.68rem;
   }
 
   .md-sidebar--primary .md-nav__link:hover,
@@ -200,6 +206,7 @@ pre {
     color: #ffffff;
   }
 
+  /* First-level labels are the difficulty/operations groups. */
   .md-sidebar--primary
     > .md-sidebar__scrollwrap
     > .md-sidebar__inner
@@ -207,69 +214,94 @@ pre {
     > .md-nav__list
     > .md-nav__item--nested
     > .md-nav__link {
-    margin-top: 1.1rem;
-    color: #72bce6;
+    margin-top: 1.18rem;
+    color: var(--adamast-cyan);
     font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
-    font-size: 0.64rem;
+    font-size: 0.6rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.075em;
     text-transform: uppercase;
   }
 
+  /* Integrated H2/H3 links are quieter and visibly nested under the page. */
+  .md-sidebar--primary .md-nav .md-nav .md-nav {
+    margin-left: 0.28rem;
+    padding-left: 0.72rem;
+    border-left: 1px solid #46505e;
+  }
+
+  .md-sidebar--primary .md-nav .md-nav .md-nav .md-nav__link {
+    margin-top: 0.25rem;
+    color: var(--adamast-nav-muted);
+    font-size: 0.62rem;
+    font-weight: 450;
+  }
+
   .md-sidebar--primary .md-nav__link--active {
-    position: relative;
     color: #ffffff;
   }
 
   .md-sidebar--primary .md-nav__link--active::before {
-    width: 0.42rem;
-    height: 0.42rem;
-    flex: 0 0 0.42rem;
+    width: 0.36rem;
+    height: 0.36rem;
+    flex: 0 0 0.36rem;
     border: 2px solid var(--adamast-mint);
     border-radius: 50%;
-    margin-left: -0.75rem;
+    margin-left: -0.7rem;
     background: var(--adamast-nav);
     content: "";
   }
 
   .md-content {
-    padding-right: 2rem;
-    padding-left: 2.3rem;
+    max-width: 62rem;
+    margin-right: auto;
+    margin-left: 0;
+    padding-right: 2.6rem;
+    padding-left: 2.4rem;
   }
 
   .md-sidebar--secondary {
-    width: 13rem;
-    padding-left: 0.8rem;
+    display: none;
   }
 }
 
 @media screen and (max-width: 76.234375em) {
+  .md-content {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
   .md-content__inner {
-    padding-top: 1.6rem;
+    padding-top: 1.7rem;
   }
 }
 
 @media screen and (max-width: 44.984375em) {
+  .md-content {
+    padding-right: 0.8rem;
+    padding-left: 0.8rem;
+  }
+
   .md-content__inner {
-    padding-top: 1.2rem;
-    padding-bottom: 2.5rem;
+    padding-top: 1.25rem;
+    padding-bottom: 3rem;
   }
 
   .md-typeset {
-    font-size: 0.78rem;
+    font-size: 0.79rem;
   }
 
   .md-typeset h1 {
-    font-size: 1.65rem;
+    font-size: 1.62rem;
   }
 
   .md-typeset h1 + p {
-    font-size: 0.92rem;
+    font-size: 0.91rem;
   }
 
   .md-typeset h2 {
-    margin-top: 2.1rem;
-    font-size: 1.25rem;
+    margin-top: 2.2rem;
+    font-size: 1.24rem;
   }
 }
 

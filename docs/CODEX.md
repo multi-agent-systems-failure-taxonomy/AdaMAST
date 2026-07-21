@@ -3,6 +3,10 @@
 The Codex integration installs user-level or project-local hooks that call
 AdaMAST from Codex session and boundary events.
 
+This page assumes the general AdaMAST package is already installed from the
+[documentation home](index.md#install-adamast). Everything below is specific to
+Codex.
+
 ## Install for every Codex conversation
 
 ```bash
@@ -232,4 +236,4 @@ guidance skill. It does not delete learned taxonomies or trace folders.
 
 ## More implementation detail
 
-See [adamast_integration/codex/README.md](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/blob/main/adamast_integration/codex/README.md) for the adapter file map.
+See [adamast_integration/codex/README.md](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/blob/main/adamast_integration/codex/README.md) for the adapter file map.

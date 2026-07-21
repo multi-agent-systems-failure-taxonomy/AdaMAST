@@ -8,16 +8,16 @@ activation contract.
 
 | Path | Owns | Does not own |
 |---|---|---|
-| [`adamast_runtime/`](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/tree/main/adamast_runtime) | Sessions, gates, trace persistence, generation/refinement lifecycle, validation, activation, evidence, dashboard data | Host hook formats |
-| [`adamast_integration/interactive/`](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/tree/main/adamast_integration/interactive) | Conversation selector, browser transport, project/task-group routes, durable native jobs, receipt protocol | Codex or Claude transcript parsing |
-| [`adamast_integration/codex/`](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/tree/main/adamast_integration/codex) | Codex hook installation, event translation, transcript normalization, compact Stop checkpoint | Taxonomy acceptance |
-| [`adamast_integration/claude_code/`](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/tree/main/adamast_integration/claude_code) | Claude hook installation, blocking gates, transcript handling, custom hooks | Taxonomy acceptance |
-| [`finding/`](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/tree/main/finding) | Built-in MAST, taxonomy registry, display metadata, local selector and dashboard views | Learning policy |
-| [`judge_types/`](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/tree/main/judge_types) | Selection, mapping, coverage, quality, calibration, and reflection judges | Host orchestration |
-| [`AdaMAST_as_a_Judge/`](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/tree/main/AdaMAST_as_a_Judge) | Judge-focused evaluation checks | Production runtime behavior |
-| [`vendor/adamast/`](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/tree/main/vendor/adamast) | Vendored research taxonomy-generation pipeline | Interactive hooks |
-| [`examples/`](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/tree/main/examples) | Runnable demonstrations | Production state |
-| [`runs/`](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/tree/main/runs) | Evaluation artifacts and reproduction notes | Package code |
+| [`adamast_runtime/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/tree/main/adamast_runtime) | Sessions, gates, trace persistence, generation/refinement lifecycle, validation, activation, evidence, dashboard data | Host hook formats |
+| [`adamast_integration/interactive/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/tree/main/adamast_integration/interactive) | Conversation selector, browser transport, project/task-group routes, durable native jobs, receipt protocol | Codex or Claude transcript parsing |
+| [`adamast_integration/codex/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/tree/main/adamast_integration/codex) | Codex hook installation, event translation, transcript normalization, compact Stop checkpoint | Taxonomy acceptance |
+| [`adamast_integration/claude_code/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/tree/main/adamast_integration/claude_code) | Claude hook installation, blocking gates, transcript handling, custom hooks | Taxonomy acceptance |
+| [`finding/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/tree/main/finding) | Built-in MAST, taxonomy registry, display metadata, local selector and dashboard views | Learning policy |
+| [`judge_types/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/tree/main/judge_types) | Selection, mapping, coverage, quality, calibration, and reflection judges | Host orchestration |
+| [`AdaMAST_as_a_Judge/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/tree/main/AdaMAST_as_a_Judge) | Judge-focused evaluation checks | Production runtime behavior |
+| [`vendor/adamast/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/tree/main/vendor/adamast) | Vendored research taxonomy-generation pipeline | Interactive hooks |
+| [`examples/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/tree/main/examples) | Runnable demonstrations | Production state |
+| [`runs/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/tree/main/runs) | Evaluation artifacts and reproduction notes | Package code |
 
 ## Runtime flow
 

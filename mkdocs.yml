@@ -1,7 +1,6 @@
 site_name: AdaMAST
 site_description: >-
-  Failure-mode taxonomies for LLM agents: runtime reflection gates,
-  trace capture, and taxonomy learning from traces.
+  Build, evaluate, and adapt failure-mode taxonomies for LLM agents.
 site_url: https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/
 site_dir: site/docs
 repo_url: https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST
@@ -31,8 +30,10 @@ theme:
   features:
     - navigation.sections
     - navigation.expand
+    - navigation.tracking
     - navigation.top
     - navigation.footer
+    - toc.integrate
     - toc.follow
     - search.suggest
     - search.highlight
@@ -41,9 +42,11 @@ theme:
 
 markdown_extensions:
   - admonition
+  - attr_list
   - tables
   - toc:
       permalink: true
+      toc_depth: 3
   - pymdownx.highlight
   - pymdownx.inlinehilite
   - pymdownx.superfences
@@ -58,30 +61,37 @@ exclude_docs: |
   README.md
 
 nav:
-  - Documentation: index.md
-  - Start:
-      - Install in Codex or Claude: INTERACTIVE_SETUP.md
-      - Five-minute project setup: GETTING_STARTED.md
-      - See a complete run: EXAMPLE_RUN.md
-      - Install the package: INSTALLATION.md
-  - Understand:
-      - Concepts: CONCEPTS.md
-      - Architecture: ARCHITECTURE.md
-      - Native taxonomy learning: NATIVE_LEARNING.md
+  - Start here:
+      - Overview and installation: index.md
+      - Choose a workflow: CONCEPTS.md
+  - "01 · Foundation":
+      - Prepare traces: TRACE_FORMATS.md
+      - Generate a taxonomy: BASELINE_GENERATION.md
+      - Agreement gate: AGREEMENT_GATE.md
+      - Outputs and field guide: TAXONOMY_OUTPUTS.md
+      - Providers and models: PROVIDERS.md
+  - "02 · Evaluation":
+      - Judge traces: JUDGING.md
+      - Choose a judge: JUDGE_TYPES.md
+  - "03 · Adaptive runtime":
+      - Runtime overview: GETTING_STARTED.md
       - Traces and learning: TRACES_AND_LEARNING.md
-      - Taxonomies: TAXONOMIES.md
-  - Integrations:
-      - Claude Code: CLAUDE_CODE.md
+      - Taxonomy lifecycle: TAXONOMIES.md
+      - Single-LLM integration: SINGLE_LLM.md
+      - Custom agent harness: INTEGRATION.md
+      - Native taxonomy learning: NATIVE_LEARNING.md
+  - "04 · Host integrations":
       - Codex: CODEX.md
-      - Single LLM: SINGLE_LLM.md
-      - Runtime API: API_OR_RUNTIME.md
-      - Pipeline integration: INTEGRATION.md
-  - Operate:
+      - Claude Code: CLAUDE_CODE.md
+  - Operations:
       - Dashboard: DASHBOARD.md
       - Web API: WEB_API.md
-      - Configuration reference: CONFIGURATION.md
+      - Configuration: CONFIGURATION.md
       - Troubleshooting: TROUBLESHOOTING.md
   - Reference:
+      - Runtime API: API_OR_RUNTIME.md
+      - Architecture: ARCHITECTURE.md
       - Compatibility: COMPATIBILITY.md
       - Customization: CUSTOMIZATION.md
+      - Complete runtime example: EXAMPLE_RUN.md
       - Interactive runtime design: INTERACTIVE_CONVERSATIONS_RFC.md
