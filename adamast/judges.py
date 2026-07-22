@@ -377,7 +377,7 @@ def _format_codes(codes: Iterable[Mapping[str, str]]) -> str:
 
 
 def _format_trace(trace: Mapping[str, Any], max_length: int) -> str:
-    """Render a normalized trace with the ATLAS start/tail sampling policy."""
+    """Render a normalized trace with the legacy start/tail sampling policy."""
 
     trace_id = str(
         trace.get("problem_id") or trace.get("trace_id") or "unknown"

@@ -1,62 +1,92 @@
-# Dashboard
+# Live monitor
 
-AdaMAST includes a read-only localhost dashboard for watching taxonomy codes fire during runs.
-
-![AdaMAST runtime dashboard showing the bundled demo taxonomy](assets/screenshots/dashboard-demo.png)
-
-*The bundled demo (`python -m examples.dashboard_demo`) with placeholder data.*
+AdaMAST includes a shared, read-only localhost monitor for checkpoint gates
+recorded by Codex and Claude Code. Either integration opens it automatically on
+the project and conversation that started it when `dashboard` is enabled.
 
 ## Open manually
 
+Point the command at one program and its interactive store root:
+
 ```bash
 adamast-dashboard \
-  --trace-output ./adamast-program \
+  --trace-output ~/.adamast/interactive/projects/PROJECT/groups/default/program \
+  --monitor-root ~/.adamast/interactive \
   --store-dir ~/.adamast/taxonomies
 ```
 
-Integrations can also launch it automatically when `dashboard` is true in `adamast.json`.
+Without `--monitor-root`, `adamast-dashboard` continues to open the existing
+single-program taxonomy dashboard used by standalone and other integrations.
 
-## What it shows
+## Navigation hierarchy
 
-The dashboard is organized around runtime progress:
+The monitor follows the same hierarchy as interactive AdaMAST state:
 
-- active taxonomy metadata and live refresh status;
-- summary cards for active failure modes, total firings, affected task UIDs,
-  clean checkpoints, and total codes;
-- a recent-event timeline across fired modes and clean checkpoints;
-- failure-mode cards sorted with active codes first;
-- evidence snippets and reasoning captured by runtime gates;
-- task UID filtering for one benchmark item or user task.
+1. **Project** selects an isolated Git project or configured project ID.
+2. **Conversation** selects a current or recorded Codex or Claude Code
+   conversation. The host label remains visible when both tools have similarly
+   named conversations.
+3. **Timeline** limits the view to all history, the past 24 hours, the past
+   seven days, the last N checkpoints, or a custom date range.
+4. **Task group** is available under Advanced filters. It remains an explicit
+   internal boundary without complicating the primary project/conversation path.
 
-## UID filtering
+The URL carries the selected project and conversation. A monitor opened by
+Codex or Claude Code therefore starts on the conversation that spawned it,
+while the selectors can move to other recorded work without starting another
+server.
 
-Use the search bar at the top to filter to a single task UID, such as `UID0118`.
+Conversation selectors use the task title shown by the host, including later
+renames. For Claude Code, AdaMAST reads the session's latest custom title. The
+internal conversation UUID remains in the URL and storage records so similarly
+named tasks do not collide. If host title metadata is unavailable, AdaMAST
+falls back to the first task prompt and then a short conversation ID.
 
-If `A.2`, `A.5`, and `C.1` fired for `UID0118`, searching that UID hides unrelated tasks and shows only the matching `UID0118` entries and their associated codes.
+## Viewing modes
 
-This is useful when several tasks share the same dashboard and multiple failure modes fire across different tasks.
+The mode switch transposes the same checkpoint records:
 
-## Demo data
+- **Failure modes → checkpoints** groups checkpoint entries under every failure
+  mode that fired.
+- **Checkpoints → failure modes** groups failure-mode entries under each gate.
 
-For a disposable local preview:
+Entries remain one line in the ledger. Selecting one opens a detail drawer with
+the checkpoint, relevant codes, evidence, next action, Observe/Correlate/Map/
+Decide structure, timestamp, gate, host, friendly turn number, exact host turn
+or prompt ID, checkpoint ID, and taxonomy ID.
 
-```bash
-python -m examples.dashboard_demo
-```
+A single Codex turn or Claude prompt may trigger several gates. Those checkpoints remain
+separate entries with separate checkpoint IDs and gate names, but share the same
+host turn or prompt ID so the monitor can show their relationship without
+merging their evidence.
 
-The demo writes temporary taxonomy and runtime-evidence data, opens the
-dashboard, and removes the temporary folder when the process exits.
+Clean `none apply` checkpoints always appear in checkpoint mode. They are hidden
+by default in failure-mode mode and can be included with **Show clean in failure
+view**.
+
+## Live behavior and history
+
+The browser polls the local API every two seconds. Newly recorded gates appear
+without reloading. Completed conversations remain discoverable from their
+durable host state and program-local evidence files.
+
+Taxonomy generation, refinement, activation, and retention notices are not
+checkpoint entries. Taxonomy-refinement lineage across historical checkpoint
+versions is intentionally deferred from this first monitor version.
 
 ## Local Web API
 
-The dashboard reads `GET /api/taxonomy` and `GET /api/health`. See
-[WEB_API.md](WEB_API.md) for endpoint details and response shapes.
+The monitor reads `GET /api/monitor`. The existing program-level
+`GET /api/taxonomy` endpoint remains available for integrations that need the
+complete current taxonomy overlay. See [WEB_API.md](WEB_API.md).
 
 ## Local-only behavior
 
-The dashboard binds to localhost by default and is intended as a development/runtime inspection tool. It should not be exposed publicly without an external authentication layer.
+The monitor binds to localhost by default and can contain task evidence and
+reasoning summaries. Do not expose it publicly without an external
+authentication layer.
 
-For a terminal summary of the same program state, use:
+For a terminal summary of one program, use:
 
 ```bash
 adamast-status --config adamast.json

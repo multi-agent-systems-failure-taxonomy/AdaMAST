@@ -24,6 +24,11 @@ conversation selector, generation after five traces, and native
 trust the installed AdaMAST hooks. Native learning uses the task's existing Codex
 session, so no separately runnable CLI or second login is required.
 
+If Codex Desktop was already running when you installed or updated AdaMAST,
+fully quit and reopen it before starting the first AdaMAST conversation. Opening
+a new conversation inside the old Desktop process is not sufficient to reload
+new hook registration.
+
 ## Install project-local hooks
 
 ```bash
@@ -36,14 +41,15 @@ This writes:
 - `.codex/adamast.json`
 
 Open `/hooks` inside Codex and trust the AdaMAST hooks before relying on them.
+Restart an already-running Codex Desktop process after changing these files.
 
 ## Default events
 
 The default Codex setup uses:
 
 1. `SessionStart`: recover standing context for an already selected conversation.
-2. `UserPromptSubmit`: open a new conversation's taxonomy library and handle episode boundaries.
-3. `Stop`: capture the compact final checkpoint and commit the episode in one callback.
+2. `UserPromptSubmit`: open a new conversation's taxonomy library, wait for the choice, release the original prompt, and handle episode boundaries.
+3. `Stop`: validate the directly recorded final checkpoint, attach the exact Codex turn ID, and commit the episode in one callback.
 4. `SubagentStop`: capture a compact subagent checkpoint when present without blocking.
 5. `PostToolUse`: poll durable AdaMAST state after supported successful tools.
 
@@ -53,8 +59,9 @@ Routine hook calls are sensors, not chat messages. Codex may show the transient
 status message attached to each hook while it runs, but successful
 `PostToolUse` polls, ordinary state reconciliation, repeated standing context,
 and duplicate Stop callbacks do not add assistant messages. The always-loaded
-AdaMAST skill tells the agent to produce one compact checkpoint after an actual
-tool failure and before its next tool call.
+AdaMAST skill tells the agent to record one compact checkpoint after an actual
+tool failure and before its next tool call. Checkpoint fields are written to the
+local monitor rather than rendered as assistant text.
 
 Taxonomy generation/refinement triggers, activation, retention, and failure
 produce one concise lifecycle update. The
@@ -92,12 +99,14 @@ install, configure it explicitly:
 A new conversation opens the localhost AdaMAST catalog from its first real
 `UserPromptSubmit`. Deferring the launch prevents Codex background tasks and
 spawned agent sessions from opening selectors during their own startup. The
-first substantive request is held while the user chooses. The catalog recommends
-MAST for an unbound project and includes compatible stored taxonomies plus `No
+prompt hook remains paused while the user chooses. The catalog recommends MAST
+for an unbound project and includes compatible stored taxonomies plus `No
 taxonomy`. Its `/choose` handler validates the session's allowed options, updates
-Codex state, and binds a stored taxonomy to the project/task group before
-rendering the activation page. `No taxonomy` disables AdaMAST gates and trace
-capture only for that conversation.
+Codex state, and binds a stored taxonomy to the project/task group. The same
+original prompt then continues as the first episode task without requiring a
+second submission. `No taxonomy` disables AdaMAST gates and trace capture only
+for that conversation. A selection timeout stops the original turn and lets the
+next submission reopen the library safely.
 
 Catalog and chat surfaces use `display_name` when present and otherwise fall
 back to the taxonomy domain. The generated `taxonomy_id` remains visible as
@@ -130,14 +139,24 @@ repository, or set `codex.project_id`, when the conversational workspace and
 the repository being edited differ. Explicit external tool workdirs produce a
 scope warning rather than silently rebinding taxonomy state.
 
-## Codex Stop contract
+## Codex checkpoint contract
 
-Every substantive final answer ends with the compact fields `Checkpoint`,
-`Relevant codes`, `Evidence`, and `Next action`. The Stop hook validates and
-captures that block on its first callback. It does not ask Codex for a separate
-long reflection because some Codex Desktop builds complete a continuation
-without invoking Stop again. A missing block is reported visibly, but the
-episode is still closed so project state cannot remain stranded.
+Codex still creates the same compact fields at every existing gate:
+`Checkpoint`, `Relevant codes`, `Evidence`, and `Next action`. It now sends them
+to `adamast-codex-checkpoint` before continuing instead of appending them to the
+assistant message. The conversation-specific recorder path and session ID are
+supplied through hook context; users do not need to run this command manually.
+
+The final gate uses `--gate stop`. The Stop hook validates the already recorded
+gate, attaches the exact Codex turn ID, and closes the episode in its first
+callback. The previous visible-block parser remains a compatibility fallback
+for conversations using an older managed skill. A missing or invalid gate is
+reported, but the episode is still closed so project state cannot remain
+stranded.
+
+Successful checkpoint capture is silent in the conversation. The same content
+appears immediately in the localhost monitor, where it can be expanded into its
+Observe, Correlate/Evidence, Map, and Decide/Next action fields.
 
 Learning traces use normalized Codex JSONL. Developer/system messages,
 reasoning payloads, hook prompts, globally installed skill content, and token
@@ -180,7 +199,9 @@ events, then appear exactly once on the next `SessionStart` or
 `UserPromptSubmit` event. A failed or stale result leaves MAST or the current
 taxonomy active and preserves traces.
 
-`codex.worker_timeout_seconds` controls the native claim lease. The legacy
+`codex.worker_timeout_seconds` controls the native claim lease and the maximum
+browser-selection wait. The installer gives the browser `UserPromptSubmit`
+hook that budget plus a short shutdown margin. The legacy
 `codex.worker_model` and `codex.codex_cli_path` fields remain readable for
 configuration compatibility but are not used by the in-task worker.
 
@@ -215,7 +236,7 @@ Use `codex.hooks` in `adamast.json` when you want AdaMAST to trigger only on sel
 }
 ```
 
-Keep the compact final checkpoint on `Stop`; use advisory hooks for noisier events.
+Keep the direct final checkpoint on `Stop`; use advisory hooks for noisier events.
 
 ## Uninstall hooks
 
@@ -234,6 +255,6 @@ adamast-codex-uninstall --project-dir .
 This removes AdaMAST hook config and, for the user-level default, the managed
 guidance skill. It does not delete learned taxonomies or trace folders.
 
-## More implementation detail
+## Source layout
 
-See [adamast_integration/codex/README.md](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/blob/main/adamast_integration/codex/README.md) for the adapter file map.
+The adapter source is organized under `adamast_integration/codex/`.

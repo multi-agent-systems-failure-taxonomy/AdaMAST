@@ -30,7 +30,8 @@ extra generation traces by default. Empty sessions and AdaMAST control turns are
 not learning traces.
 
 See [Interactive setup](INTERACTIVE_SETUP.md) for the user workflow and
-[the runtime RFC](INTERACTIVE_CONVERSATIONS_RFC.md) for design rationale.
+[Architecture](ARCHITECTURE.md) for the current project, conversation, and
+host-isolation design.
 
 ## Trace output is mandatory
 

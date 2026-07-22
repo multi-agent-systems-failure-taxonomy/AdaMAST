@@ -33,6 +33,7 @@ all = [
 ]
 dev = [
   "pytest>=8,<9",
+  "ruff>=0.12,<1",
 ]
 docs = [
   "mkdocs-material>=9.5",

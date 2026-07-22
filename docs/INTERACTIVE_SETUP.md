@@ -17,11 +17,14 @@ Use the [Claude Code integration guide](CLAUDE_CODE.md) for user-level or
 project-local hooks, blocking gates, tool matchers, native Agent learning,
 diagnostics, and uninstall steps.
 
-## Shared state
+## Host-isolated state
 
-When both hosts use the same project root, task group, and `trace_output`, they
-can share the active taxonomy and refinement history. Different projects remain
-isolated.
+Codex and Claude Code may use the same base `~/.adamast/interactive` root, but
+automatic project routing creates host-owned task groups. Conversations on the
+same host can share an active taxonomy and refinement history; conversations on
+the other host cannot claim that program, lineage, trace set, or learning job.
+Provider-neutral imported taxonomies may seed either host. A host-generated or
+mixed-provenance taxonomy is hidden from incompatible selectors.
 
 For a script or application rather than an interactive coding host, use the
 [single-LLM](SINGLE_LLM.md) or [custom harness](INTEGRATION.md) guide instead.

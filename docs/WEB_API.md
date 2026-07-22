@@ -28,11 +28,84 @@ Example:
 ```json
 {
   "program_id": "program-123",
+  "monitor_id": "2fe459ef79a545d1",
   "status": "ok"
 }
 ```
 
 Use this for lightweight liveness checks.
+
+## `GET /api/monitor`
+
+Returns the project, conversation, timeline, and checkpoint model used by the
+live monitor.
+
+Query parameters:
+
+| Parameter | Meaning |
+|---|---|
+| `project` | Stable project key to select. |
+| `conversation` | Host conversation ID to select. |
+| `group` | Optional task-group filter. |
+| `window` | `all`, `24h`, `7d`, or `count`. |
+| `limit` | Number of recent checkpoints for `window=count` (1–1000). |
+| `since` / `until` | Optional Unix timestamp bounds. |
+
+Example shape:
+
+```json
+{
+  "projects": [
+    {
+      "project_id": "demo-a1b2c3d4",
+      "name": "owner/demo",
+      "groups": ["default"],
+      "conversation_count": 2,
+      "running_count": 1
+    }
+  ],
+  "conversations": [
+    {
+      "conversation_id": "019f-example",
+      "title": "Repair the release workflow",
+      "host": "claude_code",
+      "host_label": "Claude Code",
+      "task_group": "default",
+      "status": "running",
+      "episode_count": 3,
+      "checkpoint_count": 4
+    }
+  ],
+  "selection": {
+    "project_id": "demo-a1b2c3d4",
+    "conversation_id": "019f-example",
+    "task_group": "default",
+    "task_group_filter": "all"
+  },
+  "checkpoints": [
+    {
+      "seq": 4,
+      "checkpoint_id": "adamast-stop-123",
+      "episode_sequence": 3,
+      "turn_label": "Turn 3",
+      "turn_id": "host-turn-or-prompt-id",
+      "host": "claude_code",
+      "host_label": "Claude Code",
+      "gate": "stop",
+      "gate_status": "READY_TO_SUBMIT",
+      "checkpoint": "Release path verified",
+      "fired_codes": [],
+      "none_apply": true,
+      "evidence": "The package and repository states match.",
+      "next_action": "complete"
+    }
+  ]
+}
+```
+
+The response also includes the current taxonomy label, failure-mode metadata,
+timeline settings, and summary counts. It contains checkpoint reasoning
+summaries, not private model chain-of-thought.
 
 ## `GET /api/taxonomy`
 

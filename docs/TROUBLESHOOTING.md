@@ -49,12 +49,13 @@ gating actually happened, check `[adamast]` stderr lines, the per-gate records
 in `<trace_output>/decisions.log`, and `adamast-status` (a finished session
 with no final-gate evidence means the gate was skipped).
 
-## Codex shows only the final AdaMAST checkpoint
+## Codex does not show AdaMAST checkpoints in chat
 
 Routine hook polls are intentionally silent as assistant messages. Codex may
 show a short transient status such as `Polling AdaMAST` or `Saving AdaMAST trace`
-while the hook runs. The managed AdaMAST skill requires one compact checkpoint
+while the hook runs. The managed AdaMAST skill records one compact checkpoint
 after an actual failed tool operation and before the agent's next tool call.
+The four fields appear in the localhost AdaMAST monitor instead of chat.
 Taxonomy generation/refinement trigger, activation, retention, or failure
 notices appear once on the next model-context lifecycle event.
 
@@ -62,9 +63,9 @@ notices appear once on the next model-context lifecycle event.
 not consume learning notices there. It holds them for `SessionStart` or
 `UserPromptSubmit`, the events where Codex documents `additionalContext`.
 Null `PostToolUse` outputs in `codex-decisions.log` are normal successful polls.
-If a real tool failure is followed immediately by another tool call without a
-compact checkpoint, the installed managed skill is stale. Upgrade, reinstall,
-and review `/hooks` if Codex asks you to trust the definition again.
+If a real tool failure is followed immediately by another tool call and no new
+monitor entry appears, the installed managed skill may be stale. Upgrade,
+reinstall, and review `/hooks` if Codex asks you to trust the definition again.
 
 ## `adamast_model` cannot be called
 
@@ -100,6 +101,10 @@ custom hook fires only for the intended recurring command.
 
 For Codex, open `/hooks` and trust the AdaMAST hooks.
 
+After installing or updating hooks, fully quit and reopen Codex Desktop. A new
+conversation inside a Desktop process that started before the hook files were
+written does not reliably reload them.
+
 For Claude Code, list installed AdaMAST custom hooks:
 
 ```bash
@@ -123,6 +128,22 @@ session state into the binding. It should not ask for the taxonomy again.
 An exact legacy inline reply such as `MAST` is also recovered from the saved
 Claude transcript before a pending session can launch the browser.
 
+## Codex or Claude Code makes me submit the original task again after browser selection
+
+Upgrade AdaMAST and rerun the matching user-level installer:
+
+```bash
+adamast-codex-install --user-level
+adamast-claude-install --user-level
+```
+
+Both browser selectors now keep the first `UserPromptSubmit` hook open and
+release that same prompt as soon as the browser writes its choice. Older Codex
+hooks ended the turn immediately, while older Claude Code hooks returned
+`decision: "block"`; both behaviors forced another message. The installers give
+the prompt hook enough time for the browser choice while keeping other built-in
+hook timeouts short.
+
 ## A taxonomy browser opens beside an unrelated Codex task
 
 If the browser page names `memories` as the project, it came from a Codex
@@ -139,6 +160,23 @@ instead name the active taxonomy's display name and immutable ID and direct the
 agent to its codes. Run `adamast-status` to compare the active taxonomy with the
 generation and refinement states. If status shows a learned taxonomy but the
 conversation still calls MAST pinned, upgrade and reinstall the host hooks.
+
+## A Claude Code picker shows a Codex taxonomy, or the reverse
+
+Upgrade and reinstall both host integrations. Current releases namespace
+automatic project programs by host and check host ownership again when a
+program, taxonomy, or native learning job is claimed:
+
+```bash
+python -m pip install --upgrade adamast
+adamast-codex-install --user-level
+adamast-claude-install --user-level
+```
+
+Legacy records with contradictory provenance are preserved for audit but are
+classified as mixed and offered to neither host. The next conversation routes
+to a clean host-owned program and may ask for a taxonomy choice again. Imported
+taxonomies without interactive-host provenance remain available to both hosts.
 
 ## Native taxonomy learning cannot launch
 
@@ -194,6 +232,10 @@ If the port is busy, stop the old dashboard process or configure a different por
 ## Taxonomy does not appear in the picker
 
 MAST is built in and intentionally not a store record. It does not appear in `list_all`.
+
+MAST does appear as an explicit built-in option in Codex and Claude Code
+selectors. Only stored generated, refined, imported, or registered taxonomies
+are returned by `list_all`.
 
 Generated, refined, imported, or registered taxonomies appear only after they are stored as JSON records under the configured store directory.
 

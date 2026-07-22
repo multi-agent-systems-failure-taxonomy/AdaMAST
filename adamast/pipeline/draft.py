@@ -33,10 +33,9 @@ Role Discovery:
 import json
 import os
 import re
-import time
 from datetime import datetime
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Any, Tuple, Optional, Set
 from collections import Counter
 
@@ -163,8 +162,8 @@ def build_b_role_guidance(role_details: Dict) -> str:
         lines.append(f"{role_name.upper()} quality failures (purpose: {purpose}):")
         lines.append(f"  Role definition: {definition}")
         lines.append(f"  Consider: What ways can an agent whose job is to '{purpose}' do that job INCORRECTLY?")
-        lines.append(f"  Think about: wrong output, poor quality output, missed important aspects,")
-        lines.append(f"  inappropriate method/strategy, superficial work, ignoring relevant information.")
+        lines.append("  Think about: wrong output, poor quality output, missed important aspects,")
+        lines.append("  inappropriate method/strategy, superficial work, ignoring relevant information.")
         lines.append("")
 
     lines.extend([
@@ -209,7 +208,7 @@ def extract_json(text: str) -> Dict:
         return {}
     try:
         return json.loads(text)
-    except:
+    except (json.JSONDecodeError, TypeError):
         pass
 
     patterns = [
@@ -224,7 +223,7 @@ def extract_json(text: str) -> Dict:
             try:
                 json_str = match.group(1) if '```' in pattern else match.group()
                 return json.loads(json_str)
-            except:
+            except (json.JSONDecodeError, TypeError):
                 continue
 
     return {}
@@ -1567,7 +1566,7 @@ class CategoryGenerator:
         if base_codes:
             progress(f"  Universal base codes: {len(base_codes)}")
         else:
-            progress(f"  No base codes — fully generated from analysis")
+            progress("  No base codes — fully generated from analysis")
 
         # For B-codes, show which roles have agents
         if self.category == "B":
@@ -1644,7 +1643,6 @@ class CategoryGenerator:
                     indicators.append(agent_lower)
             # Add purpose-derived keywords
             purpose = details.get('purpose', '').lower()
-            definition = details.get('definition', '').lower()
             for word in purpose.split():
                 if len(word) > 4:
                     indicators.append(word)
@@ -1916,10 +1914,7 @@ class CategoryGenerator:
     def _get_stage_prompt(self, stage_name: str, base_codes: List[Dict]) -> str:
         """Get stage-specific prompt content."""
         trace_ctx = self._get_trace_format_context()
-        agent_ctx = self._get_agent_context()
         domain_ctx = self._get_domain_context()
-
-        base_names = [c.get('name', '') for c in base_codes]
 
         if self.category == "A":
             arch_ctx = self._get_architecture_context()
@@ -2157,7 +2152,7 @@ Do NOT generate codes for:
 
         # Build requirements based on whether we have base codes
         if base_codes:
-            requirements = f"""REQUIREMENTS:
+            requirements = """REQUIREMENTS:
 1. Generate NEW codes as needed for complete coverage (not duplicating base codes)
 2. Only add codes if they represent distinct failure modes not already covered
 3. Each code needs detection_heuristics grounded in observable signals
@@ -2178,7 +2173,7 @@ Do NOT generate codes for:
 7. Definitions should be concise and clear
 8. Prioritize clarity over quantity — fewer clear codes is better than many overlapping ones"""
         else:
-            requirements = f"""REQUIREMENTS:
+            requirements = """REQUIREMENTS:
 1. Generate codes for complete coverage of all distinct system failure modes
 2. Each code must represent a genuinely distinct failure — do NOT create multiple
    codes for variants of the same problem (e.g., do not have separate codes for
@@ -2309,7 +2304,7 @@ OUTPUT JSON:
 
             # If filter removed everything, fall back to all codes
             if not kept:
-                progress(f"  [!] Dedup removed all codes, falling back")
+                progress("  [!] Dedup removed all codes, falling back")
                 kept = all_codes
 
             return normalize_code_ids(kept, self.category)
@@ -3316,7 +3311,7 @@ OUTPUT JSON:
             kept = [c for c in c_codes if c.get('name', '').lower() in kept_names]
 
             if not kept:
-                progress(f"  [!] C overlap fix removed all codes, falling back")
+                progress("  [!] C overlap fix removed all codes, falling back")
                 kept = c_codes
 
             return normalize_code_ids(kept, "C")
@@ -3398,7 +3393,7 @@ OUTPUT JSON:
             new_codes = result.get("codes", [])
 
             if not new_codes:
-                progress(f"  [!] C coverage/overlap fix returned no codes, falling back")
+                progress("  [!] C coverage/overlap fix returned no codes, falling back")
                 return c_codes
 
             # For codes that match existing ones by name, preserve the original full object

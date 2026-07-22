@@ -130,13 +130,13 @@ Claude Code accepts parallel interactive fields:
 |---|---|---|
 | `claude_code.project_scope` | `"explicit"` | `"auto"` derives a program from the canonical project root. |
 | `claude_code.project_id` | unset | Optional stable project identity override. |
-| `claude_code.task_group` | `"default"` | Project-local taxonomy and refinement group, shared with Codex when equal. |
+| `claude_code.task_group` | `"default"` | Logical project-local taxonomy and refinement group. Automatic routing namespaces it for Claude Code, separately from Codex. |
 | `claude_code.session_selector` | `"off"` | `"prompt"` asks for MAST, a compatible taxonomy, or AdaMAST-off. |
 | `claude_code.selector_surface` | `"inline"` | `"browser"` opens the session-bound local library; user-level installs default to `"browser"`. |
 | `claude_code.learning_backend` | `"provider"` | `"claude_subagent"` uses native generator and support-review Agent subtasks without a separate API key or CLI login. |
 | `claude_code.worker_model` | unset | Legacy compatibility field; the native Agent follows the active session's model policy. |
 | `claude_code.claude_cli_path` | unset | Legacy detached-worker compatibility field; native in-session learning does not use it. |
-| `claude_code.worker_timeout_seconds` | `1800` | Claim lease for each native generation/refinement and support-review Agent. |
+| `claude_code.worker_timeout_seconds` | `1800` | Browser-selection wait limit and claim lease for each native generation/refinement and support-review Agent. The installed browser `UserPromptSubmit` hook adds a 15-second shutdown margin. |
 
 ## Display metadata
 

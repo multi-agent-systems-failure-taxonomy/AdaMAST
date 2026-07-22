@@ -34,7 +34,7 @@ is ordered from standalone taxonomy generation to adaptive host integration.
 |---|---|
 | Taxonomy records, inheritance, and importing existing taxonomies | [TAXONOMIES.md](TAXONOMIES.md) |
 | Trace storage, generation thresholds, refinement thresholds | [TRACES_AND_LEARNING.md](TRACES_AND_LEARNING.md) |
-| Live dashboard, task UID filtering, and local monitoring | [DASHBOARD.md](DASHBOARD.md) |
+| Live project/conversation checkpoint monitoring | [DASHBOARD.md](DASHBOARD.md) |
 | Local dashboard HTTP endpoints and response shapes | [WEB_API.md](WEB_API.md) |
 | Program health CLI and common runtime failures | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
 | Supported hosts and current limits | [COMPATIBILITY.md](COMPATIBILITY.md) |

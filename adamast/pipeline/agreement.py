@@ -31,12 +31,10 @@ An agent can have:
 import json
 import os
 import re
-import time
 import hashlib
 from datetime import datetime
 from pathlib import Path
 from collections import Counter, defaultdict
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Any, Tuple, Optional, Set
 
 from ..providers import TextProvider, create_provider, resolve_model
@@ -112,7 +110,7 @@ def extract_json(text: str) -> Dict:
     # Try direct parse
     try:
         return json.loads(text)
-    except:
+    except (json.JSONDecodeError, TypeError):
         pass
 
     # Try to find JSON block
@@ -127,7 +125,7 @@ def extract_json(text: str) -> Dict:
         if match:
             try:
                 return json.loads(match.group(1) if '```' in pattern else match.group(0))
-            except:
+            except (json.JSONDecodeError, TypeError):
                 continue
 
     return {}
@@ -542,8 +540,6 @@ class TraceParser:
         """Parse a Codex CLI session trace into structured format."""
         problem_id = trace.get('problem_id', 'unknown')
         raw_trajectory = trace.get('raw_trajectory', '')
-        metadata = trace.get('metadata', {})
-
         agent_outputs = []
         infrastructure_issues = []
 
@@ -1242,7 +1238,7 @@ class ErrorReconciliation:
 
                         location = error.get('location', '')
                         if isinstance(location, list):
-                            location = ' '.join(str(l) for l in location)
+                            location = ' '.join(str(part) for part in location)
                         location = str(location) if location else ''
 
                         confidence = error.get('confidence', 'medium')
@@ -2870,7 +2866,7 @@ class TaxonomyRefinerPipeline:
         progress(f"Loading taxonomy from: {self.taxonomy_path}")
 
         if not self.taxonomy_path.exists():
-            progress(f"  [!] Taxonomy file does not exist")
+            progress("  [!] Taxonomy file does not exist")
             return {}
 
         try:
@@ -2880,7 +2876,7 @@ class TaxonomyRefinerPipeline:
             code_count = sum(len(taxonomy.get(cat, {}))
                            for cat in ['category_a', 'category_b', 'category_c'])
             if code_count == 0:
-                progress(f"  [!] Taxonomy has no codes")
+                progress("  [!] Taxonomy has no codes")
                 return {}
 
             progress(f"  Loaded taxonomy with {code_count} codes")
@@ -3263,9 +3259,9 @@ def main():
     result = pipeline.run()
 
     if result:
-        progress(f"\nPipeline completed successfully")
+        progress("\nPipeline completed successfully")
     else:
-        progress(f"\nPipeline failed")
+        progress("\nPipeline failed")
 
 
 if __name__ == "__main__":

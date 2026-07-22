@@ -18,8 +18,13 @@ adamast-doctor --claude-code
 
 This merges AdaMAST into `~/.claude/settings.json` and writes
 `~/.claude/adamast.json`; unrelated settings and plugins are preserved.
-Claude and Codex resolve the same project/task-group program when their base
-`trace_output`, project root, and task group match.
+Claude Code resolves a Claude-owned project/task-group program. Codex uses a
+separate program even when its base `trace_output`, project root, and logical
+task-group name match. This prevents traces, active learned taxonomies, and
+native learning jobs from crossing between hosts.
+
+Restart an already-running Claude Code process after installing or updating the
+hooks, then begin a new conversation so the new registration is loaded.
 
 No external model API key, standalone `claude -p` process, or second login is
 required for `claude_subagent`. A hook first asks the active Claude Code session
@@ -57,10 +62,28 @@ AdaMAST will:
 
 1. open the local taxonomy library for MAST, stored taxonomies, or `No taxonomy`;
 2. hold the first substantive prompt until that choice is resolved;
-3. fire checkpoint reflections at configured boundaries;
+3. record checkpoint reflections privately at configured boundaries;
 4. block final completion until the final gate passes or exhausts the retry envelope;
 5. record one canonical episode trace at each accepted Stop boundary;
 6. trigger durable generation or refinement jobs when thresholds are reached.
+
+## Live checkpoint monitor
+
+Claude Code opens the same project/conversation monitor used by Codex. The
+conversation selector shows Claude's current custom title instead of exposing
+its session UUID, while the UUID remains the stable routing key in the URL.
+Checkpoint cards are grouped either by gate or by failure mode, and selecting a
+card opens its full evidence and decision details.
+
+Built-in gates send the compact checkpoint directly to
+`adamast-claude-checkpoint`; they do not print checkpoint blocks or long
+reflection prompts into the conversation. Claude's per-prompt ID is attached to
+every checkpoint created during that prompt, so several gates may remain
+separate while still appearing under the same turn. A repair-required gate
+continues to block until the recorded next action is addressed.
+
+See [Live monitor](DASHBOARD.md) for navigation, timeline filters, and both
+viewing modes.
 
 If a native Agent subtask disappears without a receipt, the coordinator expires
 its claim, keeps the current taxonomy active, and permits a retry from the same
@@ -75,9 +98,16 @@ numbered fallback when needed:
 adamast-claude-install --user-level --selector-surface inline
 ```
 
-When a project already has a shared learned taxonomy, choosing MAST creates a
-durable isolated `fresh-*` task group for that Claude conversation and leaves
-the shared taxonomy unchanged.
+On the first substantive prompt, the synchronous `UserPromptSubmit` hook keeps
+that prompt paused while the browser is open. Selecting a taxonomy completes
+the hook and lets Claude process the original prompt immediately; do not send a
+second message. If no choice is made before `worker_timeout_seconds`, AdaMAST
+blocks that prompt without echoing its full text and the next prompt reopens the
+selector.
+
+When a project already has a Claude-owned learned taxonomy, choosing MAST
+creates a durable isolated `fresh-*` task group for that Claude conversation
+and leaves the existing Claude taxonomy unchanged.
 
 The taxonomy choice remains pinned to Claude's session ID. Resuming the
 conversation from another shell or changing its current working directory does
@@ -171,6 +201,6 @@ adamast-claude-uninstall --project-dir .
 
 This removes AdaMAST hook config from the project. It does not delete learned taxonomies or trace folders.
 
-## More implementation detail
+## Source layout
 
-See [adamast_integration/claude_code/README.md](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/blob/main/adamast_integration/claude_code/README.md) for the adapter file map.
+The adapter source is organized under `adamast_integration/claude_code/`.

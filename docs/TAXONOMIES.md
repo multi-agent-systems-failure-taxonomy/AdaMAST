@@ -32,7 +32,10 @@ The store is flat: one JSON file per taxonomy, named `<taxonomy_id>.json`.
 
 If a run starts without inheritance, Finding returns `none` and the runtime resolves that to the built-in MAST constant.
 
-MAST is not a store record and does not appear in the interactive picker.
+MAST is not a store record and does not appear in `store.list_all`. Codex and
+Claude Code selectors still offer it explicitly as the built-in starting
+taxonomy. The standalone `adamast-find --inherit-pick` command lists stored
+records rather than host-specific built-ins.
 
 ## Inherit a taxonomy
 
@@ -51,8 +54,10 @@ adamast-find --inherit-pick
 The searchable picker shows human-readable names, coverage summaries, source
 projects, code counts, and immutable IDs as secondary metadata.
 
-Clicking a row opens the full taxonomy content. Choosing "use none / start from
-0" returns `none` in the blocking CLI flow.
+Clicking a row opens the full taxonomy content. Choosing **Start without a
+stored taxonomy** returns `none` in the standalone blocking CLI flow. In a
+Codex or Claude Code selector, **No taxonomy** disables AdaMAST only for that
+conversation.
 
 ## Register a taxonomy
 

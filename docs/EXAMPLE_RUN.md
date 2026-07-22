@@ -56,8 +56,9 @@ instead of claiming clean success.
 
 ## 4. What the dashboard shows
 
-Everything the gates record — firings, clean checkpoints, evidence snippets,
-and per-task UID filters — is browsable live:
+For a standalone harness run, the program-level dashboard makes failure-mode
+firings, clean checkpoints, evidence snippets, and per-task UID filters
+browsable live:
 
 ![AdaMAST runtime dashboard](assets/screenshots/dashboard-demo.png)
 
@@ -95,4 +96,4 @@ Inherit it in a later run with `--inherit tax-skylab-orbital-demo-001`.
 
 - The lifecycle behind steps 4–5: [TRACES_AND_LEARNING.md](TRACES_AND_LEARNING.md)
 - The gate and reflection contract for harness authors: [INTEGRATION.md](INTEGRATION.md)
-- Dashboard details and UID filtering: [DASHBOARD.md](DASHBOARD.md)
+- Program dashboard and live monitor: [DASHBOARD.md](DASHBOARD.md)
