@@ -1,7 +1,7 @@
 # Native taxonomy learning
 
 Codex and Claude Code can generate and refine taxonomies through a subagent
-in the active host conversation — no external model API key, standalone host
+in the active host conversation: no external model API key, standalone host
 CLI, or second login required. This page explains when learning triggers, how
 a job runs, and why a bad worker cannot corrupt your taxonomy.
 
@@ -56,8 +56,8 @@ flowchart LR
 
 After activation, the selector choice remains only the conversation's lineage
 seed. A conversation that selected MAST still records MAST as its root, but
-host context names the generated or refined taxonomy — display name plus
-immutable ID — as active. Checkpoints must use codes from that active
+host context names the generated or refined taxonomy (display name plus
+immutable ID) as active. Checkpoints must use codes from that active
 taxonomy.
 
 !!! note "One branch, one lineage"
@@ -117,7 +117,7 @@ learning state.
 
 ## ➡️ Continue with
 
-- [Codex](CODEX.md) or [Claude Code](CLAUDE_CODE.md) — the host-specific
+- [Codex](CODEX.md) or [Claude Code](CLAUDE_CODE.md): the host-specific
   install, selector, and event contracts.
-- [Troubleshooting](TROUBLESHOOTING.md) — when a job remains queued or a
+- [Troubleshooting](TROUBLESHOOTING.md): when a job remains queued or a
   worker cannot launch.

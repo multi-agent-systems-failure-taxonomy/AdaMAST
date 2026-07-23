@@ -1,6 +1,6 @@
 # Inter-annotator agreement gate
 
-This page explains how a drafted taxonomy earns the `accepted` status — and how
+This page explains how a drafted taxonomy earns the `accepted` status, and how
 to tune and audit that decision.
 
 The agreement layer tests whether the drafted taxonomy is operational: can
@@ -31,17 +31,17 @@ flowchart TD
     A["🔍 Find failures<br/>each annotator reads the traces on its own"] --> B["🤝 Compare notes<br/>keep the failures the annotators support"]
     B --> C["🏷️ Assign failure modes<br/>match each failure to the draft catalog"]
     C --> D["📏 Measure agreement<br/>did the independent annotations converge?"]
-    D -->|"not yet — improve the draft"| A
+    D -->|"not yet: improve the draft"| A
     D -->|"yes"| E["🚦 Final status"]
 ```
 
 1. **Find failures.** Each annotator reads the sampled traces independently
-   and marks what went wrong — including failures the current draft has no
+   and marks what went wrong, including failures the current draft has no
    entry for.
 2. **Compare notes.** The findings are merged; only failures supported across
    annotators move forward.
-3. **Assign failure modes.** Each supported failure is matched — again
-   independently — to the draft's failure modes.
+3. **Assign failure modes.** Each supported failure is matched, again
+   independently, to the draft's failure modes.
 4. **Measure agreement.** AdaMAST checks how well the independent assignments
    converged and how much of what was found the draft covers. If either falls
    short, the weak definitions are rewritten and another round runs.
@@ -119,6 +119,6 @@ to investigate confusion between codes or insufficient coverage. See
 
 ## ➡️ Continue with
 
-- [Outputs and field guide](TAXONOMY_OUTPUTS.md) — where the per-round
+- [Outputs and field guide](TAXONOMY_OUTPUTS.md): where the per-round
   agreement artifacts land on disk.
-- [Judge traces](JUDGING.md) — use the accepted taxonomy.
+- [Judge traces](JUDGING.md): use the accepted taxonomy.

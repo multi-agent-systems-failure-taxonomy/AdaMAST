@@ -1,7 +1,7 @@
 # Compatibility
 
 Check what AdaMAST needs from your machine, your host, and your credentials
-before you install — and what it cannot do yet.
+before you install, and what it cannot do yet.
 
 ## 🧱 Runtime requirements
 
@@ -56,6 +56,6 @@ AdaMAST config.
 
 ## ➡️ Continue with
 
-- [Installation](INSTALLATION.md) — the package, extras, and source installs.
-- [Choose an interactive host](INTERACTIVE_SETUP.md) — pick the Codex or
+- [Installation](INSTALLATION.md): the package, extras, and source installs.
+- [Choose an interactive host](INTERACTIVE_SETUP.md): pick the Codex or
   Claude Code guide.

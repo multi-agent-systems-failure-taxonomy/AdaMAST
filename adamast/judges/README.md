@@ -3,6 +3,15 @@
 The seven taxonomy-aware judges `adamast` exposes. Each consumes a taxonomy
 and produces a different structured signal.
 
+The `adamast judge` CLI and the `create_judge`/`judge_trace`/`judge_traces`
+API are served by [`contract.py`](contract.py), the provider-neutral JUDGES
+layer. Its default mode wraps the Selection judge (row 1) behind the shared
+provider adapters; `--mode single` (or `mode="single"`) runs `TaxonomyJudge`,
+the contract-layer judge that classifies each trace into exactly one
+best-supported code. `TaxonomyJudge` lives only in `contract.py`: it carries
+its own prompt and strict output validation and is not part of the
+asset-driven family in the table below.
+
 | # | Judge | Status | Implementation | Purpose |
 |---|---|---|---|---|
 | 1 | Selection | **real** | [`simple.py`](simple.py) + [`assets/selection/`](assets/selection/) | trace + taxonomy -> flat failure-mode labels (shallow, scalable; the default `adamast judge` mode) |
@@ -47,23 +56,23 @@ not an LLM call.
 
 ## Real implementations
 
-- **Selection Judge** — shallow per-trace classifier for scalable
+- **Selection Judge**: shallow per-trace classifier for scalable
   taxonomy-code assignment. Standalone: no `ProgramWorkspace` required.
-- **Reflection Judge** — deep multi-stage trace analyzer that identifies
+- **Reflection Judge**: deep multi-stage trace analyzer that identifies
   failure points, builds causal structure, and maps supported points to
   taxonomy codes.
-- **Mapping Judge** — single-failure-point code assignment. Mirrors the
+- **Mapping Judge**: single-failure-point code assignment. Mirrors the
   Reflection Judge's two-call Stage 8 but standalone.
-- **Coverage Judge** — given a trace and/or failure point, decides whether
+- **Coverage Judge**: given a trace and/or failure point, decides whether
   the taxonomy covers / partially covers / misses the pattern; proposes a new
   code when warranted.
-- **Quality Judge** — evaluates the taxonomy itself (codes for observability,
+- **Quality Judge**: evaluates the taxonomy itself (codes for observability,
   overlap, scope, clarity). Optional support traces ground recommendations in
   evidence.
-- **Calibration Judge** — audits a Selection-Judge annotation against the
+- **Calibration Judge**: audits a Selection-Judge annotation against the
   cited evidence; flags weak-evidence/high-confidence mismatches and possible
   over-triggers.
-- **Selection-Summary Judge** — deterministic compression of Reflection Judge
+- **Selection-Summary Judge**: deterministic compression of Reflection Judge
   output into root/attributable/unrecovered/etc. buckets.
 
 The Reflection Judge is also the validation gate used by

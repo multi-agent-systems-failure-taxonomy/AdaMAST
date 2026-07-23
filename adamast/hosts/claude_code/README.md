@@ -10,16 +10,16 @@ storage remain engine-owned and are invoked through the public lifecycle API.
 Claude Code can run AdaMAST through the installed Python hooks, or a harness can
 read the natural-language assets directly and supply its own execution layer:
 
-- `adamast/hosts/claude_code/assets/standing_prompt.md` — standing session
+- `adamast/hosts/claude_code/assets/standing_prompt.md`: standing session
   instruction delivered at `SessionStart`.
-- `adamast/protocol/assets/checkpoint_reflection.md` — shared checkpoint
+- `adamast/protocol/assets/checkpoint_reflection.md`: shared checkpoint
   reflection contract used by blocking/advisory gates.
-- `adamast/hosts/claude_code/assets/final_gate_tail.md` — Claude-specific
+- `adamast/hosts/claude_code/assets/final_gate_tail.md`: Claude-specific
   final submission tail appended to the shared checkpoint prompt.
-- `adamast/judges/assets/<judge>/system.md` and `user.md` — simple judge prompts
+- `adamast/judges/assets/<judge>/system.md` and `user.md`: simple judge prompts
   for Selection, Mapping, Coverage, Quality, Calibration.
-- `adamast/judges/reflection_judge/assets/*.md` — Reflection Judge staged prompts.
-- `adamast/learning/vendor/pipeline/assets/*.md` — taxonomy-generation prompts.
+- `adamast/judges/reflection_judge/assets/*.md`: Reflection Judge staged prompts.
+- `adamast/learning/vendor/pipeline/assets/*.md`: taxonomy-generation prompts.
 
 The Python modules remain useful as controllers: they load context, render
 assets, validate JSON, record traces, and call the lifecycle API. Direct
@@ -231,14 +231,14 @@ adamast claude remove-hook --project-dir C:\path\to\project --name pre-bash-gate
 
 What each `--mode` does:
 
-- **`blocking`** — On the first fire, exit 2 with a reflection prompt scoped
+- **`blocking`**: On the first fire, exit 2 with a reflection prompt scoped
   to the activity around this event. On subsequent fires, parse the
   transcript for a valid `AdaMAST reflection:` block matching the checkpoint
   ID; release with exit 0 when valid. Retries are bounded by `--max-retries`
   (same hook-owned retry guard the built-in gates use); after the limit, the
   hook releases and logs the reason. The submission-only
   `READY_TO_SUBMIT`/`REPAIR_REQUIRED` language is intentionally omitted.
-- **`advisory`** — Each fire emits an `additionalContext` nudge with a
+- **`advisory`**: Each fire emits an `additionalContext` nudge with a
   reflection prompt; Claude is never blocked. Any reflection block the
   assistant writes is harvested by the next blocking gate.
 
@@ -261,7 +261,7 @@ their built-in handler regardless; a custom hook on a built-in event
 | File | Purpose |
 |---|---|
 | [`__init__.py`](__init__.py) | Public exports |
-| [`config.py`](config.py) | `ClaudeCodeConfig` dataclass + built-in/custom hook specs — serialized to `.claude/adamast.json`, loaded by every hook |
+| [`config.py`](config.py) | `ClaudeCodeConfig` dataclass + built-in/custom hook specs, serialized to `.claude/adamast.json` and loaded by every hook |
 | [`custom.py`](custom.py) | Reflection runtime for `CustomHookSpec` entries: `custom_blocking_checkpoint` + `custom_advisory` reuse the same reflection-shape validator as the built-in gates |
 | [`dispatcher.py`](dispatcher.py) | Single command entry point. Built-in events route by `hook_event_name`; custom hooks route via `--custom <spec_name>` |
 | [`install.py`](install.py) | `adamast claude install` CLI: write project-local or user-level settings + `adamast.json`, register built-in events + every `custom_hooks` entry, verify Claude Code binary contract |
@@ -281,7 +281,7 @@ their built-in handler regardless; a custom hook on a built-in event
 
 ## Sub-folders
 
-- [`hooks/`](hooks/) — One file per Claude Code hook event
+- [`hooks/`](hooks/): One file per Claude Code hook event
   (`SessionStart`, `UserPromptSubmit`, `SessionEnd`, `TaskCompleted`, `SubagentStop`, `Stop`,
   `PostToolUse`, `PostToolUseFailure`). Each file exports a thin `handle`
   function that the dispatcher routes to; all real behavior lives in

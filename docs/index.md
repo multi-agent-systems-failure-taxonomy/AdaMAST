@@ -1,19 +1,20 @@
 # AdaMAST documentation
 
 On this page you will install AdaMAST and generate your first failure-mode
-taxonomy — a catalog of the ways your agent actually fails, learned from its
+taxonomy: a catalog of the ways your agent actually fails, learned from its
 own traces. Two commands and one provider credential are all it takes.
 
-AdaMAST builds failure-mode taxonomies from agent traces (recorded task
+AdaMAST builds failure-mode taxonomies from agent
+[traces](TRACE_FORMATS.md#what-counts-as-a-trace) (recorded task
 transcripts), checks that independent annotators can apply them consistently,
 and reuses the result for evaluation or runtime guidance. The documentation
-runs from the smallest standalone workflow to the most involved integration —
+runs from the smallest standalone workflow to the most involved integration;
 you do **not** need Codex, Claude Code, or an agent harness to generate a
 taxonomy or judge a trace.
 
 ## 📦 Install AdaMAST
 
-You need Python 3.10 or newer — nothing else.
+You need Python 3.10 or newer, nothing else.
 
 1. Install from PyPI:
 
@@ -38,7 +39,7 @@ You need Python 3.10 or newer — nothing else.
 !!! note "Make it yours"
     The standard installation already includes the OpenAI adapter used in the
     first example. Anthropic, Google, and AWS Bedrock are optional provider
-    installs — see [Providers and models](PROVIDERS.md). Source and
+    installs; see [Providers and models](PROVIDERS.md). Source and
     contributor installations are kept in the
     [installation reference](INSTALLATION.md).
 
@@ -58,7 +59,7 @@ You need Python 3.10 or newer — nothing else.
       --provider openai \
       --model gpt-5-nano \
       --traces adamast-examples/traces.jsonl \
-      --output ./my-taxonomy \
+      --output ./taxonomy-run \
       --view
     ```
 
@@ -94,10 +95,10 @@ Three workflows appear throughout the docs:
 | Name | Meaning |
 |---|---|
 | **Generation** | The standalone starting point: take completed traces, create a taxonomy, and run the full inter-annotator agreement layer. |
-| **Judging** | Applies an existing taxonomy to new evidence. The default judge returns every validated, evidence-backed failure code a trace supports — or none; other modes and judges cover single-code classification, mapping, coverage, taxonomy quality, calibration, and causal reflection. |
+| **Judging** | Applies an existing taxonomy to new evidence. The default judge returns every validated, evidence-backed failure code a trace supports, or none at all; other modes and judges cover single-code classification, mapping, coverage, taxonomy quality, calibration, and causal reflection. |
 | **Adaptive runtime** | Everything above, added on top of a live agent: records new traces as you work, keeps a taxonomy active at task boundaries, and regenerates or refines it when thresholds are reached. |
 
-The full glossary — taxonomy, trace, checkpoint, judge, program — lives in
+The full glossary (taxonomy, trace, checkpoint, judge, program) lives in
 [Choose a workflow](CONCEPTS.md).
 
 ## 📚 What to read next

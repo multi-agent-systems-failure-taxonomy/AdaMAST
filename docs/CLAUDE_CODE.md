@@ -1,7 +1,7 @@
 # Claude Code integration
 
 Register AdaMAST with Claude Code so the agent checks its work against known
-failure modes while it runs — and, after enough completed tasks, learns a
+failure modes while it runs and, after enough completed tasks, learns a
 catalog specific to your project. The integration installs hooks that call the
 AdaMAST runtime at session start, user-prompt submission, checkpoints, and
 final submission, either project-local or user-level (an interactive mode
@@ -35,7 +35,7 @@ The installer merges AdaMAST into `~/.claude/settings.json` and writes
 From then on, in each conversation AdaMAST will:
 
 1. open the local taxonomy library for MAST (the built-in general-purpose
-   catalog of 14 common agent failure modes — [what is MAST?](CONCEPTS.md#the-starting-taxonomy)),
+   catalog of 14 common agent failure modes; [what is MAST?](CONCEPTS.md#the-starting-taxonomy)),
    stored taxonomies, or `No taxonomy`;
 2. hold the first substantive prompt until that choice is resolved;
 3. record checkpoint reflections privately at configured boundaries;
@@ -57,7 +57,7 @@ From then on, in each conversation AdaMAST will:
 The user-level installer defaults to the browser selector. On the first
 substantive prompt, the synchronous `UserPromptSubmit` hook keeps that prompt
 paused while the browser is open. Selecting a taxonomy completes the hook and
-lets Claude process the original prompt immediately — do not send a second
+lets Claude process the original prompt immediately; do not send a second
 message.
 
 !!! note "If you never pick"
@@ -102,7 +102,7 @@ required for `claude_subagent` learning:
 
 One completed assistant episode is one trace. By default the first generation
 runs after five eligible traces, the first refinement review after `k_init`
-(ten), and later reviews every `k` (twenty) — thresholds and counters are
+(ten), and later reviews every `k` (twenty); thresholds and counters are
 detailed in [Traces and learning](TRACES_AND_LEARNING.md), the worker
 protocol in [Native taxonomy learning](NATIVE_LEARNING.md).
 
@@ -148,7 +148,7 @@ covered in [Live monitor](DASHBOARD.md).
 ## 🎛️ Customize the hooks
 
 !!! note "Hooks are enabled automatically"
-    The installer registers all eight built-in hooks for you — there is
+    The installer registers all eight built-in hooks for you; there is
     nothing to enable by hand. A **user-level** install needs no approval at
     all: hooks run in your next new conversation. For a **project-level**
     install, Claude Code itself asks once per project before running hooks
@@ -223,7 +223,7 @@ assuming:
 - `[adamast]` lines on stderr report retry-guard releases and internal errors;
 - `<trace_output>/decisions.log` records every gate decision and release;
 - `adamast status --config adamast.json` shows reflections recorded per
-  session — a finished session with no final-gate evidence means the gate was
+  session; a finished session with no final-gate evidence means the gate was
   skipped.
 
 ## 🧹 Uninstall

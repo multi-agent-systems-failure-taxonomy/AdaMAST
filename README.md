@@ -1,7 +1,7 @@
 # AdaMAST
 
 <p align="center">
-  <b>Find out how your AI agents fail — from their own work.</b>
+  <b>Find out how your AI agents fail, straight from their own work.</b>
 </p>
 
 <p align="center">
@@ -12,14 +12,14 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-1F8A70?style=flat-square" alt="License" /></a>
 </p>
 
-AI agents — coding assistants, tool-using pipelines, multi-agent systems — don't fail randomly. Each system tends to fail in its own **recurring, recognizable ways**: the checker that always waves work through, the plan that quietly drops a requirement, the tool result that gets ignored. Most teams have no good way to name those patterns, count them, or watch them change.
+AI agents (coding assistants, tool-using pipelines, multi-agent systems) don't fail randomly. Each system tends to fail in its own **recurring, recognizable ways**: the checker that always waves work through, the plan that quietly drops a requirement, the tool result that gets ignored. Most teams have no good way to name those patterns, count them, or watch them change.
 
-**AdaMAST** reads the logs of your agent's past runs and automatically builds a **catalog of that system's failure patterns** (we call it a *taxonomy*), with every entry backed by real quotes from your own logs. You can then use the catalog to grade new runs, spot regressions, and feed improvement loops with *what went wrong and why* — instead of just a score.
+**AdaMAST** reads the logs of your agent's past runs and automatically builds a **catalog of that system's failure patterns** (we call it a *taxonomy*), with every entry backed by real quotes from your own logs. You can then use the catalog to grade new runs, spot regressions, and feed improvement loops with *what went wrong and why* instead of just a score.
 
-- 📄 **Works on the logs you already have** — common agent log formats are auto-detected
-- 🔍 **Every failure pattern comes with evidence** — verbatim quotes from real runs, not guesses
-- ✅ **Catalogs are quality-gated** — several independent automated reviews must agree before one is accepted
-- 🔌 **Live mode** — plug into Codex or Claude Code and the catalog is learned and applied while you work
+- 📄 **Works on the logs you already have.** Common agent log formats are auto-detected
+- 🔍 **Every failure pattern comes with evidence.** Verbatim quotes from real runs, not guesses
+- ✅ **Catalogs are quality-gated.** Several independent automated reviews must agree before one is accepted
+- 🔌 **Live mode.** Plug into Codex or Claude Code and the catalog is learned and applied while you work
 
 **Paper:** [Fantastic Adaptive Taxonomies and How to Use Them](https://arxiv.org/abs/2607.16387) · **Blog:** [AdaMAST announcement](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/adamast_paper/) · **Docs:** [Website](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/)
 
@@ -31,13 +31,13 @@ AI agents — coding assistants, tool-using pipelines, multi-agent systems — d
 flowchart LR
     A["📄 Your agent's<br/>trace files"] --> B["🤖 Several independent<br/>annotators propose<br/>failure patterns"]
     B --> C{"Annotations<br/>agree?"}
-    C -->|"no — redraft"| B
+    C -->|"no: redraft"| B
     C -->|yes| D["✅ Accepted catalog<br/>taxonomy.json + evidence<br/>+ agreement manifest"]
     D --> E["⚖️ Judge new runs<br/>against the catalog"]
 ```
 
 - **Propose.** Several independent automated annotators read your traces, and each proposes failure patterns on its own.
-- **Agree.** The proposals are reconciled. A catalog is accepted only when the independent annotations agree with each other — otherwise it is redrafted. (The full protocol and its acceptance criteria are in the [paper](https://arxiv.org/abs/2607.16387).)
+- **Agree.** The proposals are reconciled. A catalog is accepted only when the independent annotations agree with each other; otherwise it is redrafted. (The full protocol and its acceptance criteria are in the [paper](https://arxiv.org/abs/2607.16387).)
 - **Apply.** Judge new runs against the accepted catalog: each trace gets its best-matching failure code, with verbatim evidence quoted from the run.
 
 Every entry in the catalog belongs to one of three categories:
@@ -52,11 +52,11 @@ Every entry in the catalog belongs to one of three categories:
 
 | Scenario | How |
 |---|---|
-| 🔬 **Error analysis** — learn what your agent actually gets wrong, with receipts | `adamast generate` on a batch of traces, then read the field guide |
-| 📈 **Regression tracking** — watch failure patterns across agent versions | `adamast judge` new runs against the same catalog and compare |
-| 🏅 **Best-of-N selection** — pick the cleanest of several candidate runs | Judge each candidate; prefer the one with the fewest, least severe codes |
-| 🧬 **Feedback for optimization loops** — tell a prompt or agent optimizer *why* runs failed, not just the score | Feed the judged codes back as the improvement signal |
-| 🔌 **Live runtime integration** — the catalog is learned and applied while you work in Codex or Claude Code | The one that needs setup — see [Runtime integration](#-runtime-integration) |
+| 🔬 **Error analysis**: learn what your agent actually gets wrong, with receipts | `adamast generate` on a batch of traces, then read the field guide |
+| 📈 **Regression tracking**: watch failure patterns across agent versions | `adamast judge` new runs against the same catalog and compare |
+| 🏅 **Best-of-N selection**: pick the cleanest of several candidate runs | Judge each candidate; prefer the one with the fewest, least severe codes |
+| 🧬 **Feedback for optimization loops**: tell a prompt or agent optimizer *why* runs failed, not just the score | Feed the judged codes back as the improvement signal |
+| 🔌 **Live runtime integration**: the catalog is learned and applied while you work in Codex or Claude Code | The one that needs setup; see [Runtime integration](#-runtime-integration) |
 
 ## 📦 Install
 
@@ -75,7 +75,7 @@ adamast validate adamast-examples/traces.jsonl
 
 ## 🚀 Use it
 
-Set one provider credential (OpenAI shown; Anthropic, Google, and AWS Bedrock work the same — [Providers](docs/PROVIDERS.md)):
+Set one provider credential (OpenAI shown; Anthropic, Google, and AWS Bedrock work the same, see [Providers](docs/PROVIDERS.md)):
 
 ```bash
 export OPENAI_API_KEY="..."
@@ -107,7 +107,7 @@ Deeper guides: [Trace formats](docs/TRACE_FORMATS.md) · [Generation](docs/GENER
 
 ## 🔌 Runtime integration
 
-AdaMAST can also ride along **live** inside Codex or Claude Code: hooks checkpoint the agent's work at natural boundaries, record evidence, and learn a project-specific taxonomy automatically from completed conversations — no API key or config needed for the interactive path. Until your project's own catalog is learned, conversations start from a built-in adaptation of the MAST taxonomy (["Why Do Multi-Agent LLM Systems Fail?"](https://arxiv.org/abs/2503.13657), Cemri et al., 2025).
+AdaMAST can also ride along **live** inside Codex or Claude Code: hooks checkpoint the agent's work at natural boundaries, record evidence, and learn a project-specific taxonomy automatically from completed conversations. No API key or config is needed for the interactive path. Until your project's own catalog is learned, conversations start from a built-in adaptation of the MAST taxonomy (["Why Do Multi-Agent LLM Systems Fail?"](https://arxiv.org/abs/2503.13657), Cemri et al., 2025).
 
 ```bash
 # once, for the host you use
@@ -119,7 +119,7 @@ adamast doctor
 adamast dashboard
 ```
 
-The full story — how checkpoints work, the taxonomy picker, background learning, the live monitor, and every knob — lives in **[the runtime integration guide](RUNTIME_INTEGRATION.md)**.
+The full story (how checkpoints work, the taxonomy picker, background learning, the live monitor, and every knob) lives in **[the runtime integration guide](RUNTIME_INTEGRATION.md)**.
 
 ## 📚 Learn more
 

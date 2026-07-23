@@ -14,7 +14,7 @@ output validation stay the same when the provider changes.
 | `bedrock` | `[bedrock]` | AWS bearer token or normal AWS credential chain | `BEDROCK_MODEL_ID` |
 
 Select a provider explicitly with `--provider` or `ADAMAST_PROVIDER`. Also
-pass `--model` or set the provider's model environment variable — only OpenAI
+pass `--model` or set the provider's model environment variable; only OpenAI
 ships a package default model.
 
 ## 🟢 OpenAI
@@ -108,7 +108,7 @@ Explicit CLI values take precedence over model environment variables.
 
 `--max-output-tokens` caps the output of each model call. The default is
 `8192` for both generation and judging; pass the flag only when you want a
-different cap — here, lowering it to `4096`:
+different cap; here, lowering it to `4096`:
 
 ```bash
 adamast judge \
@@ -134,6 +134,6 @@ adamast judge \
 
 ## ➡️ Continue with
 
-- [Generate a taxonomy](GENERATION.md) — run generation on the
+- [Generate a taxonomy](GENERATION.md): run generation on the
   provider you just configured.
-- [Judge traces](JUDGING.md) — the same provider flags apply to judging.
+- [Judge traces](JUDGING.md): the same provider flags apply to judging.

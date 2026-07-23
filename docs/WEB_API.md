@@ -207,5 +207,5 @@ an external authentication layer.
 
 ## ➡️ Continue with
 
-- [Live monitor](DASHBOARD.md) — the browser view served from this API.
-- [Configuration](CONFIGURATION.md) — the `dashboard` field and program paths.
+- [Live monitor](DASHBOARD.md): the browser view served from this API.
+- [Configuration](CONFIGURATION.md): the `dashboard` field and program paths.

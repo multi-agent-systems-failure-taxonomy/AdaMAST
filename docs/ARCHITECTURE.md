@@ -88,5 +88,5 @@ Host ownership and conversation binding follow four rules:
 
 ## ➡️ Continue with
 
-- [Native taxonomy learning](NATIVE_LEARNING.md) — the job state machine.
-- [Custom agent harness](INTEGRATION.md) — the runtime API the hosts sit on.
+- [Native taxonomy learning](NATIVE_LEARNING.md): the job state machine.
+- [Custom agent harness](INTEGRATION.md): the runtime API the hosts sit on.

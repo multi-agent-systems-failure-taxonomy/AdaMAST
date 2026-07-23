@@ -65,7 +65,7 @@ python -m http.server 8000 --directory site
 ```
 
 **Note:** The canonical config reference is
-[docs/CONFIGURATION.md](docs/CONFIGURATION.md) — other pages should show
+[docs/CONFIGURATION.md](docs/CONFIGURATION.md); other pages should show
 minimal configs and link there rather than duplicating field tables.
 
 Release versioning, artifact checks, tags, and the PyPI trusted-publisher

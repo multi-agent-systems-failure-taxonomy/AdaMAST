@@ -28,7 +28,7 @@ generation, refinement, and lineage.
 
 ## 🔁 Minimal lifecycle
 
-A checkpoint — also called a gate — is any boundary where the harness asks the
+A checkpoint, also called a gate, is any boundary where the harness asks the
 agent to reflect before continuing; the final gate is the blocking checkpoint
 before an answer is released.
 
@@ -222,7 +222,7 @@ adamast traces prune --older-than-days 90 --taxonomy-id <taxonomy_id>
 
 ## ➡️ Continue with
 
-- [Native taxonomy learning](NATIVE_LEARNING.md) — the job protocol behind
+- [Native taxonomy learning](NATIVE_LEARNING.md): the job protocol behind
   the learning triggers.
-- [Configuration](CONFIGURATION.md) — every runtime field the harness can
+- [Configuration](CONFIGURATION.md): every runtime field the harness can
   set.

@@ -1,7 +1,7 @@
 # Generate a taxonomy
 
 On this page you turn a folder of completed traces into a validated failure
-taxonomy — one command, no agent integration required.
+taxonomy: one command, no agent integration required.
 
 This is the simplest AdaMAST workflow: provide completed traces, select a
 model provider, and receive a standalone failure taxonomy with the full
@@ -11,7 +11,7 @@ on the codes before the result counts).
 ## 🚀 Generate from the CLI
 
 1. Install AdaMAST from the [documentation home](index.md#install-adamast).
-2. Prepare a supported JSON or JSONL source — see
+2. Prepare a supported JSON or JSONL source; see
    [Prepare traces](TRACE_FORMATS.md).
 3. Run `adamast validate` and inspect the normalized form when importing a new
    trace format.
@@ -134,5 +134,5 @@ traces accumulate.
 
 ## ➡️ Continue with
 
-- [Outputs and field guide](TAXONOMY_OUTPUTS.md) — inspect what the run wrote.
-- [Judge traces](JUDGING.md) — apply the accepted taxonomy to new traces.
+- [Outputs and field guide](TAXONOMY_OUTPUTS.md): inspect what the run wrote.
+- [Judge traces](JUDGING.md): apply the accepted taxonomy to new traces.

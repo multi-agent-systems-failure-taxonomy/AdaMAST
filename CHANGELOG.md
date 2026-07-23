@@ -7,7 +7,7 @@ All notable user-facing changes are documented here.
 ### Changed
 
 - Single-package layout (the 0.2.0 layout): all code now lives in one
-  `adamast` package — `adamast.core` (data model, taxonomy store, session
+  `adamast` package: `adamast.core` (data model, taxonomy store, session
   lifecycle), `adamast.protocol` (the one compact-checkpoint
   implementation, previously duplicated by the Claude Code and Codex
   transports, plus the pre-submission gate), `adamast.judges`,
@@ -24,17 +24,17 @@ All notable user-facing changes are documented here.
   every module now lives only in the `adamast` package. Imports and
   `python -m` commands using the old paths stop working. Installations
   made from `adamast==0.1.0` (or hooks it registered) must uninstall with
-  their own version's uninstaller, upgrade, and reinstall — pip removes
+  their own version's uninstaller, upgrade, and reinstall; pip removes
   the deleted packages from site-packages automatically on upgrade. The
   config schema moved from `adamast_runtime/assets/` to
   `adamast/core/assets/`.
 - The public-mirror staging fork (`adamast_public/`) is gone. Its
-  public-only surfaces — the provider-neutral JUDGES contract
+  public-only surfaces, namely the provider-neutral JUDGES contract
   (`adamast.judges.contract`), providers (`adamast.llm.providers`), the
   draft/agreement generation engines (`adamast.learning.pipeline`), the
   public API (`adamast.learning.api`), trace-format normalization
   (`adamast.core.trace_formats`), and the taxonomy viewer
-  (`adamast.dashboard.viewer`) — moved into the package, and
+  (`adamast.dashboard.viewer`), moved into the package, and
   `from adamast import generate_taxonomy, judge_trace` works as the public
   docs describe. `python -m adamast` now runs the umbrella CLI. Publishing
   the public repository is a filtered copy of this one.
@@ -117,7 +117,7 @@ distribution name; entries below 0.1.0 describe the `atlas-skill` lineage.
 
 ### Migration
 
-- Uninstall the old package before installing the new one — both ship the
+- Uninstall the old package before installing the new one; both ship the
   shared `finding`, `judge_types`, and `vendor` modules and would collide:
   run `atlas-claude-uninstall --user-level` / `atlas-codex-uninstall
   --user-level`, `pip uninstall atlas-skill`, then `pip install adamast` and

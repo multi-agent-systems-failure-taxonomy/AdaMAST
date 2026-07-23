@@ -4,7 +4,7 @@ This page explains when your working sessions become traces, when accumulated
 traces trigger taxonomy learning, and the fields that control each threshold.
 
 AdaMAST separates runtime interaction from taxonomy learning. Runtime
-checkpoints — the reflection boundaries also called gates — help the current
+checkpoints (the reflection boundaries also called gates) help the current
 task avoid repeated mistakes. Learning uses completed traces to generate or
 refine taxonomies for future tasks.
 
@@ -14,12 +14,16 @@ refine taxonomies for future tasks.
 flowchart LR
     A["🧭 Starting taxonomy<br/>built-in MAST active"] -->|"generation_threshold<br/>default 5 traces"| B["🧪 Generation<br/>draft + taxonomy check"]
     B -->|accepted| C["📚 Stored taxonomy active"]
-    B -->|"rejected — accumulate<br/>new traces, retry"| A
+    B -->|"rejected: accumulate<br/>new traces, retry"| A
     C -->|"k_init: 10 traces"| D["♻️ Refinement"]
     D -->|"k: 20 traces each"| D
 ```
 
 ## 🧾 What counts as a trace
+
+The general definition and the accepted file formats live in
+[Prepare traces](TRACE_FORMATS.md#what-counts-as-a-trace); this section
+defines the episode-level contract used by live integrations.
 
 | Integration | One trace is… |
 | --- | --- |
@@ -205,7 +209,7 @@ folders can grow large.
 
 ## ➡️ Continue with
 
-- [Taxonomy lifecycle](TAXONOMIES.md) — the records, IDs, and lineage the
+- [Taxonomy lifecycle](TAXONOMIES.md): the records, IDs, and lineage the
   learning steps produce.
-- [Native taxonomy learning](NATIVE_LEARNING.md) — how Codex and Claude Code
+- [Native taxonomy learning](NATIVE_LEARNING.md): how Codex and Claude Code
   run these triggers in the host conversation.

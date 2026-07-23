@@ -132,7 +132,7 @@ assignments, metrics, and refinements.
 
 ## ➡️ Continue with
 
-- [Judge traces](JUDGING.md) — apply the accepted `taxonomy.json` to new
+- [Judge traces](JUDGING.md): apply the accepted `taxonomy.json` to new
   traces.
-- [Providers and models](PROVIDERS.md) — run the same workflows on a
+- [Providers and models](PROVIDERS.md): run the same workflows on a
   different provider.

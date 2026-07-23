@@ -6,7 +6,7 @@
 > See [the publishing workflow](docs/PUBLISHING.md).
 
 <p align="center">
-  <b>Your agent keeps making the same mistakes. AdaMAST learns what they are — from your agent's own work — and reminds it at the right moments.</b>
+  <b>Your agent keeps making the same mistakes. AdaMAST learns what they are from your agent's own work and reminds it at the right moments.</b>
 </p>
 
 <p align="center">
@@ -20,7 +20,7 @@
   <img src="docs/adamast_runtime_loop.png" width="720" alt="The AdaMAST runtime loop"><br>
 </p>
 
-**AdaMAST** rides along with the agent you already use — Codex, Claude Code, or your own harness. While the agent works, AdaMAST quietly checks the work at natural boundaries, records evidence when something goes wrong, and — after enough completed tasks — **learns a failure-mode catalog (a "taxonomy") specific to your project**. From then on, the agent is checked against *its own* known weaknesses instead of a generic list.
+**AdaMAST** rides along with the agent you already use (Codex, Claude Code, or your own harness). While the agent works, AdaMAST quietly checks the work at natural boundaries, records evidence when something goes wrong, and, after enough completed tasks, **learns a failure-mode catalog (a "taxonomy") specific to your project**. From then on, the agent is checked against *its own* known weaknesses instead of a generic list.
 
 **Paper:** [Fantastic Adaptive Taxonomies and How to Use Them](https://arxiv.org/abs/2607.16387) · **Docs:** [Website](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/)
 
@@ -44,9 +44,9 @@ adamast claude install --user-level
 adamast codex install --user-level
 ```
 
-Fully quit and reopen Codex / Claude Code, then start a **new conversation**. That's it — no config file, no extra API key, no second login.
+Fully quit and reopen Codex / Claude Code, then start a **new conversation**. That's it: no config file, no extra API key, no second login.
 
-On your first message, AdaMAST opens its taxonomy picker and asks one question — where should this conversation start from?
+On your first message, AdaMAST opens its taxonomy picker and asks one question: where should this conversation start from?
 
 | Choice | What it means |
 |---|---|
@@ -54,7 +54,7 @@ On your first message, AdaMAST opens its taxonomy picker and asks one question �
 | 📚 **A stored taxonomy** | Reuse a taxonomy your project already learned. |
 | 🚫 **No taxonomy** | AdaMAST stays completely out of this conversation. |
 
-Pick with one click (or one number in a terminal) — your held message then continues automatically.
+Pick with one click (or one number in a terminal), and your held message continues automatically.
 
 > 💡 **Check it worked:** run `adamast doctor` any time. It validates your install and tells you exactly what to do if something is off.
 
@@ -72,14 +72,10 @@ flowchart LR
 1. **You work normally.** AdaMAST never takes over the task.
 2. **At checkpoints** (finishing a sub-task, a failed tool, the final answer) the agent privately asks itself: *what just happened, what caused it, does a known failure mode apply, continue or repair?* Finding nothing wrong is a perfectly valid answer.
 3. **Each completed task becomes a trace.** Traces are the raw material for learning.
-4. **At 5 traces, learning kicks in** — a background worker drafts a taxonomy of *your* project's actual failure patterns, with verbatim evidence for every code. A separate reviewer must approve it before it activates. Your conversation never waits.
+4. **At 5 traces, learning kicks in.** A background worker drafts a taxonomy of *your* project's actual failure patterns, with verbatim evidence for every code. A separate reviewer must approve it before it activates. Your conversation never waits.
 5. **It keeps improving.** The taxonomy is reviewed against new traces after 10 more, then every 20.
 
 Watch it live: `adamast dashboard` opens a local monitor showing every checkpoint, the evidence behind it, and which failure modes fired.
-
-<p align="center">
-  <img src="docs/assets/screenshots/dashboard-demo.png" width="720" alt="The AdaMAST live monitor">
-</p>
 
 ## 🎛️ Make it yours
 
@@ -100,7 +96,7 @@ Every field, flag, and default lives in the [Configuration reference](docs/CONFI
 
 ## 🧠 Why adaptive taxonomies?
 
-Improvement needs feedback that preserves *why* something failed. Scalar rewards throw the reason away; free-form reflection doesn't aggregate; a fixed catalog can't know your agent's roles, tools, or domain in advance. AdaMAST learns a compact, evidence-grounded failure vocabulary from the target system's own traces — starting from the built-in 14-code adaptation of MAST (["Why Do Multi-Agent LLM Systems Fail?"](https://arxiv.org/abs/2503.13657), Cemri et al., 2025) until the first learned taxonomy activates.
+Improvement needs feedback that preserves *why* something failed. Scalar rewards throw the reason away; free-form reflection doesn't aggregate; a fixed catalog can't know your agent's roles, tools, or domain in advance. AdaMAST learns a compact, evidence-grounded failure vocabulary from the target system's own traces, starting from the built-in 14-code adaptation of MAST (["Why Do Multi-Agent LLM Systems Fail?"](https://arxiv.org/abs/2503.13657), Cemri et al., 2025) until the first learned taxonomy activates.
 
 Learned codes are organized on three stable axes:
 

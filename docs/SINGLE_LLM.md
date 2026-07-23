@@ -1,8 +1,8 @@
 # Single-LLM integration
 
 Wrap one direct model call with AdaMAST checkpoints, a final gate, and trace
-recording. Use this path when your application owns the model call — scripts,
-notebooks, benchmarks, batch jobs, or custom pipelines — and:
+recording. Use this path when your application owns the model call (scripts,
+notebooks, benchmarks, batch jobs, or custom pipelines) and:
 
 - there is no agent harness with hooks;
 - each dataset row or benchmark sample is a separate task;

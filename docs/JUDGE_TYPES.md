@@ -1,7 +1,7 @@
 # Choose a judge
 
 This page helps you pick the smallest judge that matches the decision your
-pipeline needs — and shows the minimal code to run each one.
+pipeline needs, and shows the minimal code to run each one.
 
 AdaMAST separates judgment tasks because one prompt should not be expected to
 perform every kind of evaluation.
@@ -10,7 +10,7 @@ perform every kind of evaluation.
 
 | Judge | Input | Output | Best suited for |
 | --- | --- | --- | --- |
-| Default judge (Selection) | trace + taxonomy | every supported code — zero or more, with evidence | Labeling, comparison, statistics, CI |
+| Default judge (Selection) | trace + taxonomy | every supported code (zero or more), with evidence | Labeling, comparison, statistics, CI |
 | Single-code judge | trace + taxonomy | one validated code, evidence, confidence, recovery hint | Forcing one primary label per trace |
 | Reflection | trace + taxonomy | failure points, causal graph, mappings, summary | Deep diagnosis, mutation, repair, refinement |
 | Mapping | one failure point + taxonomy | primary/secondary codes or a proposed missing mode | Modular code assignment |
@@ -19,7 +19,7 @@ perform every kind of evaluation.
 | Calibration | annotation + evidence + taxonomy | validity and evidence support | Auditing default-judge annotations |
 | Selection-Summary | Reflection output | deterministic selection buckets | Compressing a causal analysis without another model call |
 
-The [default judge](JUDGING.md) is the public CLI/API path — `adamast judge`
+The [default judge](JUDGING.md) is the public CLI/API path: `adamast judge`
 and `create_judge` run it unless you ask for a different mode. The specialized
 controllers live under `adamast/judges/` and are used by the adaptive runtime and
 research pipelines.
@@ -30,7 +30,7 @@ research pipelines.
 
 ## 🎯 Default judge (Selection)
 
-The default judge selects every failure code the trace evidence supports — a
+The default judge selects every failure code the trace evidence supports; a
 trace can carry several failure modes, one, or none. Each returned mode cites
 its evidence, and `none apply` is an explicit valid answer.
 
@@ -46,7 +46,7 @@ adamast judge \
 ## 🏷️ Single-code judge
 
 Choose the single-code judge when exactly one failure code per trace is
-required — it classifies each trace into its one best-supported code with a
+required; it classifies each trace into its one best-supported code with a
 confidence score and a recovery hint.
 
 ```bash
@@ -204,6 +204,6 @@ separate staged prompt assets under `adamast/judges/reflection_judge/assets/`.
 
 ## ➡️ Continue with
 
-- [Adaptive runtime](GETTING_STARTED.md) — where the specialized judges are
+- [Adaptive runtime](GETTING_STARTED.md): where the specialized judges are
   used automatically.
-- [Customization](CUSTOMIZATION.md) — the exact prompt asset files to edit.
+- [Customization](CUSTOMIZATION.md): the exact prompt asset files to edit.

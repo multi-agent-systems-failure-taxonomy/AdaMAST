@@ -52,6 +52,6 @@ Finding returns:
 
 ## ➡️ Continue with
 
-- [Custom agent harness](INTEGRATION.md) — the broader pipeline integration
+- [Custom agent harness](INTEGRATION.md): the broader pipeline integration
   guide.
-- [Web API](WEB_API.md) — the localhost dashboard API response shapes.
+- [Web API](WEB_API.md): the localhost dashboard API response shapes.

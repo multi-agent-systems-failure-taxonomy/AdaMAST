@@ -1,6 +1,6 @@
 # AdaMAST customization guide
 
-Change what AdaMAST says, decides, or enforces — without touching runtime
+Change what AdaMAST says, decides, or enforces, without touching runtime
 controllers whenever possible. This page maps each kind of change to the one
 file to edit, then shows how to verify your change.
 
@@ -196,7 +196,7 @@ Then inspect the wheel and confirm your new asset files are included.
 
 ## ➡️ Continue with
 
-- [Architecture](ARCHITECTURE.md) — which module owns each behavior you might
+- [Architecture](ARCHITECTURE.md): which module owns each behavior you might
   be tempted to change.
-- [Complete runtime example](EXAMPLE_RUN.md) — the exact shapes your prompt
+- [Complete runtime example](EXAMPLE_RUN.md): the exact shapes your prompt
   changes must keep parseable.

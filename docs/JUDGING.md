@@ -1,17 +1,17 @@
 # Judge traces
 
 On this page you label completed traces with the failure codes their evidence
-supports, using a taxonomy you already have — from the CLI or from Python.
+supports, using a taxonomy you already have, from the CLI or from Python.
 
 The judge applies one existing taxonomy to one or more completed traces. A
-trace can carry several failure modes at once — even a single failure point
-can express more than one — so the default judge returns every supported
+trace can carry several failure modes at once (even a single failure point
+can express more than one), so the default judge returns every supported
 code, each with its evidence.
 
 ## 🎯 What it does
 
-`adamast judge` selects every failure code the trace evidence supports —
-zero, one, or several per trace — quoting the evidence for each. Finding
+`adamast judge` selects every failure code the trace evidence supports
+(zero, one, or several per trace), quoting the evidence for each. Finding
 nothing wrong is an explicit answer (`none_apply`), not an error. Returned
 codes are always validated against the taxonomy, and it reads the same trace
 formats and providers as generation.
@@ -174,7 +174,7 @@ taxonomy files during migration. New integrations should use the flat
 
 ## ➡️ Continue with
 
-- [Choose a judge](JUDGE_TYPES.md) — specialized judges for causality,
+- [Choose a judge](JUDGE_TYPES.md): specialized judges for causality,
   coverage, quality, and calibration.
-- [Adaptive runtime](GETTING_STARTED.md) — checkpoints and learning during
+- [Adaptive runtime](GETTING_STARTED.md): checkpoints and learning during
   agent work.

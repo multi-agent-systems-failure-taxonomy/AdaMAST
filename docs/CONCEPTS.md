@@ -1,7 +1,7 @@
 # Choose an AdaMAST workflow
 
 This page does two things: routes you to the right guide for what you need,
-and defines the handful of words — taxonomy, trace, checkpoint, judge — that
+and defines the handful of words (taxonomy, trace, checkpoint, judge) that
 every other page uses. AdaMAST is a set of composable taxonomy workflows.
 
 ## 🗺️ Workflow map
@@ -37,7 +37,7 @@ AdaMAST uses three code categories:
 
 A trace is the evidence from one completed task or episode: a stable ID, the
 task, the raw trajectory, and optional metadata. Common agent log formats
-are accepted and normalized — see [Prepare traces](TRACE_FORMATS.md).
+are accepted and normalized; see [Prepare traces](TRACE_FORMATS.md).
 
 ## ✍️ Generation
 
@@ -77,8 +77,8 @@ sharing only by reusing a path.
 
 ## 🚧 Checkpoint (gate)
 
-A **checkpoint** — also called a **gate**; the two words name the same event,
-and these docs standardize on *checkpoint* — is a runtime boundary where the
+A **checkpoint**, also called a **gate** (the two words name the same event,
+and these docs standardize on *checkpoint*), is a runtime boundary where the
 agent reflects on recent evidence using the active taxonomy. Most checkpoints
 are advisory; the **final gate**, the pre-submission checkpoint, can block
 until the required response shape passes or the retry policy is exhausted.
@@ -98,15 +98,15 @@ The runtime reflection shape is:
 
 When the runtime integration starts working in a project that has no learned
 taxonomy yet, checkpoints still need a catalog to check against from the very
-first message. For that period the runtime uses a static, pre-made taxonomy —
-selected once at conversation start — until enough traces accumulate to
+first message. For that period the runtime uses a static, pre-made taxonomy,
+selected once at conversation start, until enough traces accumulate to
 generate a custom one for your project.
 
 We selected [MAST](https://arxiv.org/abs/2503.13657) for this role: a
 general-purpose 14-code taxonomy of common agent failure modes from *"Why Do
 Multi-Agent LLM Systems Fail?"* (Cemri et al., 2025), which AdaMAST ships in
 an adapted form. The traces completed while MAST is active feed the first
-taxonomy generated for your own project — standalone generation never needs
+taxonomy generated for your own project; standalone generation never needs
 it.
 
 ## 🔀 Refinement and lineage

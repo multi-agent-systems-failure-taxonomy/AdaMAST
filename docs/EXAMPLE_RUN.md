@@ -1,7 +1,7 @@
 # An example run
 
 Follow one AdaMAST-supervised task from first checkpoint to learned taxonomy.
-Everything below is what the agent actually sees and produces — every shape
+Everything below is what the agent actually sees and produces: every shape
 is the real format the runtime parses, not an illustration.
 
 The running example is the bundled demo taxonomy (orbital task scheduling).
@@ -9,7 +9,7 @@ Try the matching dashboard locally with `python -m adamast.examples.dashboard_de
 
 ## 🛑 1. A checkpoint fires
 
-A checkpoint is a configured boundary where the agent pauses to self-check —
+A checkpoint is a configured boundary where the agent pauses to self-check;
 here, after a tool call. The harness delivers the active taxonomy plus the
 recent trajectory window, and the agent responds in the required reflection
 shape:
@@ -18,7 +18,7 @@ shape:
 Observe:   The schedule reused the cached AOS/LOS window after a newer
            ephemeris was loaded.
 Correlate: The task crossed the exact boundary described by ORB-01.
-Map:       ORB-01 (Stale ephemeris used for scheduling) — evidence
+Map:       ORB-01 (Stale ephemeris used for scheduling); evidence
            supports the match.
 Decide:    Recompute the window before dispatch.
 ```
@@ -28,7 +28,7 @@ checkpoint id.
 
 ## ✅ 2. A clean checkpoint
 
-`none apply` is a valid outcome and is recorded too — clean checkpoints are
+`none apply` is a valid outcome and is recorded too; clean checkpoints are
 part of the evidence, not a skipped step:
 
 ```text
@@ -40,8 +40,8 @@ Decide:    Submit without repair.
 
 ## 🚦 3. The final gate
 
-Before the final answer is released, the final gate — the blocking
-pre-submission checkpoint — requires this exact format and allows at most
+Before the final answer is released, the final gate (the blocking
+pre-submission checkpoint) requires this exact format and allows at most
 `repair_rounds` repairs:
 
 ```text
@@ -62,15 +62,13 @@ Final decision: submit
 
 For a standalone harness run, the program-level
 [dashboard](DASHBOARD.md) makes failure-mode firings, clean checkpoints,
-evidence snippets, and per-task UID filters browsable live:
-
-![AdaMAST runtime dashboard](assets/screenshots/dashboard-demo.png)
+evidence snippets, and per-task UID filters browsable live.
 
 ## 🧠 5. What learning produces
 
 At session end, one canonical trace is recorded. After enough traces
 accumulate, generation (or refinement) proposes a taxonomy specialized to the
-observed failures — a normal stored record that future runs can inherit:
+observed failures, written as a normal stored record that future runs can inherit:
 
 ```json
 {
@@ -98,6 +96,6 @@ Inherit it in a later run with `--inherit tax-skylab-orbital-demo-001`.
 
 ## 📚 Where to go next
 
-Continue with [TRACES_AND_LEARNING.md](TRACES_AND_LEARNING.md) — the
-lifecycle behind steps 4–5 — or with [INTEGRATION.md](INTEGRATION.md) for the
+Continue with [TRACES_AND_LEARNING.md](TRACES_AND_LEARNING.md) (the
+lifecycle behind steps 4–5), or with [INTEGRATION.md](INTEGRATION.md) for the
 checkpoint and reflection contract harness authors implement.

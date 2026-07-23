@@ -1,23 +1,53 @@
 # Prepare traces
 
 On this page you turn the agent logs you already have into traces AdaMAST
-accepts — and check them locally, before a single model call is spent.
+accepts, and check them locally before a single model call is spent.
 
-A **trace** is one recorded agent run: the task, what the agent did, and how it
-ended. Generation and the judge use the same loader. Give AdaMAST one
+Generation and the judge use the same loader. Give AdaMAST one
 `.json` or `.jsonl` file, or a directory containing those files, and it
 normalizes every accepted record to one stable shape before any model call.
+
+## 🧾 What counts as a trace
+
+A **trace** is one recorded agent execution: the sequence of steps the agent
+took while attempting a single task. Concretely, that is the messages, tool
+calls, and tool results of the run, each with a role and its content, plus
+the task itself and, when known, how the run ended. One task (or one
+episode) per trace record; unrelated tasks belong in separate records.
+
+Traces deliberately do **not** have to arrive in one particular format. The
+loader auto-detects seven record shapes, from native AdaMAST records and
+chat-message lists to tau-bench results and Codex CLI sessions (see the
+[shapes table](#accepted-record-shapes)), and converts each of them to the
+same canonical record. Content matters more than shape: any format is
+acceptable as long as it preserves the attempted task, the agent's
+intermediate steps, and the observations that let a careful reader diagnose
+what went wrong.
+
+A minimal acceptable trace, in the native AdaMAST shape, is a single JSONL
+line:
+
+```json
+{"problem_id": "demo-1", "task": "Return the final calculation", "raw_trajectory": "[USER]\nWhat is 17 * 8?\n\n[ASSISTANT]\n17 * 8 = 126.", "metadata": {"system": "demo-calculator"}}
+```
+
+Save that line as `trace.jsonl` and run `adamast validate trace.jsonl`: the
+report shows one trace in format `adamast` with no empty trajectories, and
+the file is ready for `adamast generate` or `adamast judge`. The
+`raw_trajectory` string is free-form; the `[USER]`/`[ASSISTANT]` labels
+shown here are simply how AdaMAST renders chat messages, not required
+markup.
 
 ## ✅ The three-step path
 
 1. Collect traces into one `.json` or `.jsonl` file, or a directory of those
-   files. Most existing formats load as-is — see the shapes table below.
+   files. Most existing formats load as-is; see the shapes table below.
 2. Validate: `adamast validate ./my-traces`
 3. Optional: normalize and read the result yourself:
    `adamast normalize ./my-traces --output ./traces.normalized.jsonl`
 
 !!! tip "Make it yours"
-    - Point step 2 at a single file or a whole directory — both work.
+    - Point step 2 at a single file or a whole directory; both work.
     - Keep your existing export format; the shapes table below shows what the
       loader already recognizes.
     - Choose where the normalized copy goes with `--output`.
@@ -33,7 +63,7 @@ Example report:
 ```json
 {
   "trace_count": 24,
-  "files": ["C:/work/my-traces/run.jsonl"],
+  "files": ["/home/user/my-traces/run.jsonl"],
   "formats": {"messages": 24},
   "empty_trajectories": 0
 }
@@ -115,7 +145,7 @@ When the source is a directory, AdaMAST recursively reads every `.json` and
 
 ## 🔄 Accepted record shapes
 
-You usually do not need to convert to the canonical record — the loader
+You usually do not need to convert to the canonical record; the loader
 recognizes these shapes on its own:
 
 | Source shape | Required signal | Normalization behavior |
@@ -151,7 +181,7 @@ validation fails instead of guessing.
 
 ## ➡️ Continue with
 
-- [Generate a taxonomy](GENERATION.md) — run generation on your
+- [Generate a taxonomy](GENERATION.md): run generation on your
   validated traces.
-- [Judge traces](JUDGING.md) — label validated traces with an existing
+- [Judge traces](JUDGING.md): label validated traces with an existing
   taxonomy.

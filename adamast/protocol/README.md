@@ -2,7 +2,7 @@
 
 The one compact-checkpoint implementation and the pre-submission gate. Both
 hosts (Claude Code and Codex) and the single-LLM runtime speak exactly this
-protocol — there is deliberately no per-host copy.
+protocol; there is deliberately no per-host copy.
 
 ## Programs
 

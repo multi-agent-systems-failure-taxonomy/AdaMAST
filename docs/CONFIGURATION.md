@@ -1,7 +1,7 @@
 # Configuration reference
 
 Every `adamast.json` field, default, and precedence rule is defined on this
-page — it is the canonical reference. Other pages show only the fields they
+page; it is the canonical reference. Other pages show only the fields they
 need.
 
 ## 📥 How loading works
@@ -68,8 +68,8 @@ See [TRACES_AND_LEARNING.md](TRACES_AND_LEARNING.md) for how these interact.
 
 ## 🚦 Gate fields
 
-These fields budget the runtime checkpoints — the reflection boundaries also
-called gates — and the final pre-submission checkpoint. Form failures
+These fields budget the runtime checkpoints (the reflection boundaries also
+called gates) and the final pre-submission checkpoint. Form failures
 (unparseable reflections) and substantive repairs draw on separate budgets, so
 tuning one loop cannot silently disable the other.
 
@@ -195,7 +195,7 @@ adamast doctor --config adamast.json
 
 ## ➡️ Continue with
 
-- [Traces and learning](TRACES_AND_LEARNING.md) — how the learning fields
+- [Traces and learning](TRACES_AND_LEARNING.md): how the learning fields
   interact at runtime.
-- [Troubleshooting](TROUBLESHOOTING.md) — when a resolved value does not
+- [Troubleshooting](TROUBLESHOOTING.md): when a resolved value does not
   behave as expected.

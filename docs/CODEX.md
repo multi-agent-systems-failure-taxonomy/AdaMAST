@@ -1,7 +1,7 @@
 # Codex integration
 
 Register AdaMAST with Codex so the agent checks its work against known failure
-modes while it runs — and, after enough completed tasks, learns a catalog
+modes while it runs and, after enough completed tasks, learns a catalog
 specific to your project. The integration installs user-level or project-local
 hooks that call AdaMAST from Codex session and boundary events.
 
@@ -46,7 +46,7 @@ wait for them.
 
 | I want to… | Do this instead |
 |---|---|
-| Install for **one project** only | `adamast codex install --project-dir . --config adamast.json` — see the next section |
+| Install for **one project** only | `adamast codex install --project-dir . --config adamast.json`; see the next section |
 | Pick taxonomies **inline in chat** instead of a browser page | add `--selector-surface inline` |
 | Undo the user-level install | `adamast codex uninstall --user-level` |
 
@@ -114,11 +114,11 @@ then continues as the first episode task without requiring a second
 submission. A selection timeout stops the original turn and lets the next
 submission reopen the library safely.
 
-The catalog recommends MAST — the built-in general-purpose catalog of 14
-common agent failure modes ([what is MAST?](CONCEPTS.md#the-starting-taxonomy)) —
+The catalog recommends MAST, the built-in general-purpose catalog of 14
+common agent failure modes ([what is MAST?](CONCEPTS.md#the-starting-taxonomy)),
 and includes compatible stored taxonomies plus
 `No taxonomy`. Its `/choose` handler validates the session's allowed options,
-updates Codex state, and seeds the **conversation branch** — that
+updates Codex state, and seeds the **conversation branch**: that
 conversation's isolated program state.
 
 | Choice | What it means |
@@ -149,7 +149,7 @@ taxonomy library.
 
 ## 🪝 Default events
 
-The baseline install registers five Codex events — nothing to configure:
+The baseline install registers five Codex events; nothing to configure:
 
 | Event | What AdaMAST does |
 |---|---|
@@ -221,7 +221,7 @@ read only its immutable project/task-group evidence snapshot and output
 schema.
 
 The fifth eligible episode triggers generation by default; the first
-refinement review occurs after 10 new episodes and later reviews every 20 —
+refinement review occurs after 10 new episodes and later reviews every 20;
 thresholds and counters are detailed in
 [Traces and learning](TRACES_AND_LEARNING.md), the worker protocol in
 [Native taxonomy learning](NATIVE_LEARNING.md). Every lifecycle hook also

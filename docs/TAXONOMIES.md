@@ -102,7 +102,7 @@ latest taxonomy after a split.
 
 ## ➡️ Continue with
 
-- [Single-LLM integration](SINGLE_LLM.md) — the simplest runtime that inherits
+- [Single-LLM integration](SINGLE_LLM.md): the simplest runtime that inherits
   and learns taxonomies.
-- [Native taxonomy learning](NATIVE_LEARNING.md) — how Codex and Claude Code
+- [Native taxonomy learning](NATIVE_LEARNING.md): how Codex and Claude Code
   create new taxonomy versions.

@@ -21,6 +21,6 @@ Auto-detected formats:
 | File | Purpose |
 |---|---|
 | [`__init__.py`](__init__.py) | Public API: `load_traces`, `normalize_trace`, `extract_signals` |
-| [`loader.py`](loader.py) | `TraceLoader` — file/dir/iterable loader with format auto-detection |
+| [`loader.py`](loader.py) | `TraceLoader`: file/dir/iterable loader with format auto-detection |
 | [`normalizer.py`](normalizer.py) | Per-format converters that map raw traces into the unified AdaMAST schema |
 | [`signals.py`](signals.py) | LLM-free behavioral signal extraction: truncation, looping, refusal, tool-failure patterns |

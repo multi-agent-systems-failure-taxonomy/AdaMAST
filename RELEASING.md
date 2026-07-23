@@ -11,7 +11,7 @@ PyPI `adamast==0.1.0` shipped the multi-package layout (`adamast_runtime`,
 console scripts). **0.2.0 is this repository's layout**: one real
 `adamast` package (`adamast.core`, `adamast.protocol`, `adamast.judges`,
 `adamast.llm`, `adamast.learning`, `adamast.hosts`, `adamast.dashboard`,
-`adamast.cli`). The historical top-level packages are **removed** — imports
+`adamast.cli`). The historical top-level packages are **removed**; imports
 and `python -m` commands under the old paths stop working in 0.2.0. There is
 no separate public build anymore; the public repository is a filtered copy of
 this one (see [docs/PUBLISHING.md](docs/PUBLISHING.md)).

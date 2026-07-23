@@ -1,7 +1,7 @@
 # Live monitor
 
-Watch every checkpoint your agent records — the gate label, the evidence, and
-which failure modes fired — in a shared, read-only localhost monitor for
+Watch every checkpoint your agent records (the gate label, the evidence, and
+which failure modes fired) in a shared, read-only localhost monitor for
 checkpoints recorded by Codex and Claude Code.
 
 ## 🚀 Open the monitor

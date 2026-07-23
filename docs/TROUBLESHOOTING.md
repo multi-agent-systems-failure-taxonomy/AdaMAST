@@ -98,14 +98,14 @@ adamast claude list-hooks --project-dir .
 
 Blocking checkpoints fail open by design: if the hook process crashes or is
 killed at the harness's per-hook timeout, the agent continues and the
-checkpoint is silently skipped — an AdaMAST bug must never brick your
+checkpoint is silently skipped; an AdaMAST bug must never brick your
 session.
 
 To confirm the checkpoint actually happened, check:
 
 1. `[adamast]` stderr lines;
 2. the per-checkpoint records in `<trace_output>/decisions.log`;
-3. `adamast status` — a finished session with no final-gate evidence means
+3. `adamast status`; a finished session with no final-gate evidence means
    the final gate was skipped.
 
 ### 🤫 Codex does not show AdaMAST checkpoints in chat
@@ -113,7 +113,7 @@ To confirm the checkpoint actually happened, check:
 That is intentional: routine hook polls are silent (Codex may show at most a
 short transient status such as `Polling AdaMAST` or `Saving AdaMAST trace`),
 checkpoint fields go to the localhost monitor instead of chat, and learning
-notices wait for the next `SessionStart` or `UserPromptSubmit` — see
+notices wait for the next `SessionStart` or `UserPromptSubmit`; see
 [What appears in chat](CODEX.md#what-appears-in-chat). Null `PostToolUse`
 outputs in `codex-decisions.log` are normal successful polls.
 
@@ -181,7 +181,7 @@ in `list_all`. It does appear as an explicit built-in option in the Codex and
 Claude Code selectors.
 
 Only stored generated, refined, imported, or registered taxonomies are
-returned by `list_all` — and they appear only after they are stored as JSON
+returned by `list_all`, and they appear only after they are stored as JSON
 records under the configured store directory.
 
 ### 🏷️ The conversation still says MAST after learning finished

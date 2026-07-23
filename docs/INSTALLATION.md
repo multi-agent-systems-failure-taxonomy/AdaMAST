@@ -13,7 +13,7 @@ dependency variants for repeatable environments.
 
 !!! note
     Installing needs nothing else. Model-provider credentials only come
-    into play later, when you *run* generation or a model-backed judge —
+    into play later, when you *run* generation or a model-backed judge;
     see [Providers and models](PROVIDERS.md).
 
 ## 📦 Standard installation

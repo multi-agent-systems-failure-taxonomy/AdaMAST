@@ -2,11 +2,12 @@
 
 This page upgrades AdaMAST from a one-shot generator to an adaptive runtime:
 a taxonomy stays active while your agent works, each completed task is
-recorded as a trace, and learning starts by itself as evidence accumulates.
+recorded as a [trace](TRACE_FORMATS.md#what-counts-as-a-trace), and learning
+starts by itself as evidence accumulates.
 
 !!! tip "Only need a fixed taxonomy and a judge?"
     Complete the standalone [Foundation](GENERATION.md) and
-    [Evaluation](JUDGING.md) guides first — they may be all you need.
+    [Evaluation](JUDGING.md) guides first; they may be all you need.
 
 ## ⚙️ Install and configure
 
@@ -55,7 +56,7 @@ in the [configuration reference](CONFIGURATION.md).
 | You provide a finished trace dataset | The integration records one canonical trace per completed task or episode |
 | Generation runs when you invoke it | Generation/refinement runs when configured trace thresholds are reached |
 | `taxonomy.json` is a file you select | A program tracks its active taxonomy and successor lineage |
-| Judging is a separate batch call | Checkpoints — including the final gate — can apply taxonomy guidance during work |
+| Judging is a separate batch call | Checkpoints, including the final gate, can apply taxonomy guidance during work |
 | No persistent counters | Pending traces, generation state, and refinement counters persist |
 
 ## 🧩 Choose an integration surface
@@ -64,7 +65,7 @@ in the [configuration reference](CONFIGURATION.md).
 |---|---|
 | A script, notebook, benchmark runner, or batch job owns the model call and can set task boundaries explicitly | [Single-LLM integration](SINGLE_LLM.md) |
 | An application owns agent events, tool boundaries, and transcript capture, and can call the runtime API at session start, checkpoints, final submission, and trace commit | [Custom agent harness](INTEGRATION.md) |
-| You work inside Codex or Claude Code | [Codex](CODEX.md) or [Claude Code](CLAUDE_CODE.md) — host-specific hooks, selector behavior, event contracts, and uninstall steps |
+| You work inside Codex or Claude Code | [Codex](CODEX.md) or [Claude Code](CLAUDE_CODE.md): host-specific hooks, selector behavior, event contracts, and uninstall steps |
 
 ## 🐍 Minimal runtime lifecycle
 
@@ -95,6 +96,7 @@ session = start_session(
 # Deliver session.delivery.runtime_protocol at task start.
 # Invoke checkpoint handling at boundaries owned by your harness.
 
+# gate_text is the agent's candidate final response, produced by your harness.
 decision = pre_submission(session, gate_text)
 if not decision.allow:
     # Ask the agent to repair or re-emit the required final-gate response.
@@ -114,8 +116,8 @@ result = end_session(session)
 ```
 
 `end_session()` checks learning thresholds. It may start generation when
-MAST — the built-in seed taxonomy ([what is MAST?](CONCEPTS.md#the-starting-taxonomy))
-— is active, or refinement when a stored taxonomy is active.
+MAST, the built-in seed taxonomy ([what is MAST?](CONCEPTS.md#the-starting-taxonomy)),
+is active, or refinement when a stored taxonomy is active.
 
 ## ⏱️ Default learning cadence
 
@@ -160,4 +162,4 @@ selection.
 | Native Codex/Claude worker protocol | [Native taxonomy learning](NATIVE_LEARNING.md) |
 
 Continue with [Traces and learning](TRACES_AND_LEARNING.md), then
-[Taxonomy lifecycle](TAXONOMIES.md) — the next two pages at this level.
+[Taxonomy lifecycle](TAXONOMIES.md), the next two pages at this level.

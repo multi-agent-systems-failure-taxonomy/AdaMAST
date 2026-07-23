@@ -8,7 +8,7 @@ No host or provider code lives here.
 
 | File | Purpose |
 |---|---|
-| [`lifecycle.py`](lifecycle.py) | `start_session` / `record_trace` / `pre_submission` / `end_session` — the agent-agnostic runtime lifecycle |
+| [`lifecycle.py`](lifecycle.py) | `start_session` / `record_trace` / `pre_submission` / `end_session`: the agent-agnostic runtime lifecycle |
 | [`taxonomy_data.py`](taxonomy_data.py) | The `Taxonomy` model: codes, categories, id renumbering |
 | [`store.py`](store.py) | Flat on-disk taxonomy store: fetch, list, display names |
 | [`mast.py`](mast.py) / [`mast.json`](mast.json) | The built-in 14-code MAST floor taxonomy (a constant, never a store record) |

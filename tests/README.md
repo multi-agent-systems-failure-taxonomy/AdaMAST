@@ -2,7 +2,7 @@
 
 Unit + integration tests for the adamast package. Run the suite with
 `python -m pytest tests/` from the repo root. Tests use hand-crafted
-fixtures (under [`fixtures/`](fixtures/)) — no live LLM calls.
+fixtures (under [`fixtures/`](fixtures/)); no live LLM calls.
 
 ## Test files
 
@@ -63,6 +63,6 @@ fixtures (under [`fixtures/`](fixtures/)) — no live LLM calls.
 
 ## Sub-folders
 
-- [`fixtures/`](fixtures/) — Shared test fixtures: a real AdaMAST generation
+- [`fixtures/`](fixtures/): Shared test fixtures: a real AdaMAST generation
   trace, real AdaMAST generation output, and the example taxonomies
   (`tax-django-orm-001` etc.) used by store/resolver/webview tests.

@@ -1,7 +1,7 @@
 # AdaMAST documentation
 
 This folder is the detailed reference for AdaMAST. Find the row that matches
-your goal and open that page — the web documentation is ordered from
+your goal and open that page; the web documentation is ordered from
 standalone taxonomy generation to adaptive host integration.
 
 ## 🚀 Start here
@@ -66,13 +66,13 @@ GitHub's file view.
 
 These pages are useful when changing internals:
 
-- [CUSTOMIZATION.md](CUSTOMIZATION.md) — change what AdaMAST says, decides, or enforces, one asset file at a time
-- [ARCHITECTURE.md](ARCHITECTURE.md) — package layout, event flow, and the ownership rules between engine and hosts
+- [CUSTOMIZATION.md](CUSTOMIZATION.md): change what AdaMAST says, decides, or enforces, one asset file at a time
+- [ARCHITECTURE.md](ARCHITECTURE.md): package layout, event flow, and the ownership rules between engine and hosts
 - [adamast/hosts/interactive/README.md](../adamast/hosts/interactive/README.md)
 - [adamast/hosts/claude_code/README.md](../adamast/hosts/claude_code/README.md)
 - [adamast/hosts/codex/README.md](../adamast/hosts/codex/README.md)
 - [adamast/judges/reflection_judge/README.md](../adamast/judges/reflection_judge/README.md)
 - [tests/README.md](../tests/README.md)
 
-Continue with [index.md](index.md) — install AdaMAST and generate a first
-taxonomy — or with [CONCEPTS.md](CONCEPTS.md) to choose a workflow.
+Continue with [index.md](index.md) (install AdaMAST and generate a first
+taxonomy) or with [CONCEPTS.md](CONCEPTS.md) to choose a workflow.
