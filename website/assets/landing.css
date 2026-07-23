@@ -267,12 +267,19 @@ h1 {
 }
 
 .runtime-sequence span {
-  padding-top: 0.75rem;
-  color: var(--graphite);
+  padding-top: 0.85rem;
+  color: var(--ink);
   font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
-  font-size: 0.68rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+}
+
+.runtime-sequence b {
+  margin-right: 0.55rem;
+  color: var(--cobalt);
+  font-weight: 700;
 }
 
 .runtime-sequence span + span {

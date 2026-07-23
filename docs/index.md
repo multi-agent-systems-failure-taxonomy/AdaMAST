@@ -13,12 +13,7 @@ taxonomy or judge a trace.
 
 ## 📦 Install AdaMAST
 
-You need:
-
-- Python 3.10 or newer
-- a JSON or JSONL trace file, or a directory containing those files
-- credentials for one supported model provider when running generation or a
-  model-backed judge
+You need Python 3.10 or newer — nothing else.
 
 1. Install from PyPI:
 

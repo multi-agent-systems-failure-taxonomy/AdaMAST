@@ -22,9 +22,9 @@ Choose by the decision you need to make and by who owns the trace lifecycle:
 
 ## 🏷️ Taxonomy
 
-A taxonomy is a versioned catalog of observable failure modes. Public
-BASELINE output uses a flat `codes` list. Runtime storage adds an immutable
-`taxonomy_id`, activation state, and successor lineage.
+A taxonomy is a catalog of observable failure modes, each entry backed by
+verbatim evidence from real traces. Generated output is a flat `codes`
+list in `taxonomy.json`.
 
 AdaMAST uses three code categories:
 
@@ -37,16 +37,13 @@ AdaMAST uses three code categories:
 ## 🧾 Trace
 
 A trace is the evidence from one completed task or episode: a stable ID, the
-task, the raw trajectory, and optional metadata. Standalone workflows read
-files. Runtime integrations create the same conceptual record at an accepted
-task boundary.
+task, the raw trajectory, and optional metadata. Common agent log formats
+are accepted and normalized — see [Prepare traces](TRACE_FORMATS.md).
 
 ## ✍️ Generation
 
-Generation proposes a new taxonomy from traces. In BASELINE it runs on
-demand. In the adaptive runtime it runs after a program reaches its warm-up
-threshold. These strategies need not remain identical: the shared trace and
-taxonomy contracts leave room for additional generation methods.
+Generation proposes a new taxonomy from a set of traces, on demand: point
+`adamast generate` at your files and the annotators do the rest.
 
 ## 🤝 Agreement
 
@@ -60,6 +57,15 @@ A judge applies or evaluates a taxonomy. The core judge chooses one best
 code for a trace. Specialized judges can select multiple codes, map a
 failure point, measure coverage, review codebook quality, calibrate an
 annotation, or build a causal reflection graph.
+
+---
+
+## 🔌 Runtime-integration concepts
+
+!!! note "Only for the live runtime"
+    Everything below matters only when AdaMAST runs **live** inside Codex,
+    Claude Code, or a custom harness. If you generate and judge from trace
+    files, you can stop reading here.
 
 ## 🧮 Program and runtime state
 

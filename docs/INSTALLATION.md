@@ -10,8 +10,11 @@ dependency variants for repeatable environments.
 
 - Python 3.10 or newer
 - `pip`
-- a writable output directory
-- model-provider credentials for generation and model-backed judging
+
+!!! note
+    Installing needs nothing else. Model-provider credentials only come
+    into play later, when you *run* generation or a model-backed judge —
+    see [Providers and models](PROVIDERS.md).
 
 ## 📦 Standard installation
 
