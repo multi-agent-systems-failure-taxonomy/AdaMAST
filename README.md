@@ -27,14 +27,7 @@ AI agents (coding assistants, tool-using pipelines, multi-agent systems) don't f
 
 ## 🧪 How it works
 
-```mermaid
-flowchart LR
-    A["📄 Your agent's<br/>trace files"] --> B["🤖 Several independent<br/>annotators propose<br/>failure patterns"]
-    B --> C{"Annotations<br/>agree?"}
-    C -->|"no: redraft"| B
-    C -->|yes| D["✅ Accepted catalog<br/>taxonomy.json + evidence<br/>+ agreement manifest"]
-    D --> E["⚖️ Judge new runs<br/>against the catalog"]
-```
+`traces → independent annotators → agreement gate → accepted taxonomy → judge new runs`
 
 - **Propose.** Several independent automated annotators read your traces, and each proposes failure patterns on its own.
 - **Agree.** The proposals are reconciled. A catalog is accepted only when the independent annotations agree with each other; otherwise it is redrafted. (The full protocol and its acceptance criteria are in the [paper](https://arxiv.org/abs/2607.16387).)
