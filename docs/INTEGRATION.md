@@ -44,7 +44,7 @@ from adamast import (
 session = start_session(
     trace_output="./adamast-program",
     adamast_model="gpt-5",
-    inherit=None,  # omit this argument entirely for the default MAST path
+    # omitting `inherit` starts from the default MAST path
 )
 
 # At task start:
@@ -91,9 +91,11 @@ All harnesses should preserve the same selection behavior:
 | explicit `taxonomy_id` | inherit that stored taxonomy |
 | explicit picker request, e.g. `--inherit-pick` | open the blocking local picker |
 
-Bare `--inherit` is still accepted by the bundled CLIs as a deprecated
-compatibility alias for the picker. New harnesses should expose an explicit
-picker flag instead of overloading the missing-id case.
+Bare `--inherit` is still accepted by `adamast find`, `adamast single-run`,
+and `adamast claude install` as a deprecated compatibility alias for the
+picker; `adamast codex install` requires an explicit value. New harnesses
+should expose an explicit picker flag instead of overloading the missing-id
+case.
 
 Repository and domain are display metadata only. They must not route taxonomy
 selection.

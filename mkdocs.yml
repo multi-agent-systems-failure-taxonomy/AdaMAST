@@ -66,6 +66,7 @@ extra:
 # in the built site.
 exclude_docs: |
   README.md
+  PUBLISHING.md
 
 nav:
   - Start here:
@@ -83,6 +84,7 @@ nav:
       - Judge traces: JUDGING.md
       - Choose a judge: JUDGE_TYPES.md
   - "03 · Adaptive runtime":
+      - Runtime integration guide: RUNTIME_INTEGRATION.md
       - Runtime overview: GETTING_STARTED.md
       - Traces and learning: TRACES_AND_LEARNING.md
       - Taxonomy lifecycle: TAXONOMIES.md

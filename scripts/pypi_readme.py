@@ -62,8 +62,12 @@ def _absolute(path: str, *, raw: bool) -> str:
         anchor = f"#{anchor}"
     if raw:
         return f"{RAW_ROOT}/{clean}"
-    target = REPO_ROOT / clean
-    kind = "tree" if target.is_dir() else "blob"
+    # A trailing slash always marks a directory link; the filesystem check
+    # is only a fallback for slash-less directory links. Relying on the
+    # filesystem alone made the result depend on which checkout runs the
+    # transform (the public mirror excludes some linked directories).
+    is_dir = clean.endswith("/") or (REPO_ROOT / clean).is_dir()
+    kind = "tree" if is_dir else "blob"
     return f"{PUBLIC_REPO}/{kind}/main/{clean}{anchor}"
 
 

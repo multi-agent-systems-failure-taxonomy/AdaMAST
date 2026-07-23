@@ -48,8 +48,7 @@ from adamast import GenerationTrace, end_session, load_adamast_config, record_tr
 config = load_adamast_config("adamast.json")
 session_args = dict(
     trace_output=config["trace_output"],
-    store_dir=config.get("store_dir", "~/.adamast/taxonomies"),
-    trace_root=config.get("trace_root", "~/.adamast/traces"),
+    # store_dir and trace_root default correctly when omitted
     adamast_model=config.get("adamast_model"),
     generation_threshold=config.get("generation_threshold", 5),
     generation_stops=config.get("generation_stops", False),

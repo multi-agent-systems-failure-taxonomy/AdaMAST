@@ -114,12 +114,12 @@ AdaMAST can also run **live** inside Codex or Claude Code: hooks checkpoint the 
 adamast claude install --user-level
 adamast codex install --user-level
 
-# health check and live monitor
+# health check and live monitor (paths: docs/DASHBOARD.md)
 adamast doctor
-adamast dashboard
+adamast dashboard --trace-output <program-dir>
 ```
 
-The full details (how checkpoints work, the taxonomy picker, background learning, the live monitor, and every knob) live in **[the runtime integration guide](RUNTIME_INTEGRATION.md)**.
+The full details (how checkpoints work, the taxonomy picker, background learning, the live monitor, and every knob) live in **[the runtime integration guide](docs/RUNTIME_INTEGRATION.md)**.
 
 ## 📚 Learn more
 
@@ -148,7 +148,9 @@ The full details (how checkpoints work, the taxonomy picker, background learning
 | `adamast dashboard` | Local taxonomy dashboard / checkpoint monitor |
 | `adamast traces` | Inspect trace state |
 | `adamast claude install` / `uninstall` | Manage Claude Code hooks |
+| `adamast claude add-hook` / `remove-hook` / `list-hooks` | Manage custom Claude Code checkpoint hooks |
 | `adamast codex install` / `uninstall` | Manage Codex hooks |
+| `adamast claude checkpoint` / `adamast codex checkpoint` | Record a private runtime checkpoint (invoked by the hooks) |
 | `adamast single-run` | Wrap one direct model task with AdaMAST |
 
 </details>
@@ -180,7 +182,7 @@ rules are in [Architecture](docs/ARCHITECTURE.md).
 
 ## 🤝 Contributing
 
-Development setup, verification commands, and package boundaries: [CONTRIBUTING.md](CONTRIBUTING.md) · Release steps: [RELEASING.md](RELEASING.md)
+Development setup, verification commands, and package boundaries: [CONTRIBUTING.md](CONTRIBUTING.md)
 
 The original research pipeline lives on the
 [`paper-pipeline`](https://github.com/multi-agent-systems-failure-taxonomy/ATLAS/tree/paper-pipeline)

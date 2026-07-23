@@ -185,8 +185,11 @@ result = controller.run("trace text")
 ```
 
 Each controller validates structural fields and enums, returns a frozen result
-dataclass, and includes `judge_metadata` with the judge name, model, taxonomy
-version, timestamp, and warnings. Minor schema omissions are salvaged where a
+dataclass (`SelectionJudgeResult`, `MappingJudgeResult`, `CoverageJudgeResult`,
+`QualityJudgeResult`, or `CalibrationJudgeResult`), and includes
+`judge_metadata` with the judge name, model, taxonomy version, timestamp, and
+warnings. One-off helpers `run_selection`, `run_mapping`, `run_coverage`,
+`run_quality`, and `run_calibration` wrap construction and a single call. Minor schema omissions are salvaged where a
 trustworthy partial result exists; model-call and repair behavior routes through
 the runtime learning-call layer.
 
@@ -194,7 +197,8 @@ the runtime learning-call layer.
 
 The five simple judge instructions are Markdown assets under
 `adamast/judges/assets/<judge>/system.md` and `user.md`. A custom harness can either
-use the Python controller or load/render those assets directly. Reflection has
+use the Python controller or load/render those assets directly via
+`load_judge_definition` and `render_judge_prompt`. Reflection has
 separate staged prompt assets under `adamast/judges/reflection_judge/assets/`.
 
 !!! warning

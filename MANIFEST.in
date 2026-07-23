@@ -1,5 +1,4 @@
 include README.md
-include CHANGELOG.md
 include SKILL.md
 include LICENSE
 recursive-include docs *.md

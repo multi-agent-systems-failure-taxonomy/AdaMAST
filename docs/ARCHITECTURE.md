@@ -17,9 +17,9 @@ custom harnesses on one trace and activation contract.
 | `adamast/hosts/interactive/` | Conversation selector, browser transport, project/task-group routes | Codex or Claude transcript parsing |
 | `adamast/hosts/codex/` | Codex hook installation, event translation, transcript normalization, compact Stop checkpoint | Taxonomy acceptance |
 | `adamast/hosts/claude_code/` | Claude hook installation, blocking gates, transcript handling, custom hooks | Taxonomy acceptance |
+| `adamast/hosts/single_llm/` | One direct model task wrapped with checkpoints, the final gate, and trace recording | Host hook installation |
 | `adamast/dashboard/` | Local dashboard, status, taxonomy viewer, selector web views | Learning policy |
 | [`adamast/examples/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/tree/main/adamast/examples) | Runnable demonstrations | Production state |
-| `runs/` | Evaluation artifacts and reproduction notes | Package code |
 
 Everything importable lives in the single `adamast` package; judge-focused
 evaluation checks live in `tests/test_judge_surface.py`.

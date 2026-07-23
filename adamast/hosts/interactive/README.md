@@ -33,9 +33,8 @@ foreground hook reconciliation can activate a candidate after both receipts.
 | [`selector.py`](selector.py) | Builds, renders, and parses MAST, stored-taxonomy, browser, and AdaMAST-off choices. |
 | [`browser_picker.py`](browser_picker.py) | Host-neutral localhost server transport and direct choice application. |
 | [`session_routes.py`](session_routes.py) | Durable conversation-to-program branch bindings for stored-taxonomy and MAST seeds. |
-| [`learning_jobs.py`](learning_jobs.py) | Frozen snapshots, polling, job state, validation, notices, and atomic activation. |
+| [`source.py`](source.py) | Host ownership and provenance for interactive AdaMAST programs. |
 | [`subagent_protocol.py`](subagent_protocol.py) | Claim leases, signed receipt envelopes, transcript extraction, and proposal completion. |
-| [`worker_contract.py`](worker_contract.py) | Outcome-blind taxonomy prompt and strict candidate JSON schema. |
 | [`defaults.py`](defaults.py) | Shared interactive paths and placeholder model defaults. |
 
 The host packages retain facade modules such as
@@ -45,3 +44,6 @@ corresponding adapter.
 
 See [Native taxonomy learning](../../../docs/NATIVE_LEARNING.md) for the persisted
 state machine and security boundary.
+
+Learning jobs and the worker contract moved to
+[`adamast/learning/`](../../learning/).

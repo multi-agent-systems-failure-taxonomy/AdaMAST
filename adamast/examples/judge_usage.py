@@ -1,6 +1,8 @@
 """Apply one accepted AdaMAST taxonomy to new traces.
 
-Set the provider credential first, then run from the repository root:
+Materialize the bundled examples first (``python -m adamast.examples``
+writes them to ``./adamast-examples/``), set the provider credential, then
+run from that same directory's parent:
 
     python -m adamast.examples.judge_usage
 """
@@ -8,8 +10,8 @@ Set the provider credential first, then run from the repository root:
 from adamast import create_judge, load_traces
 
 
-taxonomy_path = "examples/taxonomy.sample.json"
-traces = load_traces("examples/traces.jsonl")
+taxonomy_path = "adamast-examples/taxonomy.sample.json"
+traces = load_traces("adamast-examples/traces.jsonl")
 
 # The default judge selects every failure code the trace evidence supports —
 # zero, one, or several per trace.

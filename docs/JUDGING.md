@@ -67,7 +67,10 @@ for diagnosis in judge.judge_many(traces):
 ```
 
 Pass `mode="single"` to `create_judge` for the one-code-per-trace judge; its
-diagnoses carry `code`, `confidence`, and `recovery_hint` instead.
+diagnoses carry `code`, `confidence`, and `recovery_hint` instead. In code,
+the default judge is a `SelectionTraceJudge` returning `SelectionDiagnosis`
+entries, and the single-code judge is a `TaxonomyJudge` returning
+`Diagnosis` entries; all four names are importable from `adamast`.
 
 ### One-off helpers
 
@@ -128,8 +131,9 @@ With `--mode single`, each trace instead produces one best-supported code:
 Returned codes are validated against the loaded taxonomy in both modes.
 AdaMAST does not replace an unknown code with a guessed closest match: the
 default judge drops unknown codes and records a warning in
-`judge_metadata`, and the single-code judge fails explicitly on unknown
-codes, malformed JSON, or confidence values outside `[0, 1]`.
+`judge_metadata`, and the single-code judge raises `JudgeResponseError`
+(importable from `adamast`) on unknown codes, malformed JSON, or confidence
+values outside `[0, 1]`.
 
 ## 🚦 Accepted taxonomy requirement
 

@@ -69,4 +69,5 @@ python -m http.server 8000 --directory site
 minimal configs and link there rather than duplicating field tables.
 
 Release versioning, artifact checks, tags, and the PyPI trusted-publisher
-path are documented in [RELEASING.md](RELEASING.md).
+path are maintainer tasks; they are documented in `RELEASING.md` in the
+[private development repository](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST-private).

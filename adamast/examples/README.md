@@ -15,6 +15,7 @@ Run `python -m adamast.examples` to copy the bundled files into
 | File | Purpose |
 |---|---|
 | [`__init__.py`](__init__.py) | Package marker |
+| [`__main__.py`](__main__.py) | Materializer: `python -m adamast.examples` copies the bundled files into `./adamast-examples/` |
 | [`dashboard_demo.py`](dashboard_demo.py) | Launch a disposable taxonomy dashboard populated with placeholder evidence, no LLM calls. Useful for poking the UI |
 | [`judge_usage.py`](judge_usage.py) | Apply one accepted taxonomy to new traces via `create_judge` / `load_traces`. Needs a provider credential |
 | [`manual_vendored_generation.py`](manual_vendored_generation.py) | MANUAL: run the real vendored induction pipeline with configured API credentials. Costs money; read before running |

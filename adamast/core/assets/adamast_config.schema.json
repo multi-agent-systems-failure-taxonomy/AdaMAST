@@ -249,6 +249,11 @@
           "enum": ["off", "prompt"],
           "default": "off"
         },
+        "selector_surface": {
+          "description": "Where the interactive taxonomy selector renders.",
+          "enum": ["browser", "inline"],
+          "default": "inline"
+        },
         "learning_backend": {
           "description": "Taxonomy learning transport. claude_subagent reuses local Claude Code authentication.",
           "enum": ["provider", "claude_subagent"],
@@ -322,6 +327,11 @@
           "description": "Whether a new Codex conversation explicitly asks the user to select its taxonomy.",
           "enum": ["off", "prompt"],
           "default": "off"
+        },
+        "selector_surface": {
+          "description": "Where the interactive taxonomy selector renders.",
+          "enum": ["browser", "inline"],
+          "default": "browser"
         },
         "learning_backend": {
           "description": "Taxonomy learning transport for Codex conversations. codex_subagent reuses local Codex authentication and requires no external API key.",

@@ -35,9 +35,10 @@ flowchart LR
 
 1. AdaMAST freezes the exact trace references and source taxonomy version.
 2. A `UserPromptSubmit` or supported `SessionStart` boundary claims the job
-   with a time-bound token. Codex installs `SessionStart` for startup,
-   resume, and context compaction so long-running desktop tasks have a second
-   supported dispatch path.
+   with a time-bound token; on Claude Code, `SubagentStop` is a third claim
+   boundary. Codex installs `SessionStart` for startup, resume, and context
+   compaction so long-running desktop tasks have a second supported dispatch
+   path.
 3. The main host agent launches one taxonomy-generator subagent in the
    background and continues the user's task immediately. It does not wait,
    join, or poll for the worker.

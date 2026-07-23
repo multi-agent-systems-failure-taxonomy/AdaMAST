@@ -5,10 +5,10 @@ Vendored snapshot of the upstream AdaMAST package
 induces a 3-axis failure taxonomy (A / B / C) from agent execution traces
 and classifies new traces against an existing taxonomy.
 
-AdaMAST calls this layer through `adamast/generation.py::_adamast_generate`
+AdaMAST calls this layer through `adamast/learning/generation.py::_adamast_generate`
 (for `generate_taxonomy`) and via `adamast.learning.vendor.api.generate_taxonomy`
-directly from `adamast/import_generation.py`. The vendored copy is
-treated as read-only; see [`../README.md`](../README.md) for refresh notes.
+directly from `adamast/learning/import_generation.py`. The vendored copy is
+treated as read-only; see [`VENDORED.md`](VENDORED.md) for refresh notes.
 
 ## Programs
 

@@ -5,7 +5,8 @@ build on, and how to open the browser field guide.
 
 Every generation run produces a self-contained result directory. Keep the whole
 directory when reproducibility matters; `taxonomy.json` alone is enough for the
-judge.
+judge. From Python, `render_taxonomy_html(taxonomy_path)` produces the same
+read-only field guide as `adamast view`.
 
 ## 📁 Output directory
 

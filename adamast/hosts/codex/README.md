@@ -193,6 +193,7 @@ For the zero-config user-level integration, use
 | [`config.py`](config.py) | `CodexConfig` and hook-event configuration. |
 | [`dispatcher.py`](dispatcher.py) | Command hook entry point; reads Codex hook JSON from stdin and emits JSON back to Codex. |
 | [`runtime.py`](runtime.py) | SessionStart, Stop, SubagentStop, and PostToolUse behavior on top of `adamast`. |
+| [`prompts.py`](prompts.py) | Prompt assets for the Codex hook integration. |
 | [`checkpoint.py`](checkpoint.py) | Direct four-field checkpoint recorder used by the main Codex agent. |
 | [`transcript.py`](transcript.py) | Codex-specific transcript normalization, filtering, bounds, and project-workdir detection. |
 | [`install.py`](install.py) | Writes `.codex/hooks.json`, `.codex/adamast.json`, and optional skill files. |

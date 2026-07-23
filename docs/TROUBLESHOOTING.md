@@ -103,10 +103,13 @@ session unable to finish.
 
 To confirm the checkpoint actually happened, check:
 
-1. `[adamast]` stderr lines;
-2. the per-checkpoint records in `<trace_output>/decisions.log`;
-3. `adamast status`; a finished session with no final-gate evidence means
-   the final gate was skipped.
+1. `[adamast]` stderr lines (internal errors use the
+   `AdaMAST Claude Code hook error:` prefix instead);
+2. the per-checkpoint records in
+   `<trace_output>/.adamast-runtime-evidence.json` (Claude Code's
+   `decisions.log` holds only custom-hook retry-guard releases; Codex
+   writes `codex-decisions.log`);
+3. `adamast status` for the total recorded checkpoints.
 
 ### 🤫 Codex does not show AdaMAST checkpoints in chat
 

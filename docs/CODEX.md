@@ -156,7 +156,7 @@ required:
 |---|---|
 | `SessionStart` | Deliver standing instructions and recover context for an already selected conversation. |
 | `UserPromptSubmit` | Open a new conversation's taxonomy library, wait for the choice, release the original prompt, and handle each later episode boundary. |
-| `Stop` | The blocking final checkpoint: validate the directly recorded gate, attach the exact Codex turn ID, and commit the episode trace in one callback. |
+| `Stop` | The final checkpoint (a single non-blocking commit callback): validate the directly recorded gate, attach the exact Codex turn ID, and commit the episode trace. |
 | `SubagentStop` | Capture compact subagent checkpoints and signed learning-worker receipts without blocking. |
 | `PostToolUse` | Poll durable AdaMAST state after supported successful tools; nudge when a tool result carries a failure signature. |
 

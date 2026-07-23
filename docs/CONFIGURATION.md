@@ -9,7 +9,9 @@ need.
 - AdaMAST reads one dependency-free JSON file, `adamast.json` by default, or
   the path given by `--config`.
 - Explicit CLI/API arguments win over config-file values.
-- Unknown fields are rejected so spelling mistakes fail loudly.
+- Unknown top-level fields are rejected so spelling mistakes fail loudly.
+  Keys inside the `claude_code` and `codex` blocks are read individually;
+  a misspelled host key is ignored rather than rejected.
 - Relative paths are resolved relative to the config file; `~` is expanded.
 - `"version"` must be `1` (or omitted).
 
@@ -43,6 +45,12 @@ Everything else has a sensible default.
 | `dashboard` | `true` | Let integrations launch the localhost dashboard automatically. |
 | `evidence_export` | unset | Optional external snapshot sink for session-end evidence. A `.json` value is written as that exact file; any other value is treated as a directory receiving one `<program_id>.json` per program. |
 | `redact_traces` | `true` | First-party adapters strip credential-looking substrings (API keys, tokens, cookies) from traces before persistence. Disable only when traces are known clean and exact text matters. |
+
+Environment overrides, read when the corresponding value is not set
+explicitly: `ADAMAST_HOME` moves the `~/.adamast` base directory,
+`ADAMAST_TRACE_ROOT` and `ADAMAST_STORE_DIR` override the two storage roots,
+and `ADAMAST_DISABLE_DASHBOARD=1` stops integrations from launching the
+dashboard.
 
 ## 📈 Learning fields
 
@@ -140,11 +148,12 @@ Claude Code accepts parallel interactive fields:
 | `claude_code.project_id` | unset | Optional stable project identity override. |
 | `claude_code.task_group` | `"default"` | Logical project-local taxonomy and refinement group. Automatic routing namespaces it for Claude Code, separately from Codex. |
 | `claude_code.session_selector` | `"off"` | `"prompt"` asks for MAST, a compatible taxonomy, or AdaMAST-off. |
-| `claude_code.selector_surface` | `"inline"` | `"browser"` opens the session-bound local library; user-level installs default to `"browser"`. |
+| `claude_code.selector_surface` | `"inline"` | `"browser"` opens the session-bound local library. Both install commands write `"browser"` at every level, so `"inline"` applies only when a hand-written config omits the key. |
 | `claude_code.learning_backend` | `"provider"` | `"claude_subagent"` uses native generator and support-review Agent subtasks without a separate API key or CLI login. |
 | `claude_code.worker_model` | unset | Legacy compatibility field; the native Agent follows the active session's model policy. |
 | `claude_code.claude_cli_path` | unset | Legacy detached-worker compatibility field; native in-session learning does not use it. |
 | `claude_code.worker_timeout_seconds` | `1800` | Browser-selection wait limit and claim lease for each native generation/refinement and support-review Agent. The installed browser `UserPromptSubmit` hook adds a 15-second shutdown margin. |
+| `claude_code.custom_hooks` | `[]` | Extra AdaMAST checkpoint hooks. Each entry: required `name` and `event`, optional `mode` (`"blocking"`/`"advisory"`), `matcher`, `command_pattern`, and `checkpoint_key` (`"tool_use_id"`/`"command"`/`"fixed"`). Managed by `adamast claude add-hook` / `remove-hook` / `list-hooks`; see [Claude Code](CLAUDE_CODE.md). |
 
 ## 🏷️ Display metadata
 

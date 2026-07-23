@@ -24,6 +24,7 @@ standalone taxonomy generation to adaptive host integration.
 
 | Integration | Page |
 |---|---|
+| The live runtime end to end: install, checkpoints, learning, knobs | [RUNTIME_INTEGRATION.md](RUNTIME_INTEGRATION.md) |
 | Direct single-LLM calls, scripts, notebooks, benchmarks | [SINGLE_LLM.md](SINGLE_LLM.md) |
 | Runtime API reference | [API_OR_RUNTIME.md](API_OR_RUNTIME.md) |
 | Harness-author contract, privacy, and redaction | [INTEGRATION.md](INTEGRATION.md) |

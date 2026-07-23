@@ -30,8 +30,8 @@ starts by itself as evidence accumulates.
     adamast doctor --config adamast.json
     ```
 
-    Relative paths are resolved from the config file. Unknown fields fail
-    loudly.
+    Relative paths are resolved from the config file. Unknown top-level
+    fields fail loudly.
 
 The two fields:
 

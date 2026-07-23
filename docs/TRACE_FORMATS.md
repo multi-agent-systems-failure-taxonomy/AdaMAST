@@ -90,6 +90,10 @@ intended.
     perform this normalization automatically for file-based input. Run it when
     you want to see exactly what the models will see.
 
+The same loaders are importable from Python: `load_traces(path)` returns the
+normalized records, `load_trace_bundle(path)` adds the validation report, and
+`write_normalized_jsonl(traces, path)` writes the canonical JSONL file.
+
 ## 🧾 The canonical record
 
 When you control trace export, use this format:

@@ -30,7 +30,7 @@ Requires Python 3.10 or newer.
     adamast validate adamast-examples/traces.jsonl
     ```
 
-    The first command copies the bundled example files into
+    The second command copies the bundled example files into
     `./adamast-examples/` so they work from any install.
 
     The validation command reports the trace count, detected formats, input

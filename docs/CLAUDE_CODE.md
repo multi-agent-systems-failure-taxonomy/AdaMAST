@@ -39,7 +39,7 @@ From then on, in each conversation AdaMAST will:
    stored taxonomies, or `No taxonomy`;
 2. hold the first substantive prompt until that choice is resolved;
 3. record checkpoint reflections privately at configured boundaries;
-4. block final completion until the final gate passes or exhausts the retry envelope;
+4. block final completion until a passing final-gate checkpoint is recorded;
 5. record one canonical episode trace at each accepted Stop boundary;
 6. trigger durable generation or refinement jobs when thresholds are reached.
 
@@ -220,11 +220,13 @@ adamast claude remove-hook --project-dir . --name pre-bash
 When gating matters (A/B runs, benchmarks), verify it happened rather than
 assuming:
 
-- `[adamast]` lines on stderr report retry-guard releases and internal errors;
-- `<trace_output>/decisions.log` records every gate decision and release;
-- `adamast status --config adamast.json` shows reflections recorded per
-  session; a finished session with no final-gate evidence means the gate was
-  skipped.
+- `[adamast]` stderr lines report retry-guard releases; internal errors
+  print as `AdaMAST Claude Code hook error:` lines;
+- `<trace_output>/.adamast-runtime-evidence.json` records each checkpoint;
+  `<trace_output>/decisions.log` records custom-hook retry-guard releases;
+- `adamast status --config adamast.json` shows the total recorded
+  checkpoints; verify one session's final gate in the evidence file or the
+  live monitor.
 
 ## 🧹 Uninstall
 
