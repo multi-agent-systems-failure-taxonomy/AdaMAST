@@ -505,14 +505,15 @@ h1 strong,
 }
 
 .landing__logo {
-  width: min(100%, 320px);
+  width: clamp(150px, 24vw, 300px);
+  max-width: 100%;
   height: auto;
   justify-self: center;
-  mix-blend-mode: multiply;
 }
 
 @media (max-width: 760px) {
   .landing__logo {
-    width: 180px;
+    width: 150px;
+    justify-self: start;
   }
 }
