@@ -10,7 +10,7 @@ codes from the trace evidence?
 ## 🤔 Why the gate exists
 
 A plausible-looking list of failure modes can still contain overlapping,
-ambiguous, or unobservable definitions. BASELINE therefore separates drafting
+ambiguous, or unobservable definitions. AdaMAST therefore separates drafting
 from validation. The generated taxonomy is marked `accepted` only after the
 agreement and coverage thresholds both pass.
 

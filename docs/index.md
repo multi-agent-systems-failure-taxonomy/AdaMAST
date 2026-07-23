@@ -75,7 +75,7 @@ flowchart LR
 | Make it yours | Read |
 |---|---|
 | Bring your own trace data | [Prepare traces](TRACE_FORMATS.md) |
-| Your trace file already validates | Go directly to [Generate a taxonomy](BASELINE_GENERATION.md) |
+| Your trace file already validates | Go directly to [Generate a taxonomy](GENERATION.md) |
 | Use Anthropic, Google, or AWS Bedrock instead of OpenAI | [Providers and models](PROVIDERS.md) |
 
 ## 🧭 Choose a workflow
@@ -89,13 +89,13 @@ flowchart LR
 
 ## 🧠 Core concepts
 
-Three names appear on every page:
+Three workflows appear throughout the docs:
 
 | Name | Meaning |
 |---|---|
-| **BASELINE** | The standalone generation path. It takes completed traces, creates a taxonomy, and runs the full inter-annotator agreement layer. It installs no hooks and keeps no runtime state. |
-| **JUDGES** | Applies an existing taxonomy to new evidence. The core judge returns one validated, evidence-backed failure code per trace; specialized judges cover mapping, coverage, taxonomy quality, calibration, and causal reflection. |
-| **Adaptive runtime** | Records new traces, keeps a taxonomy active at task boundaries, and starts generation or refinement when configured thresholds are reached. Single-model programs and custom harnesses come before the host-specific Codex and Claude Code installers. |
+| **Generation** | The standalone starting point: take completed traces, create a taxonomy, and run the full inter-annotator agreement layer. It installs no hooks and keeps no state. |
+| **Judging** | Applies an existing taxonomy to new evidence. The core judge returns one validated, evidence-backed failure code per trace; specialized judges cover mapping, coverage, taxonomy quality, calibration, and causal reflection. |
+| **Adaptive runtime** | Everything above, added on top of a live agent: records new traces as you work, keeps a taxonomy active at task boundaries, and regenerates or refines it when thresholds are reached. |
 
 The full glossary — taxonomy, trace, checkpoint, judge, program — lives in
 [Choose a workflow](CONCEPTS.md).

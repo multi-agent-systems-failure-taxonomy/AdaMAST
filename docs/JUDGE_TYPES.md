@@ -129,7 +129,7 @@ print(result.coverage_status, result.suggest_new_code)
 
 !!! note
     Coverage is a focused trigger for expansion; it is not a replacement for
-    the four-annotator BASELINE agreement metric.
+    the four-annotator agreement metric.
 
 ## 🩺 Quality judge
 

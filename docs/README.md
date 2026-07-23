@@ -11,7 +11,7 @@ standalone taxonomy generation to adaptive host integration.
 | Install AdaMAST | [index.md](index.md#install-adamast) |
 | Choose the right workflow | [CONCEPTS.md](CONCEPTS.md) |
 | Prepare and validate traces | [TRACE_FORMATS.md](TRACE_FORMATS.md) |
-| Generate a BASELINE taxonomy | [BASELINE_GENERATION.md](BASELINE_GENERATION.md) |
+| Generate a taxonomy | [GENERATION.md](GENERATION.md) |
 | Understand inter-annotator agreement | [AGREEMENT_GATE.md](AGREEMENT_GATE.md) |
 | Inspect outputs in the browser field guide | [TAXONOMY_OUTPUTS.md](TAXONOMY_OUTPUTS.md) |
 | Configure OpenAI, Anthropic, Google, or Bedrock | [PROVIDERS.md](PROVIDERS.md) |

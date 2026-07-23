@@ -3,7 +3,7 @@
 On this page you turn a folder of completed traces into a validated failure
 taxonomy — one command, no agent integration required.
 
-BASELINE is the simplest AdaMAST workflow: provide completed traces, select a
+This is the simplest AdaMAST workflow: provide completed traces, select a
 model provider, and receive a standalone failure taxonomy with the full
 inter-annotator agreement layer (independent annotators must be able to agree
 on the codes before the result counts). It does not install AdaMAST into an
@@ -58,7 +58,7 @@ print(len(taxonomy["codes"]))
 
 The function returns the same dictionary written to `taxonomy.json`.
 
-## 🔬 What BASELINE does
+## 🔬 What generation does
 
 ### 1. Normalize traces
 
@@ -93,7 +93,7 @@ The public taxonomy receives one of two statuses:
   not satisfied.
 
 !!! note
-    BASELINE never changes `review_required` to `accepted` silently.
+    AdaMAST never changes `review_required` to `accepted` silently.
 
 ## 🎛️ Configure the gate
 

@@ -517,3 +517,13 @@ a {
 .wordmark strong {
   font-weight: 860;
 }
+
+.card__new {
+  display: inline-block;
+  margin-left: 0.6rem;
+  padding: 0.22rem 0.55rem;
+  border: 1px solid var(--coral);
+  color: var(--coral);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}

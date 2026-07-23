@@ -4,7 +4,7 @@ On this page you turn the agent logs you already have into traces AdaMAST
 accepts — and check them locally, before a single model call is spent.
 
 A **trace** is one recorded agent run: the task, what the agent did, and how it
-ended. BASELINE and the core trace judge use the same loader. Give AdaMAST one
+ended. Generation and the core trace judge use the same loader. Give AdaMAST one
 `.json` or `.jsonl` file, or a directory containing those files, and it
 normalizes every accepted record to one stable shape before any model call.
 
@@ -42,7 +42,7 @@ Example report:
 !!! note
     Validation is local and makes no model calls.
 
-Fix missing or empty trajectories before starting BASELINE; an empty
+Fix missing or empty trajectories before starting generation; an empty
 trajectory cannot provide useful evidence for drafting or agreement.
 
 ## 🧐 Normalize for inspection
@@ -151,7 +151,7 @@ validation fails instead of guessing.
 
 ## ➡️ Continue with
 
-- [Generate a taxonomy](BASELINE_GENERATION.md) — run BASELINE on your
+- [Generate a taxonomy](GENERATION.md) — run generation on your
   validated traces.
 - [Judge traces](JUDGING.md) — label validated traces with an existing
   taxonomy.

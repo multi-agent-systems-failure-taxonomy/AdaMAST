@@ -1,8 +1,8 @@
 # Providers and models
 
-Run AdaMAST generation and judging on the provider you already use. BASELINE
-and the core JUDGES workflow share one provider-neutral text interface, so the
-prompts and output validation stay the same when the provider changes.
+Run AdaMAST generation and judging on the provider you already use. Both
+workflows share one provider-neutral text interface, so the prompts and
+output validation stay the same when the provider changes.
 
 ## 🧩 Supported providers
 
@@ -133,6 +133,6 @@ adamast judge \
 
 ## ➡️ Continue with
 
-- [Generate a taxonomy](BASELINE_GENERATION.md) — run BASELINE on the
+- [Generate a taxonomy](GENERATION.md) — run generation on the
   provider you just configured.
 - [Judge traces](JUDGING.md) — the same provider flags apply to judging.

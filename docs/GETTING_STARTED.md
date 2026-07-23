@@ -5,7 +5,7 @@ a taxonomy stays active while your agent works, each completed task is
 recorded as a trace, and learning starts by itself as evidence accumulates.
 
 !!! tip "Only need a fixed taxonomy and a judge?"
-    Complete the standalone [Foundation](BASELINE_GENERATION.md) and
+    Complete the standalone [Foundation](GENERATION.md) and
     [Evaluation](JUDGING.md) guides first — they may be all you need.
 
 ## ⚙️ Install and configure

@@ -102,7 +102,7 @@ adamast judge --taxonomy ./my-taxonomy/taxonomy.json --traces ./new_traces --out
 | `adamast judge --taxonomy … --traces …` | One best code per trace, with evidence |
 | `adamast view <taxonomy.json>` | Open a taxonomy as a read-only browser field guide |
 
-Deeper guides: [Trace formats](docs/TRACE_FORMATS.md) · [Generation](docs/BASELINE_GENERATION.md) · [The agreement gate](docs/AGREEMENT_GATE.md) · [Judging](docs/JUDGING.md) · [Judge types](docs/JUDGE_TYPES.md) · [Outputs](docs/TAXONOMY_OUTPUTS.md)
+Deeper guides: [Trace formats](docs/TRACE_FORMATS.md) · [Generation](docs/GENERATION.md) · [The agreement gate](docs/AGREEMENT_GATE.md) · [Judging](docs/JUDGING.md) · [Judge types](docs/JUDGE_TYPES.md) · [Outputs](docs/TAXONOMY_OUTPUTS.md)
 
 ## 🔌 Runtime integration
 

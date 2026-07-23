@@ -1,9 +1,9 @@
 # Taxonomy outputs and field guide
 
-This page shows what a finished BASELINE run leaves on disk, which file to
+This page shows what a finished generation run leaves on disk, which file to
 build on, and how to open the browser field guide.
 
-Every BASELINE run produces a self-contained result directory. Keep the whole
+Every generation run produces a self-contained result directory. Keep the whole
 directory when reproducibility matters; `taxonomy.json` alone is enough for the
 core judge.
 

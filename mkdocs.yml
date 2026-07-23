@@ -75,7 +75,7 @@ nav:
       - Choose a workflow: CONCEPTS.md
   - "01 · Foundation":
       - Prepare traces: TRACE_FORMATS.md
-      - Generate a taxonomy: BASELINE_GENERATION.md
+      - Generate a taxonomy: GENERATION.md
       - Agreement gate: AGREEMENT_GATE.md
       - Outputs and field guide: TAXONOMY_OUTPUTS.md
       - Providers and models: PROVIDERS.md

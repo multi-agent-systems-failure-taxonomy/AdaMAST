@@ -12,7 +12,7 @@ Choose by the decision you need to make and by who owns the trace lifecycle:
 | Need | Persistent state? | Model calls | Guide |
 | --- | --- | --- | --- |
 | Check or convert trace files | No | None | [Prepare traces](TRACE_FORMATS.md) |
-| Build a taxonomy from a fixed trace set | No | Draft + four-annotator agreement | [Generate a taxonomy](BASELINE_GENERATION.md) |
+| Build a taxonomy from a fixed trace set | No | Draft + four-annotator agreement | [Generate a taxonomy](GENERATION.md) |
 | Inspect one generated taxonomy | No | None | [Outputs and field guide](TAXONOMY_OUTPUTS.md) |
 | Label new traces with one best code | No | One judge call per trace | [Judge traces](JUDGING.md) |
 | Analyze causality, coverage, quality, or calibration | Optional | Depends on judge type | [Choose a judge](JUDGE_TYPES.md) |
@@ -47,7 +47,7 @@ Generation proposes a new taxonomy from a set of traces, on demand: point
 
 ## 🤝 Agreement
 
-The BASELINE agreement layer asks four independent annotators to discover,
+The agreement layer asks four independent annotators to discover,
 reconcile, type, and code failures. The taxonomy is accepted only if final
 macro Fleiss kappa and coverage meet their configured targets.
 
@@ -99,7 +99,7 @@ The runtime reflection shape is:
 When no stored taxonomy is inherited, the runtime can begin with the
 built-in 14-code MAST adaptation. Completed warm-up traces support the first
 generated project taxonomy. MAST is a runtime seed, not a requirement for
-standalone BASELINE generation.
+standalone generation.
 
 ## 🔀 Refinement and lineage
 
