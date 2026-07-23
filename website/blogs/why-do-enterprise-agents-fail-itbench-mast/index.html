@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="🤖">
+    <meta name="theme-color" content="#f5f7fb">
+    <link rel="canonical" href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/why-do-enterprise-agents-fail-itbench-mast/">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Why Do Enterprise Agents Fail? Insights from IT-Bench using MAST">
+    <meta property="og:description" content="🤖">
+    <meta property="og:url" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/why-do-enterprise-agents-fail-itbench-mast/">
+    <meta property="og:image" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/why-do-enterprise-agents-fail-itbench-mast/image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="preload" href="../../assets/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../../assets/fonts.css">
+    <link rel="stylesheet" href="../../assets/blog.css">
+    <title>Why Do Enterprise Agents Fail? Insights from IT-Bench using MAST</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header" aria-label="Site header">
+      <a class="wordmark" href="../../" aria-label="AdaMAST home">
+        <svg class="wordmark__mark" viewBox="0 0 40 40" role="img" aria-label="AdaMAST taxonomy mark">
+          <path d="M8 20h10M18 20V9M18 20v11M18 9h13M18 31h13"></path>
+          <circle cx="8" cy="20" r="3"></circle>
+          <circle cx="31" cy="9" r="3"></circle>
+          <circle cx="31" cy="31" r="3"></circle>
+        </svg>
+        <span>AdaMAST</span>
+      </a>
+      <nav class="site-nav" aria-label="Site">
+        <a href="../">Blogs</a>
+        <a href="../../docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main-content">
+      <article class="post">
+        <p class="eyebrow">MAST case study</p>
+        <h1>Why Do Enterprise Agents Fail? Insights from IT-Bench using MAST</h1>
+        <p class="post__meta"><a href="https://people.eecs.berkeley.edu/~mert_cemri/">Mert Cemri</a>, <a href="https://melissa-pan.github.io/">Melissa Pan</a>, <a href="https://people.eecs.berkeley.edu/~istoica/">Ion Stoica</a> and the MAST Team (UC Berkeley)</p>
+        <p class="post__meta"><a href="https://saurabhjha.one/">Saurabh Jha</a>, <a href="https://rohanarora.name/">Rohan Arora</a>, <a href="https://www.linkedin.com/in/ayhan-sebin-596a032b/">Ayhan Sebin</a>, <a href="https://scholar.google.com/citations?user=son-DloAAAAJ&amp;hl=en">Daby Sow</a>, <a href="https://research.ibm.com/people/nicholas-fuller">Nicholas Fuller</a> (IBM Research)</p>
+        <p class="post__date">December 2025</p>
+        <hr class="post__rule">
+<aside class="callout">
+<p>🤖</p>
+<p><strong>Agentic LLMs are increasingly adopted in real world IT tasks,</strong> for tasks like triaging incidents, querying logs/metrics and generating Kubernetes actions. However, evaluating these agentic systems is hard. Existing benchmarks, such as IT-Bench, typically provide just a single number (e.g., success rate) which is insufficient to understand where these systems fail and how to fix them. In this post, we aim to alleviate this challenge by using <strong>MAST</strong> (Multi-Agent System Failure Taxonomy) to turn <strong>ITBench</strong> execution traces from SRE scenarios into structured failure signatures that not only show whether a run fails, but can also explain <em>how</em> and <em>why</em> the run failed, thus providing insights into how to fix it. </p>
+<ul>
+<li><strong>Beyond Accuracy:</strong> Success rates on <a href="https://arxiv.org/pdf/2502.05352">ITBench</a> (SRE, Security, FinOps tasks) only tell you <em>if</em> an agent failed. <a href="https://arxiv.org/abs/2503.13657">MAST</a> reveals <em>how it failed</em>.</li>
+<li><strong>The "Isolated" vs. "Cascading" Divide:</strong>  Our analysis identifies a <strong>Failure Complexity Hierarchy.</strong> Frontier models like Gemini-3-Flash exhibit "Isolated Failures" (2.6 failure modes/trace), typically failing at a single, discrete bottleneck. In contrast, GPT-OSS-120B suffers from "Cascading Collapse" (5.3 failure modes/trace), where one minor reasoning mismatch triggers a compounding, systemic breakdown.</li>
+<li><strong>Fatal vs. Non-Fatal (Benign) Failure Modes:</strong> We separate <strong>fatal</strong> failure modes such as  (i) agents not knowing when to stop or reasoning-action misalignment of agents from (ii) benign and non-fatal failure modes such as messy behavior that can still succeed.</li>
+<li><strong>Takeaways from the analysis:</strong><ul>
+<li>Don’t let the LLM “declare success”: Verification failures are near-universal (FM-3.3). Require concrete, external tool evidence (alert cleared, metric thresholds, k8s state) before marking a ticket as being resolved.</li>
+<li>Termination confusion (FM-3.1/1.5) remains a critical bottleneck. The high incidence of termination confusion (FM-3.1/1.5) reveals that agents often lose track of their own macro-state. Rather than asking the LLM to "decide" when it is finished, offload the iterative control flow and exit conditions to a deterministic code-based state machine. This ensures the system infrastructure governs the task's completion based on objective evidence, rather than relying on the model's inconsistent internal state.</li>
+<li>Break the cascade: implement aggressive context hygiene and consistency checks to ensure that intermediate reasoning mismatches do not poison the long-horizon task history.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<ul>
+<li>📝 <strong>IT-Bench</strong> <strong>Paper:</strong>  <a href="https://arxiv.org/pdf/2502.05352">https://arxiv.org/pdf/2502.05352</a></li>
+<li><strong>👩‍💻 IT-Bench</strong> <strong>Code:</strong>  <a href="https://github.com/itbench-hub/ITBench">https://github.com/itbench-hub/ITBench</a></li>
+<li>📝  <strong>MAST</strong> <strong>Paper:</strong>  <a href="https://arxiv.org/abs/2503.13657">https://arxiv.org/abs/2503.13657</a></li>
+<li>👩‍💻 <strong>MAST</strong> <strong>Code:</strong> <a href="https://github.com/multi-agent-systems-failure-taxonomy/MAST">https://github.com/multi-agent-systems-failure-taxonomy/MAST</a></li>
+<li>📊 <strong>MAST-Data</strong>: <a href="https://huggingface.co/datasets/mcemri/MAST-Data">🤗 MAST-Data (1600+ Traces)</a></li>
+</ul>
+</aside>
+<blockquote>
+<p>“All successful task are alike; every unsuccessful task  is failing in its own way.” (Berkeley ‘25 — after “Anna Karenina”, Lev Tolstoy)
+</p>
+</blockquote>
+<h2>The "Black Box" Problem of Agent Benchmarks</h2>
+<p>Benchmarks like <strong>ITBench</strong> are becoming the standard for measuring agentic performance in high-stakes IT automation tasks. In ITBench, agents act as Site Reliability Engineers (SREs) or Security Analysts tasked with diagnosing Kubernetes outages, patching vulnerabilities, or managing cloud costs in production environments.</p>
+<p>This benchmarks use success rate as a main metric to evaluate agents. However, this metric is insufficient for engineering robust systems. Knowing that an agentic system achieves a 14% success rate on ITBench tells us <em>that</em> it failed, but not why: <strong>Did it fail because it forgot the context? Because it hallucinated a command? Or because it simply did not terminate?</strong></p>
+<p>Without a comprehensive approach to diagnose these failures, developers are left guessing, often resorting to blind prompting tweaks that solve one problem only to create another.</p>
+<h2>MAST: A Diagnostic Tool for Agents</h2>
+<figure>
+<img src="image.png" alt="figure" loading="lazy">
+</figure>
+<p>As a new standard to analyze the failure modes of complex agentic systems, we developed <strong>MAST (Multi-Agent System Failure Taxonomy)</strong>. MAST brings more insights and open up the opaque evaluation of these benchmarks. Derived from a rigorous analysis of over 1,600 traces across seven different frameworks, MAST provides a standardized taxonomy for agent failures.</p>
+<p>MAST converts unstructured execution logs into structured "<em>failure vectors</em>" based on 14 distinct patterns across three key categories:</p>
+<ul>
+<li><strong>FC1: System Design Issues</strong> (The "Skeleton")<ul>
+<li>Failures here stem from the agent's architecture and role definition.</li>
+<li><em>Examples:</em> <strong>FM-1.3 Step Repetition</strong> (looping), <strong>FM-1.4 Loss of Conversation History</strong> (memory leaks), <strong>FM-1.5 Unaware of Termination</strong> (failing to stop).</li>
+</ul>
+</li>
+<li><strong>FC2: Inter-Agent Misalignment</strong> (The "Communication")<ul>
+<li>Failures arising during runtime from how agents talk to each other or the environment.</li>
+<li><em>Examples:</em> <strong>FM-2.2 Fail to Ask for Clarification</strong> (assuming instead of asking), <strong>FM-2.3 Task Derailment</strong> (going off-topic).</li>
+</ul>
+</li>
+<li><strong>FC3: Task Verification</strong> (The "Quality Control")<ul>
+<li>Failures in quality assurance of the agents' output.</li>
+<li><em>Examples:</em> <strong>FM-3.1 Premature Termination</strong> (giving up too soon), <strong>FM-3.3 Incorrect Verification</strong> (hallucinating success).</li>
+</ul>
+</li>
+</ul>
+<figure>
+<img src="image-1.png" alt="figure" loading="lazy">
+</figure>
+<hr />
+<h2>The Experiment: Diagnosing ITBench Agents</h2>
+<p>We stress-test the idea of using MAST to make agent evaluations actionable and gain insights on the failure modes by applying it to ITBench, a popular evaluation suite for IT automation tasks across <strong>SRE</strong>, <strong>Security/Compliance</strong>, and <strong>FinOps</strong>.</p>
+<p>We annotated 310 ITBench SRE execution traces produced by an SRE agent built with Codex in realistic environments. These traces capture natural language interactions between agents and their tools across three models representing different capability tiers: Gemini-3-Flash, Kimi-K2, and GPT-OSS-120B. This lets us look past simple success metrics and investigate the distinct failure signatures driving these results. For this we use the recall scores, as the models by design only output a maximum of 3-5 outputs and SREs prefer the recall scores over F-1 score.</p>
+<ul>
+<li><strong>Gemini-3-Flash:</strong> 100 traces (75.5% Mean Recall)</li>
+<li><strong>Kimi-K2:</strong> 105 traces (28.6% Mean Recall)</li>
+<li><strong>GPT-OSS-120B:</strong> 105 traces (12.4% Mean Recall)</li>
+</ul>
+<p>Below, we detail the findings from this diagnostic analysis.</p>
+<hr />
+<h2>Finding 1: Stronger models like Gemini-3-Flash shows surgical (isolated failure modes) per trace whereas open sourced Kimi-K2 and GPT-oss-120b show compounding failure patterns</h2>
+<p>When we examine the failed traces, a clear hierarchy of complexity becomes apparent across the three models. This is measured by the number of distinct failure modes observed per failed run.</p>
+<ul>
+<li><strong>Gemini-3-Flash:</strong> 2.6 failure modes per failed trace</li>
+<li><strong>Kimi-K2:</strong> 4.7 failure modes per failed trace</li>
+<li><strong>GPT-OSS-120B:</strong> 5.3 failure modes per failed trace</li>
+</ul>
+<p>This disparity in failure mode density reveals a fundamental difference in how these systems break down. Gemini-3-Flash exhibits a surgical failure profile. Even in unsuccessful runs, it maintains high internal coherence and typically fails due to a single isolated failure, such as an incorrect verification step. These failures are precise and far easier to diagnose.</p>
+<p>On the opposite end of the spectrum, GPT-OSS-120B suffers from cascading collapse. In these traces, we observe that errors tend to compound over time. A small reasoning mismatch early in the process often leads to a deviation from the task specification, which in turn triggers a total derailment of the agent. Kimi-K2 represents the middle ground, where failures are more frequent and complex than the frontier model but do not reach the systemic instability seen in the 120B open weights model.</p>
+<p>The significance of this finding is that a higher success rate is often accompanied by isolated failure. Systems that fail with fewer simultaneous problems are far more predictable and simpler to improve through targeted engineering interventions.</p>
+<figure>
+<img src="image-2.png" alt="figure" loading="lazy">
+</figure>
+<hr />
+<h2>Finding 2: "Non-Fatal" vs. "Fatal" Failures</h2>
+<p>Perhaps the most critical insight from MAST is distinguishing between failures that the system can <em>tolerate</em> versus those that are fatal to success of the downstream task. By comparing the distribution of failure modes in <strong>Successful Traces</strong> vs. <strong>Failed Traces</strong>, we can classify them into three categories.</p>
+<h3>The "Non-Fatal" (Benign) Flaws</h3>
+<p>Across all three models, certain failure modes appear frequently even in runs that ultimately succeed. These are often structural frictions rather than terminal bugs.</p>
+<ul>
+<li><strong>FM-1.3 Step Repetition:</strong> This mode is present in over 90 percent of successful Kimi-K2 runs. In the SRE domain, iteration is often a necessity. An agent might query the same metric multiple times to verify if a service is stabilizing or if a fix has taken effect. Gemini-3-Flash actually shows less repetition in its failed traces, suggesting that it sometimes fails because it does not iterate enough.</li>
+<li><strong>FM-1.1 Disobey Task Specification:</strong> Agents frequently deviate from strict tool formatting or sequential instructions yet still manage to identify the correct root cause.</li>
+</ul>
+<p>This separation is where MAST proves its value. It allows us to ignore the bening failures like repetition that often occurs in troubleshooting, and focus instead on fatal failures that killed a run.</p>
+<h3>The "Fatal" Flaws</h3>
+<p>Certain behaviors strongly separate success from failure. When these modes appear, the probability of a successful outcome drops precipitously. The most prominent example is <strong>FM-3.3 (Incorrect Verification)</strong>. This mode shows a 52 percent increase in failed Gemini-3-Flash traces compared to its successful ones. Other prominent failure modes are 1.5 (Unaware of Termination Conditions) and 2.6 (Reasoning Action Mismatch).</p>
+<p>If these happen, the run is likely dead; guiding practitioners to develop robust context management strategies across agents in the system and multiple turns of interactions.</p>
+<h3><strong>Case Study: Gemini-3-Flash (Decisive but Overconfident)</strong></h3>
+<p>Gemini-3-Flash is highly efficient, but its primary bottleneck is its tendency to assume success without rigorous proof. Its failure signature is dominated by a massive delta in verification errors. It often identifies the correct signals but terminates before cross-referencing them against the ground truth. To fix this, developers should implement an external verification gate. By requiring tool-based evidence like a cleared alert or a healthy metric threshold before allowing the agent to exit, we can mitigate this model’s inherent overconfidence.</p>
+<ul>
+<li><strong>Fix:</strong> To improve Gemini-3-Flash on ITBench, prompt engineering won't help much. In particular, the experiments we shown in our <a href="https://arxiv.org/abs/2503.13657">NeurIPS 2025 paper</a> shows that with manual interventions like prompt engineering for memory related failures, we can get only up to around 15.6% performance improvements, whereas in a previous <a href="https://mast-ucb.notion.site/improve-agents-with-mast">blogpost on MAST</a>, we showed that by introducing new agents such as a <strong>Summarizer Agent</strong> to remind the other agents of what is going on and continuously augment their state (fixing FM-1.4) or by introducing context management mechanisms (such as a stricter <strong>State Machine</strong> to enforce termination to fix FM-1.5), we can get up to 53% performance improvement as these tackle more fundamental issues with the system.</li>
+</ul>
+<figure>
+<img src="image-3.png" alt="figure" loading="lazy">
+</figure>
+<h3><strong>Case Study: Kimi-K2 (The Termination Crisis)</strong></h3>
+<p>While termination confusion (FM-3.1 and FM-1.5) is the prevalent failure mode for Kimi-K2, its failed trajectories are defined by a pervasive <strong>Action-Reasoning Mismatch (FM-2.6)</strong>, which is present in a staggering <strong>92% of its failures</strong>.</p>
+<ul>
+<li><strong>The Execution Gap:</strong> While parts of its internal reasoning are often accurate, it suffers from a 92 percent failure prevalence of <strong>FM-2.6 (Action-Reasoning Mismatch)</strong>. It frequently identifies the correct next step but then executes a redundant or irrelevant command.</li>
+<li><strong>The Meta-Loop Trap:</strong> Roughly 25 percent of failed traces involve <strong>FM-2.3 (Task Derailment)</strong>. When a tool call returns a minor error, the agent often abandons the primary incident to enter a cycle of debugging its own investigation scripts.</li>
+</ul>
+<p>Kimi-K2 is a good example of an overthinking model, its reasoning chains are often too long but can fail at execution.</p>
+<figure>
+<img src="image-4.png" alt="figure" loading="lazy">
+</figure>
+<h3>Case Study: <strong>GPT-OSS-120B</strong></h3>
+<p>GPT-OSS-120B exhibits the most unstable failure signature of the cohort. This model exhibits an average of 5.3 distinct failure modes per failed trace, indicating a fundamental inability to maintain internal state.</p>
+<ul>
+<li><strong>Loss of Conversation History (FM-1.4):</strong> This is a unique fatal flaw for the 120B model. It loses conversation history in <strong>24%</strong> of traces, whereas Gemini-3-Flash exhibited zero memory loss and Kimi-K2 only 7%. As SRE traces grow in length, GPT-OSS-120B effectively "forgets" the alerts it was originally triaging, leading to total task derailment.</li>
+<li><strong>Reasoning Disconnect (FM-2.6):</strong> A staggering <strong>94%</strong> of traces show a decoupling of reasoning and action. It is nearly 3x more likely than Gemini (31%) to describe a correct plan but then execute a completely unrelated or redundant tool call.</li>
+</ul>
+<figure>
+<img src="image-5.png" alt="figure" loading="lazy">
+</figure>
+<h2>A different (and more useful) way to read the plots: “fatal” vs “non-fatal”</h2>
+<p>In summary, MAST lets you split failure modes into two buckets:</p>
+<h3>Recoverable / structural (show up even in successful traces)</h3>
+<p>These are failures which are not fatal and from which the system can recover to successfully complete the task.</p>
+<ul>
+<li><strong>FM-1.3 Step repetition</strong></li>
+<li><strong>FM-3.3 Incorrect verification</strong> (important nuance: the system <em>does</em> verify; it just verifies poorly)</li>
+<li><strong>FM-2.6 Reasoning–action mismatch</strong> (often present, but not always decisive)</li>
+</ul>
+<h3>Fatal / decisive (strongly associated with failed traces)</h3>
+<p>These are failures from which the system typically cannot recover.</p>
+<ul>
+<li><strong>FM-1.5 Unaware of termination conditions</strong></li>
+<li><strong>FM-3.1 Premature termination</strong></li>
+<li><strong>FM-1.4 Loss of conversation history</strong></li>
+<li><strong>FM-2.3 Task derailment</strong> (rare but extremely diagnostic when it appears)</li>
+<li><strong>FM-2.2 Fail to ask for clarification</strong> (especially for Granite/Llama regimes)</li>
+</ul>
+<p>This is the “richer understanding” piece: <strong>two models can have the same success rate on a small slice, yet fail for entirely different reasons—requiring different fixes.</strong></p>
+<hr />
+<h2>Conclusion</h2>
+<p>MAST is a tool that inspects the agentic system traces to identify fine-grain failure types that support system development and debugging. In this blog, we show that by applying MAST to ITBench, we move from generic observations ("Open models struggle") to a concrete engineering roadmap that help improving the performance of agentic systems relying on thse models, e.g.:</p>
+<ol>
+<li><strong>For Gemini-3-Flash:</strong>  Verification failure (<strong>FM-3.3</strong>) is the most common fatal failure for surgical models. Never allow an agent to self-terminate; require hard, tool-mediated evidence (e.g., AlertManager clearance or K8s state changes) before a run is considered successful.</li>
+<li><strong>For Kimi-K2:</strong> Use a deterministic state machine to fix the model's frequent struggle with recognizing task completion. This model’s reasoning chains can be too long and struggle to terminate, so it might benefit significantly from a tighter control on when to end.</li>
+<li><strong>For GPT-oss-120b:</strong> Systemic collapse occurs when minor reasoning mismatches (<strong>FM-2.6</strong>) poison the task history. Implement aggressive context hygiene and early error detection to ensure that small misalignment's do not compound into total derailment.</li>
+</ol>
+<hr />
+<h2>Build Better Agents with MAST</h2>
+<p>In this blogpost, we mostly talk about how one can analyze the failure modes of complex agentic systems in real tasks with MAST, but one can also use it to make the agentic framework better! In our previous <a href="http://adrs-ucb.notion.site/mast">blogpost about using evolutionary algorithms</a>, we show how how to use MAST feedback to autonomously improve an agentic system to solve coding problems! But one can also surely try to improve a multi-agent system manually using the feedback of MAST, as we demonstrate an example in another <a href="https://mast-ucb.notion.site/improve-agents-with-mast">blogpost where we tune a system of agents</a> to solve mathematical reasoning problems. </p>
+<h2>Quick Start with MAST</h2>
+<p>To use MAST for your agentic traces, simply get started with the following commands!</p>
+<pre><code class="language-python">!pip install agentdash
+from agentdash import annotator
+openai_api_key = &quot;your-api-key&quot;
+MASTAnnotator = annotator(openai_api_key, model=&quot;gpt-5&quot;)
+trace = &quot;&quot;&quot;
+Agent1: I need to calculate the sum of 1 + 1.
+Agent2: I'll help you with that. The answer is 3.
+Agent1: Thank you! Task completed.
+&quot;&quot;&quot;
+mast_annotation = MASTAnnotator.produce_taxonomy(trace)
+</code></pre>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <p>AdaMAST · UC Berkeley</p>
+      <nav aria-label="Footer">
+        <a href="../">Blogs</a>
+        <a href="../../docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+      </nav>
+    </footer>
+  </body>
+</html>

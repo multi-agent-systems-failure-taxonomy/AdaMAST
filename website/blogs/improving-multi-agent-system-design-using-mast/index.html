@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="This post is the seventh in our ADRS series. Designing effective multi-agent systems typically requires debugging workloads via execution logs and iteratively refining the agentic systems&#x27; behavior. In this blog, we replace hand-tuning with OpenEvolve to optimize the Multi-Agent ">
+    <meta name="theme-color" content="#f5f7fb">
+    <link rel="canonical" href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/improving-multi-agent-system-design-using-mast/">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Automating Algorithm Discovery: A Case Study in Improving Multi-Agent System Design using MAST">
+    <meta property="og:description" content="This post is the seventh in our ADRS series. Designing effective multi-agent systems typically requires debugging workloads via execution logs and iteratively refining the agentic systems&#x27; behavior. In this blog, we replace hand-tuning with OpenEvolve to optimize the Multi-Agent ">
+    <meta property="og:url" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/improving-multi-agent-system-design-using-mast/">
+    <meta property="og:image" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/improving-multi-agent-system-design-using-mast/hero.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="preload" href="../../assets/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../../assets/fonts.css">
+    <link rel="stylesheet" href="../../assets/blog.css">
+    <title>Automating Algorithm Discovery: A Case Study in Improving Multi-Agent System Design using MAST</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header" aria-label="Site header">
+      <a class="wordmark" href="../../" aria-label="AdaMAST home">
+        <svg class="wordmark__mark" viewBox="0 0 40 40" role="img" aria-label="AdaMAST taxonomy mark">
+          <path d="M8 20h10M18 20V9M18 20v11M18 9h13M18 31h13"></path>
+          <circle cx="8" cy="20" r="3"></circle>
+          <circle cx="31" cy="9" r="3"></circle>
+          <circle cx="31" cy="31" r="3"></circle>
+        </svg>
+        <span>AdaMAST</span>
+      </a>
+      <nav class="site-nav" aria-label="Site">
+        <a href="../">Blogs</a>
+        <a href="../../docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main-content">
+      <article class="post">
+        <p class="eyebrow">MAST case study</p>
+        <h1>Automating Algorithm Discovery: A Case Study in Improving Multi-Agent System Design using MAST</h1>
+        <p class="post__meta">Mert Cemri, Melissa Pan, Audrey Cheng, Shu Liu, Ion Stoica, ADRS Team</p>
+        <p class="post__date">December 2025</p>
+        <p class="post__meta post__meta--affil">
+          Originally published on the
+          <a href="https://ucbskyadrs.github.io/blog/improving-multi-agent-system-design-using-mast">UC Berkeley ADRS blog</a>.
+        </p>
+        <hr class="post__rule">
+<aside class="callout">
+<p>This post is part of our <strong>AI-Driven Research for Systems (ADRS)</strong> case study series, where we use AI to automatically discover better algorithms for real-world systems problems.</p>
+<p>Designing effective multi-agent systems typically requires debugging workloads via execution logs and iteratively refining the agentic systems' behavior. <a href="https://mast-ucb.notion.site/improve-agents-with-mast">Previously</a>, we demonstrated how the MAST Annotator provides scalable, systematic feedback on failure modes to guide agent builders to make design improvements. However, that approach still relied on hand-crafted solutions and implementations.</p>
+<p>In this blog, we replace hand-tuning with <strong>OpenEvolve</strong> to optimize the Multi-Agent System (MAS) code directly. By leveraging MAST feedback, OpenEvolve continuously mutates the architecture, automatically converging toward a more reliable system, <strong>improving failure rates by 7x</strong>.</p>
+<ul>
+<li><strong>✍️ Previous MAST Blog</strong>: <a href="https://mast-ucb.notion.site/improve-agents-with-mast">https://mast-ucb.notion.site/improve-agents-with-mast</a></li>
+<li>📝  <strong>MAST</strong> <strong>Paper:</strong>  <a href="https://arxiv.org/abs/2503.13657">https://arxiv.org/abs/2503.13657</a></li>
+<li><strong>✍️ Previous ADRS Blogs:</strong> <a href="https://ucbskyadrs.github.io/">https://ucbskyadrs.github.io/</a></li>
+<li>📝  <strong>ADRS</strong> <strong>Paper:</strong>  <a href="https://arxiv.org/abs/2510.06189">https://arxiv.org/abs/2510.06189</a></li>
+<li>👩‍💻 <strong>Code:</strong> <a href="https://github.com/UCB-ADRS/ADRS">github.com/UCB-ADRS/ADRS</a></li>
+<li>💬 <strong>Join us</strong>: <a href="https://join.slack.com/t/adrs-global/shared_invite/zt-3fgme22n5-PKYyAc9aIeTyX5iSQTKIoA">join.slack.com/t</a> and <a href="https://discord.gg/mz8gAnpt">Discord</a></li>
+<li><strong>Follow us</strong>: <a href="https://x.com/ai4research_ucb">x.com/ai4research_ucb</a></li>
+</ul>
+</aside>
+<h2>TL;DR: Automating Multi-Agent System Design Process Using MAST and OpenEvolve</h2>
+<p>In this work, we demonstrate that you can replace manual agent debugging with automated architectural search. By combining <strong>OpenEvolve</strong> (evolutionary optimization) with <strong>MAST</strong> (fine-grained failure signals), we took a standard MetaGPT-style software development team and let the code rewrite itself.</p>
+<p>Over 46 iterations, the system autonomously evolved a fragile baseline (<strong>0.136 score</strong>, ~7 failures/trace) into a robust architecture (<strong>0.50 score</strong>, ~1 failure/trace), with 7x fewer failures. Crucially, the optimizer discovered sophisticated design patterns that usually take humans days to identify:</p>
+<ul>
+<li><strong>Negative Constraints:</strong> Shifting prompts from "be helpful" to strict negative boundaries (e.g., "do not explain," "do not plan") to prevent role drift.</li>
+<li><strong>Structural Verification:</strong> Spontaneously inventing a dedicated <code>SimpleVerifier</code> agent to decouple execution from checking.</li>
+<li><strong>Hybrid Handoffs:</strong> Inserting cheap, deterministic AST static analysis <em>before</em> expensive LLM calls.</li>
+</ul>
+<p>We also expose the risks of automated design: without strict guardrails (like mandatory evidence gates), the evolutionary search creates "reward hacks"--optimizing for score by simply deleting the agents responsible for reporting failures.</p>
+<h2>The Problem: MAS Debugging Does Not Scale</h2>
+<p>Multi-agent systems are easy to prototype but painful to <em>improve</em>. When a run goes wrong, you rarely get a single clear signal. Often, you see a spaghetti trace where agents repeat steps, drift roles, drop context, ignore each other's messages, "verify" hand-wavily, or declare success early. The result is that every design decision becomes a guessing game: <strong>How many agents? How to break down the task? How agents should communicate with each other?</strong></p>
+<p>In a previous <a href="https://www.notion.so/Automating-Algorithm-Discovery-A-Case-Study-in-Improving-Multi-Agent-System-Design-using-MAST-2ca8d1e3404480f78f76ccabb3c9cfd8?pvs=21">blog</a>, we introduce <a href="https://arxiv.org/abs/2503.13657">MAST [NeurIPS'25 Spotlight]</a>, a failure taxonomy and LLM annotator that turns those messy agent traces into structured, actionable failure signals (instead of vibes-based log reading). But even with good diagnostics, the development loop is still mostly manual:</p>
+<ol>
+<li>Run tasks</li>
+<li>Read long traces</li>
+<li>Guess what to change</li>
+<li>Repeat</li>
+</ol>
+<p>So we asked: <strong>can we automate the iteration loop itself?</strong></p>
+<h2>The Idea: Treat MAS Design Like Algorithm Discovery</h2>
+<p>Instead of "debugging" a multi-agent system by hand, we treat it like <strong>algorithm discovery</strong>: start from a working MAS, make small code edits, run the workload, keep the version that result in improvements. This is exactly the workflow OpenEvolve was built for.</p>
+<p>The key insight that enables the evolution process to make improvements on MAS design is to use a <em>richer</em> reward signal. Most optimizers chase a <strong>coarse</strong> reward, typically <em>pass/fail</em> on the downstream task. We add a <strong>fine-grained signal</strong>: the number of MAST failure instances in the trace. Each candidate MAS design is rewarded for producing traces with <strong>fewer MAST failure modes</strong>, so evolution can systematically reduce intermediate coordination failures, not just occasionally stumble into success.</p>
+<figure>
+<img src="image.png" alt="Figure 1: Multi-Agent Failure Taxonomy (MAST). We use MAST failure modes as a fine-grained signal for OpenEvolve to evolve better MAS designs." loading="lazy">
+<figcaption>Figure 1: Multi-Agent Failure Taxonomy (MAST). We use MAST failure modes as a fine-grained signal for OpenEvolve to evolve better MAS designs.</figcaption>
+</figure>
+<p>The core idea is that MAS design <strong>needs both evolution and evaluation</strong>. A classic evaluation--<em>"did it work?"</em>--isn't enough. The more useful question is: <em>"what failed, exactly, and what should we change next?"</em></p>
+<ul>
+<li><strong>Evolution (OpenEvolve)</strong> explores the design space: agent roles, routing, memory, protocols, and verification depth.</li>
+<li><strong>Evaluation (MAST)</strong> turns traces into actionable diagnoses--<strong>FC1 System Design</strong>, <strong>FC2 Inter-Agent Misalignment</strong>, <strong>FC3 Verification</strong>--so edits become targeted instead of guesswork.</li>
+</ul>
+<p>Building on this, we now show how OpenEvolve can run dozens to hundreds of <strong>evaluate → evolve</strong> iterations automatically.</p>
+<hr />
+<h2>Discover A Better Multi-Agent Systems Architecture:  Design → Evolve → Evaluate → Decide</h2>
+<p>We frame MAS improvement as a tight inner loop:</p>
+<ol>
+<li>
+<p><strong>Design</strong></p>
+<p>Start with a reasonable agent design as baseline by defining: roles, topology, communication edges, state/memory, tools, verification, and termination rules.</p>
+</li>
+<li>
+<p><strong>Evolve</strong></p>
+<p>OpenEvolve proposes <em>code-level</em> edits via evolutionary search while enforcing hard constraints (e.g., don't remove verification, don't exceed the maximum number of turns, and require evidence).</p>
+</li>
+<li>
+<p><strong>Evaluate</strong></p>
+<p>Run the workload, collect traces, then <strong>annotate with MAST</strong> to produce: <code>task_completion</code>, <code>total_failures</code>, and a failure-mode breakdown.</p>
+</li>
+<li>
+<p><strong>Decide</strong></p>
+<p>Retain an edit only if the relevant failure buckets decrease while cost and latency remain within budget. Otherwise, reject the edit and continue.</p>
+</li>
+</ol>
+<blockquote>
+<p>In practice, the biggest wins come from structured verification and explicit communication, not clever prompt tweaks.
+</p>
+</blockquote>
+<hr />
+<h2>What We Actually Let The Search Change</h2>
+<p>Since multi-agent design has a wide design space, we restrict what OpenEvolve can mutate to a small set of "knobs":</p>
+<ul>
+<li><strong>Roles &amp; Responsibilities</strong> -- builder vs. verifier separation, approval rights, escalation</li>
+<li><strong>Topology &amp; Routing</strong> -- who talks to whom, ordering, retries, timeouts</li>
+<li><strong>Communication Protocols</strong> -- message schemas, ACK rules, handoff contracts</li>
+<li><strong>Memory &amp; State</strong> -- pinned facts, artifact propagation, anti-repetition guards</li>
+<li><strong>Tools &amp; Capabilities</strong> -- tests/linters/simulators, error handling</li>
+<li><strong>Verification</strong> -- pre/mid/final checks, evidence requirements, pass/fail gates</li>
+<li><strong>Governance</strong> -- termination criteria, "stop when stable," audit logging</li>
+</ul>
+<hr />
+<p><strong>Scoring</strong></p>
+<p>We convert MAST signals into a single reward:</p>
+<p><code>score = 1 / (1 + total_failures)</code></p>
+<p>The <code>+1</code> prevents division by zero when there are no failures. The curve falls as <code>1/(1+n)</code>: best case is <strong>1.0</strong> (zero failures), and the worst case is <strong>1/15</strong> if all 14 failure modes in MAST appear at least once.</p>
+<hr />
+<h2>A Successful Evolution</h2>
+<p>We apply <a href="https://github.com/algorithmicsuperintelligence/openevolve">OpenEvolve</a> to a <a href="https://github.com/FoundationAgents/MetaGPT">MetaGPT</a> style multi-agent system designed for software development tasks. The initial system follows a classic <strong>Coder → Tester → Reviewer</strong> pipeline: given a programming task, a coder agent generates code, a tester writes tests, and a reviewer provides feedback. The agents communicate sequentially, passing messages through a shared context.</p>
+<p>The initial configuration looks like:</p>
+<pre><code class="language-python">class ArchitectureConfig:
+    def __init__(self):
+        self.agent_types = [
+            {&quot;class&quot;: &quot;SimpleCoder&quot;, &quot;count&quot;: 1, &quot;specialization&quot;: &quot;general&quot;},
+            {&quot;class&quot;: &quot;SimpleTester&quot;, &quot;count&quot;: 1, &quot;specialization&quot;: &quot;unit_testing&quot;},
+            {&quot;class&quot;: &quot;SimpleReviewer&quot;, &quot;count&quot;: 1, &quot;specialization&quot;: &quot;code_review&quot;}
+        ]
+        self.communication_protocol = &quot;sequential&quot;
+        self.workflow_pattern = &quot;waterfall&quot;
+</code></pre>
+<p>We test this MAS on the ProgramDev dataset [1] that has various programming challenges,
+such as implementing Tic-Tac-Toe, Chess, or Sudoku, for which abundant solutions and descriptions are readily available online. We design ProgramDev with tasks intended to be relatively straightforward for MAS, rather than exceptionally difficult, to better isolate specific failure dynamics.</p>
+<p>This baseline achieved a MAST score of <strong>0.136</strong> with <strong>38 total failures</strong> across 6 tasks. Typical failure modes included disobeying role specification (coder explaining instead of coding), task derailment, and agents not listening to each others input.</p>
+<p>After 46 iterations of evolution, OpenEvolve discovered a significantly better design:</p>
+<figure>
+<img src="image-1.png" alt="figure" loading="lazy">
+</figure>
+<p>Figure 2: T<em>he initial program started with a score of 0.136 (7+ failure modes per trace). Evolution converged to 0.50 with only 1 failure per trace on average.</em></p>
+<h3>Key Changes Discovered by Evolution</h3>
+<ol>
+<li><strong>Focused System Prompts (Iteration 16)</strong></li>
+</ol>
+<p>The single most impactful change was making agent prompts <strong>explicitly restrictive</strong>. The original prompts were generic:</p>
+<pre><code class="language-python"># BEFORE
+system_msg = &quot;You are an expert Python programmer.&quot;
+
+</code></pre>
+<p>Evolution discovered that adding explicit role boundaries prevents task derailment:</p>
+<pre><code class="language-python"># AFTER
+system_msg = &quot;You are an expert Python programmer. Your only job is to produce Python code. Do not plan, review, or explain.&quot;
+
+</code></pre>
+<p>Similarly for the reviewer:</p>
+<pre><code class="language-python"># BEFORE
+system_msg = &quot;You are a senior software engineer conducting thorough code review.&quot;
+
+# AFTER
+system_msg = &quot;You are a senior software engineer conducting thorough code review. Do not write full code; only provide brief comments.&quot;
+
+</code></pre>
+<p><strong>Why it works:</strong> Without explicit constraints, LLMs tend to be "helpful" by doing extra work: a coder might explain its reasoning, a reviewer might rewrite the code. These behaviors cause some <strong>FC1</strong> errors like Disobeying Role Specifications and <strong>FC2</strong> errors like Task Derailment in MAST. The evolved prompts enforce single-responsibility.</p>
+<ol>
+<li><strong>Additional Verifier Agent (Iteration 22)</strong></li>
+</ol>
+<p>An impactful discovery was adding a <strong>fourth agent</strong> specifically for verification. Instead of relying on the reviewer to catch all issues:</p>
+<pre><code class="language-python"># BEFORE: 3 roles with implicit verification
+SimpleCoder → SimpleTester → SimpleReviewer
+
+# AFTER: 4 roles with explicit verification gate
+SimpleCoder → SimpleTester → SimpleReviewer → SimpleVerifier
+
+</code></pre>
+<p>The evolved <code>SimpleVerifier</code> performs <strong>AST-based verification</strong>:</p>
+<pre><code class="language-python">class SimpleVerify(Action):
+    &quot;&quot;&quot;Perform strong verification: syntax, tests presence, assertions, and references.&quot;&quot;&quot;
+
+    async def run(self, code: str, tests: str) -&gt; str:
+        status = []
+
+# Check code syntaxtry:
+            parsed_code = ast.parse(code)
+            code_ok = True
+            status.append(&quot;code_syntax: ok&quot;)
+        except Exception as e:
+            status.append(f&quot;code_syntax: fail ({str(e)[:160]})&quot;)
+
+# Check tests syntax AND assertionstry:
+            parsed_tests = ast.parse(tests)
+            has_test_fn = any(isinstance(n, ast.FunctionDef) and n.name.startswith(&quot;test_&quot;)
+                             for n in ast.walk(parsed_tests))
+            has_assert = any(isinstance(n, ast.Assert) for n in ast.walk(parsed_tests))
+            if has_test_fn or has_assert:
+                tests_ok = True
+                status.append(&quot;tests_syntax_and_asserts: ok&quot;)
+        except Exception as e:
+            status.append(f&quot;tests_syntax: fail ({str(e)[:160]})&quot;)
+
+# Check tests reference functions in codeif code_ok and tests_ok:
+            func_names = {n.name for n in ast.walk(parsed_code)
+                         if isinstance(n, ast.FunctionDef)}
+            for fn in func_names:
+                if fn in tests:
+                    references_ok = True
+                    break
+
+        verified = code_ok and tests_ok and references_ok
+        return f&quot;VERIFICATION_RESULT: {'PASS' if verified else 'FAIL'} | {'; '.join(status)}&quot;
+
+</code></pre>
+<p><strong>Why it works:</strong> The verifier catches <strong>FC3 (Verification)</strong> failures early with fast static checks, before expensive LLM-based review. It also produces a structured <code>PASS/FAIL</code> verdict that downstream agents can parse reliably.</p>
+<ol>
+<li><strong>Explicit Message Routing with <code>send_to</code> (Iteration 30)</strong></li>
+</ol>
+<p>Instead of implicit "everyone reads everything" communication, evolution added <strong>explicit routing</strong>:</p>
+<pre><code class="language-python"># Coder routes to Tester
+response = Message(
+    content=result_text,
+    role=self.profile,
+    cause_by=action.name,
+    sent_from=self.name,
+    send_to={&quot;SimpleTester&quot;}# Explicit routing
+)
+
+# Reviewer routes based on resultif &quot;fail&quot; in result.lower() or &quot;error&quot; in result.lower():
+    send_to = {&quot;SimpleCoder&quot;, &quot;SimpleTester&quot;}# Route back for retryelse:
+    send_to = {&quot;SimpleVerifier&quot;}# Route to verification
+</code></pre>
+<p><strong>Why it works:</strong> Explicit routing prevents <strong>FC2 (Inter-Agent Misalignment)</strong> by making dependencies clear. Agents only process messages intended for them, reducing confusion and duplicate processing.</p>
+<ol>
+<li><strong>Static Checks Before LLM Calls (Iteration 46)</strong></li>
+</ol>
+<p>The reviewer performs <strong>AST syntax checks</strong> before calling the LLM:</p>
+<pre><code class="language-python">class SimpleWriteReview(Action):
+    async def run(self, code: str, tests: str) -&gt; str:
+# Static checks FIRST
+        issues = []
+        try:
+            ast.parse(code or &quot;&quot;)
+        except Exception as e:
+            issues.append(f&quot;code_syntax_error: {str(e)[:160]}&quot;)
+        try:
+            ast.parse(tests or &quot;&quot;)
+        except Exception as e:
+            issues.append(f&quot;tests_syntax_error: {str(e)[:160]}&quot;)
+
+# Include static issues in LLM prompt
+        prompt = f&quot;&quot;&quot;Review the code and tests.
+Code:
+{code[:2000]}
+
+Tests:
+{tests[:2000]}
+
+STATIC_ISSUES: {issues}&quot;&quot;&quot;
+
+        llm_resp = await self._ask_with_retry(messages)
+
+# Fallback if LLM failedif llm_resp.startswith(&quot;LLM_FAILED&quot;):
+            return &quot;REVIEW_FAIL: &quot; + &quot;; &quot;.join(issues) if issues else &quot;REVIEW_PASS&quot;
+        return llm_resp
+
+</code></pre>
+<p><strong>Why it works:</strong> AST parsing is fast (~1ms) vs LLM calls (~5s). Catching syntax errors early saves tokens and provides concrete feedback even if the LLM fails.</p>
+<h2>Evolution Can Reward-Hack!</h2>
+<p>Reward hacking is a risk in closed-loop optimization: we observe that if the search space includes ways to <em>avoid evaluation</em> rather than <em>improving the algorithm</em>, OpenEvolve can take that advantage. In the sections above, we listed what OpenEvolve is allowed to mutate--and <strong>we intentionally did <em>not</em> include the number of agents</strong>. Here, we lift that constraint and allow OpenEvolve to search over the number of agents and their combinations.</p>
+<p>Our default starting point is a simple MetaGPT-style loop with three roles, including an explicit verifier:</p>
+<pre><code class="language-python"># Create team
+team = Team(context=context, log_file=log_file)
+
+team.hire([
+    SimpleCoder(context=context),
+    SimpleTester(context=context),
+    SimpleReviewer(context=context)
+])
+</code></pre>
+<p>What happened next was an example of reward hacking: the evolutionary algorithm simply removed the verification agent and… voilà--no more verification-related errors. The system quickly reached a similar combined score as the SOTA baseline (~0.5), but for the wrong reason: it "improved" by deleting the component that would have caught failures, and the resulting code performs worse in downstream evaluation.</p>
+<pre><code class="language-python"># Create team
+team = Team(context=context, log_file=log_file)
+
+team.hire([
+    SimpleCoder(context=context),
+    SimpleCoder(context=context),
+])
+</code></pre>
+<p><strong>Takeaway:</strong> if you don't constrain the search space, evolution will optimize the metric, not the system. Hard requirements like "must include verification" (or evidence gates / test execution) are essential to prevent reward hacking.</p>
+<h2>Plug-and-Play: Minimal Code to Evolve and Measure</h2>
+<p>Interested in evolving your agents with MAST? We got you. Below is a minimal, end-to-end template that you can drop into your own stack: <strong>generate a candidate MAS design → run it → score the trace with MAST → keep the best</strong>. The key move is simple: treat the transcript as the evaluation artifact, and let MAST convert messy logs into a structured signal your optimizer can actually use.</p>
+<h3>1) Wire up MAST</h3>
+<pre><code class="language-python">from agentdash import annotator
+MAST = annotator(openai_api_key=&quot;YOUR_KEY&quot;)
+
+def mast_metrics(trace: str):
+    ann = MAST.produce_taxonomy(trace)
+    return {
+        &quot;task_completion&quot;: ann[&quot;task_completion&quot;],
+        &quot;total_failures&quot;: ann[&quot;total_failures&quot;],
+        &quot;failures&quot;: ann[&quot;failure_modes&quot;],  # {'1.1': True/False, ...}
+    }
+</code></pre>
+<h3>2) Scoring and guardrails</h3>
+<pre><code class="language-python">def violates_guardrails(design) -&gt; bool:
+    # e.g., verification removed or merged away; missing termination evidence; unlimited turns
+    return not design.get(&quot;verification&quot;, {}).get(&quot;enabled&quot;, True)
+
+def score(metrics, alpha=0.25):
+    return (1.0 if metrics[&quot;task_completion&quot;] else 0.0) - alpha * metrics[&quot;total_failures&quot;]
+</code></pre>
+<h3>3) Search loop (replace sampler with EA/BO later)</h3>
+<pre><code class="language-python">import random, json
+
+def sample_edit(base_design):
+    # mutate prompts/roles/topology/protocol/verification/state within allowed ranges
+    return {**base_design, &quot;mut&quot;: random.random()}
+
+def run_episode(design) -&gt; str:
+    # execute MAS, return transcript trace (string)
+    return &quot;... agent dialog ...&quot;
+
+def search(base_design, trials=40):
+    leaderboard = []
+    for _ in range(trials):
+        cand = sample_edit(base_design)
+        if violates_guardrails(cand):
+            continue
+        trace = run_episode(cand)
+        m = mast_metrics(trace)
+        s = score(m)
+        leaderboard.append({&quot;score&quot;: s, &quot;design&quot;: cand, &quot;metrics&quot;: m})
+    leaderboard.sort(key=lambda r: r[&quot;score&quot;], reverse=True)
+    with open(&quot;evolve_results.json&quot;, &quot;w&quot;) as f: json.dump(leaderboard, f, indent=2)
+    return leaderboard
+</code></pre>
+<hr />
+<h2>How to Interpret MAST (and Act on It)</h2>
+<p>Based on our experiments, MAST is most useful when you treat it as a <strong>diagnosis guideline</strong>: it tells you <em>which class of failure is dominating</em>, so you know what kind of edit to try next. The guidelines below aren't exhaustive--and they're not guaranteed fixes--but they're some consistent patterns we saw when iterating on real traces.</p>
+<ul>
+<li>
+<p><strong>FC1 -- System Design Issues</strong></p>
+<p><em>Symptoms:</em> wrong task interpretation, role violations, loops/repetition, context drift, premature termination.</p>
+<p><em>Fixes:</em> tighter role specs &amp; termination rules; state invariants; repetition guards; context pinning.</p>
+</li>
+<li>
+<p><strong>FC2 -- Inter-Agent Misalignment</strong></p>
+<p><em>Symptoms:</em> ignored inputs, missing clarifications, assumption drift, derailment.</p>
+<p><em>Fixes:</em> strict handoff schemas; mandatory clarifications; dependency ordering; router/moderator; ACKs.</p>
+</li>
+<li>
+<p><strong>FC3 -- Verification Failures</strong></p>
+<p><em>Symptoms:</em> no/incomplete/incorrect checks; claiming success without evidence.</p>
+<p><em>Fixes:</em> multi-level verification (pre/mid/final); tool-based tests; hard evidence gates; block without proof.</p>
+</li>
+</ul>
+<blockquote>
+<p>Rule of thumb: Only accept a design if the failure distribution moves in your intended direction (e.g., FC2↓ after adding contracts).
+</p>
+</blockquote>
+<h2>FAQ</h2>
+<p><strong>Do I need OpenEvolve specifically?</strong></p>
+<p>No. Any system that can <em>propose</em> design edits and <em>evaluate</em> them against MAST will do.</p>
+<p><strong>Can I use MAST for single-agent pipelines?</strong></p>
+<p>Yes. FC1/FC3 still catch many real failures (spec/verification) even without inter-agent dynamics.</p>
+<p><strong>What if my best design costs more tokens?</strong></p>
+<p>Decide with budgeted scores (e.g., success − α·failures − β·cost). Reliability usually pays for itself.</p>
+<h1>Contribute to the ADRS Blog Series!</h1>
+<blockquote>
+<p>The <strong>AI-Driven Research Systems (ADRS)</strong> initiative is an open, collaborative effort to explore how AI can accelerate scientific discovery itself, from evolving algorithms to optimizing real-world systems.</p>
+<p>If you've built, optimized, or experimented with AI-driven research tools, we'd love to hear from you. Share your experiences, insights, or case studies with us in the <strong>ADRS Blog Series</strong>.</p>
+</blockquote>
+<p>👉 Reach out to us via email: <a href="mailto:ucbskyadrs@gmail.com">ucbskyadrs@gmail.com</a></p>
+<p>💬 Join us: <a href="https://join.slack.com/t/adrs-global/shared_invite/zt-3fgme22n5-PKYyAc9aIeTyX5iSQTKIoA">join.slack.com/t</a> and <a href="https://discord.gg/mz8gAnpt">Discord</a></p>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <p>AdaMAST · UC Berkeley</p>
+      <nav aria-label="Footer">
+        <a href="../">Blogs</a>
+        <a href="../../docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+      </nav>
+    </footer>
+  </body>
+</html>

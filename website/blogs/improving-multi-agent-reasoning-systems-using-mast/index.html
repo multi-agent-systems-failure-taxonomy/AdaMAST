@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="In our previous work (\&quot;Automating Algorithm Discovery with MAST\&quot;), we showed that the Multi-Agent Systems Failure Taxonomy (MAST) could transform the traditionally manual process of agent debugging into a tractable search problem. By using fine-gr...">
+    <meta name="theme-color" content="#f5f7fb">
+    <link rel="canonical" href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/improving-multi-agent-reasoning-systems-using-mast/">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Automating Algorithm Discovery: A Case Study in Improving Multi-Agent Reasoning Systems using MAST (Part 2)">
+    <meta property="og:description" content="In our previous work (\&quot;Automating Algorithm Discovery with MAST\&quot;), we showed that the Multi-Agent Systems Failure Taxonomy (MAST) could transform the traditionally manual process of agent debugging into a tractable search problem. By using fine-gr...">
+    <meta property="og:url" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/improving-multi-agent-reasoning-systems-using-mast/">
+    <meta property="og:image" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/improving-multi-agent-reasoning-systems-using-mast/hero.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="preload" href="../../assets/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../../assets/fonts.css">
+    <link rel="stylesheet" href="../../assets/blog.css">
+    <title>Automating Algorithm Discovery: A Case Study in Improving Multi-Agent Reasoning Systems using MAST (Part 2)</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header" aria-label="Site header">
+      <a class="wordmark" href="../../" aria-label="AdaMAST home">
+        <svg class="wordmark__mark" viewBox="0 0 40 40" role="img" aria-label="AdaMAST taxonomy mark">
+          <path d="M8 20h10M18 20V9M18 20v11M18 9h13M18 31h13"></path>
+          <circle cx="8" cy="20" r="3"></circle>
+          <circle cx="31" cy="9" r="3"></circle>
+          <circle cx="31" cy="31" r="3"></circle>
+        </svg>
+        <span>AdaMAST</span>
+      </a>
+      <nav class="site-nav" aria-label="Site">
+        <a href="../">Blogs</a>
+        <a href="../../docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main-content">
+      <article class="post">
+        <p class="eyebrow">MAST case study</p>
+        <h1>Automating Algorithm Discovery: A Case Study in Improving Multi-Agent Reasoning Systems using MAST (Part 2)</h1>
+        <p class="post__meta">Arin Kadakia, Mert Cemri, Melissa Pan, Audrey Cheng, Ion Stoica, ADRS Team</p>
+        <p class="post__date">February 2026</p>
+        <p class="post__meta post__meta--affil">
+          Originally published on the
+          <a href="https://ucbskyadrs.github.io/blog/improving-multi-agent-reasoning-systems-using-mast">UC Berkeley ADRS blog</a>.
+        </p>
+        <hr class="post__rule">
+<aside class="callout">
+<p>In <a href="https://arxiv.org/abs/2512.14806">our ADRS paper</a>, we show that the solution is only as good as the evaluator when applying AI to discover better solutions. In this blog, we further confirm this finding by demonstrating that by providing the evaluator finer-grained feedback we can improve the downstream accuracy.</p>
+<p>Using OpenEvolve, an open-source ADRS framework, we optimize multi-agent math reasoning workflows and find that evaluation is a critical bottleneck. Compared with binary feedback (i.e., correct/incorrect), <strong>MAST-based evaluation</strong> yields a higher-performing final system on <strong>Olympiad-level mathematical reasoning problems</strong>:</p>
+<ul>
+<li><strong>MAST feedback:</strong> 33% accuracy (8.08s avg latency)</li>
+<li><strong>Binary feedback:</strong> 25% accuracy (7.90s avg latency)</li>
+</ul>
+<p>In addition to reporting the downstream accuracies, we analyze the <strong>MAST failure-mode distribution</strong> to explain <em>why</em> the multi-agent system improves by showing the specific failure modes that change during optimization.</p>
+<ul>
+<li><strong>✍️ Previous MAST Blog</strong>: <a href="https://mast-ucb.notion.site/improve-agents-with-mast">https://mast-ucb.notion.site/improve-agents-with-mast</a></li>
+<li>📝  <strong>MAST</strong> <strong>Paper:</strong>  <a href="https://neurips.cc/virtual/2025/loc/san-diego/poster/121528">https://neurips.cc/virtual/2025/loc/san-diego/poster/121528</a></li>
+<li><strong>✍️ Previous ADRS Blogs:</strong> <a href="https://ucbskyadrs.github.io/">https://ucbskyadrs.github.io/</a></li>
+<li>📝  <strong>ADRS</strong> <strong>Paper:</strong>  <a href="https://arxiv.org/abs/2510.06189">https://arxiv.org/abs/2510.06189</a></li>
+<li>👩‍💻 <strong>Code:</strong> <a href="https://github.com/UCB-ADRS/ADRS">github.com/UCB-ADRS/ADRS</a></li>
+<li>💬 <strong>Join us</strong>: <a href="https://join.slack.com/t/adrs-global/shared_invite/zt-3fgme22n5-PKYyAc9aIeTyX5iSQTKIoA">join.slack.com/t</a> and <a href="https://discord.gg/mz8gAnpt">Discord</a></li>
+<li><strong>Follow us</strong>: <a href="https://x.com/ai4research_ucb">x.com/ai4research_ucb</a></li>
+</ul>
+</aside>
+<h2>The Problem: Evaluation Is the Bottleneck</h2>
+<p>In our previous work <a href="https://mast-ucb.notion.site/mast-evolve?source=copy_link">("Automating Algorithm Discovery with MAST")</a>, we showed that the Multi-Agent Systems Failure Taxonomy (MAST) could transform the traditionally manual process of agent debugging into a tractable search problem. By using fine-grained failure signals rather than unstructured logs, we can use an evolutionary program optimization algorithm like OpenEvolve that iteratively refines agentic programs to discover sophisticated design patterns that are hard to find by hand.</p>
+<p>In this follow-up blog, we apply the same idea to <strong>multi-agent reasoning systems</strong> for tasks that require <strong>long chains of thought</strong>, like Math Olympiad problems. While multi-agent systems (comprising specialized roles for translation, reasoning and verification) are conceptually well-suited for these tasks, optimizing them remains a significant challenge. The design space is very large, and the failure modes are often subtle; a minor modification can cause cascading errors.</p>
+<p>In order to navigate MAS optimization, we need better evaluation tools. The standard approach is to hill-climb on <strong>task accuracy</strong>. But for multi-agent reasoning, accuracy is often too coarse. It tells you whether you succeeded, but it does not tell you what failed inside the workflow, so search has weak guidance on what to change next.</p>
+<p>Our main claim is simple:</p>
+<blockquote>
+<p><strong>The evaluator is the bottleneck: evolution can only optimize for what the reward function measures.</strong>
+</p>
+</blockquote>
+<p>To evaluate this, we compare three systems:</p>
+<ol>
+<li><strong>Baseline Multi-Agent System (MAS)</strong>: a hand-designed baseline workflow</li>
+<li><strong>Binary-feedback driven MAS</strong>: optimization guided exclusively by downstream task success</li>
+<li><strong>MAST-feedback driven MAS</strong>: optimization guided by diagnostic failure mode signals (MAST) anchored by task accuracy</li>
+</ol>
+<p>We demonstrate that failure-informed evolution not only improves downstream generalization but also yields an interpretable failure-mode distribution that explains <em>why</em> certain architectures outperform others.</p>
+<h2>MAST Feedback vs. Binary Feedback</h2>
+<p>Instead of debugging a multi-agent reasoning system by hand, we treat MAS design as <strong>algorithm discovery</strong>: start from an initial workflow, make small edits (prompts, routing, role boundaries, verification depth), run the workflow, and keep the variants that improve. We use OpenEvolve to make this iterative improvement for new MAS program discovery.</p>
+<blockquote>
+<p><strong>Accuracy is the metric we ultimately care about - but as an evolution signal, it's often too coarse.</strong>
+</p>
+</blockquote>
+<p>The critical variable is the <strong>fitness signal</strong> guiding the search. In a standard accuracy-only setup, the optimizer keeps designs that happen to solve more problems. When a multi-agent system fails, accuracy doesn't tell you <em>why</em>: was it a broken handoff, role drift, shallow verification, or one agent overwriting another? This makes it hard for evolution to make targeted improvements rather than blind trial-and-error.</p>
+<p>In contrast, MAST-aware Evaluation leverages diagnostic feedback to shape the reward landscape. The optimizer remains anchored to downstream correctness, but it gains a high-resolution signal regarding the specific failure patterns (e.g., FC1/FC2/FC3) that impede progress.</p>
+<figure>
+<img src="image.png" alt="Figure 1: Multi-Agent Failure Taxonomy (MAST). We use MAST failure modes as a fine-grained signal for OpenEvolve to evolve better MAS designs." loading="lazy">
+<figcaption>Figure 1: Multi-Agent Failure Taxonomy (MAST). We use MAST failure modes as a fine-grained signal for OpenEvolve to evolve better MAS designs.</figcaption>
+</figure>
+<p>By shifting from binary feedback to more granular MAST feedback, we find that evolution moves beyond simple prompt-tuning and begins to discover <strong>robust architectural primitives</strong> that generalize far better to held-out reasoning challenges.</p>
+<hr />
+<h2><strong>Discovering a Better Multi-Agent System with Diagnostic Feedback</strong></h2>
+<p>To assess the value of <strong>MAST as an evaluation signal</strong>, we study a controlled multi-agent architecture improvement problem. We optimize a multi-agent system (MAS) designed for long-form mathematical reasoning and evaluate candidate workflows on <strong>Olympiad-level mathematical reasoning problems</strong> using the problems from the <a href="https://huggingface.co/datasets/Hothan/OlympiadBench">OlympiadBench</a> dataset. The central comparison is <strong>accuracy-only evolution</strong> versus <strong>MAST-guided evolution</strong>.</p>
+<p>The experimental loop follows a four-stage iterative process:</p>
+<ol>
+<li>
+<p><strong>Design (Initial MAS)</strong></p>
+<p>We initialize the search with a robust, hand-designed sequential workflow. This baseline defines the initial <strong>directed acyclic graph (DAG)</strong> of the system, specifying:</p>
+<ul>
+<li>Roles: Specialized nodes for problem translation, strategy planning, execution (solving), and final verification.</li>
+<li>Edges and Communication Protocols: The message schemas and state-sharing mechanisms between nodes.</li>
+<li><strong>Evolutionary Algorithm</strong></li>
+</ul>
+<p>Using <strong>OpenEvolve</strong>, we apply discrete code-level mutations to a bounded "mutable block" within the MAS infrastructure. The search space includes:</p>
+<ul>
+<li><strong>Prompt Refinement:</strong> Iterative sharpening of role boundaries to prevent "harmful" drift (e.g., enforcing strict output formats).</li>
+<li><strong>Topological Edges:</strong> Reconfiguring the routing logic, such as adding feedback loops for self-correction or branching paths for parallel reasoning.</li>
+<li><strong>Context Management:</strong> Optimizing how problem constraints are propagated or normalized across the chain of thought.</li>
+</ul>
+<p>Critically, we enforce <strong>architectural guardrails</strong>: evolution cannot simply delete the verification agent to artificially reduce failure counts. Any improvement must be a functional optimization of the reasoning logic or the coordination protocol.</p>
+</li>
+<li>
+<p><strong>Evaluate (Accuracy-Only vs MAST-Knowing)</strong></p>
+<p>Every candidate MAS is run on the same workload, and we compute two views of performance:</p>
+</li>
+<li>
+<p><strong>Task accuracy: T</strong>he standard hill-climbing signal.</p>
+</li>
+<li><strong>MAST-knowing diagnostics</strong>: MAST failure modes, <strong>interpreted in an accuracy-informed way</strong>, so that the MAST annotator knows whether a solution is correct or not but still provides fine-grained feedback about <em>how</em> the workflow failed (FC1/FC2/FC3 breakdowns).</li>
+</ol>
+<p>Accuracy tells you whether the workflow succeeded. <strong>MAST</strong> knowing tells you how it failed when it does not, so you know what to change next instead of guessing</p>
+<hr />
+<h2>Results</h2>
+<p>On top of a baseline MAS architecture, we apply OpenEvolve for 50 iterations. The initial system follows a focused <strong>Translator → Reasoner → Verifier</strong> pipeline: given an Olympiad problem, a translator produces a clean math-only representation, a reasoner computes the solution, and a verifier enforces strict output compliance.</p>
+<h3>Evolution Runs</h3>
+<p>We perform two different evolution runs, one where the fitness score is the binary feedback (i.e. task accuracy as success/failure) and one where the fitness score is the MAST failure modes, where the MAST annotator is informed with accuracy. During the evolution, we only use 20 problems from the OlympiadBench dataset to iterate quickly. At the end of the evolution, we test the initial MAS, accuracy-evolved MAS and MAST-evolved MAS on 100 OlympiadBench problems.</p>
+<figure>
+<img src="image-1.png" alt="Figure 2: Evolution curve (best-so-far accuracy vs. iteration) for Accuracy-only vs. MAST-Knowing evolution on OlympiadBench." loading="lazy">
+<figcaption>Figure 2: Evolution curve (best-so-far accuracy vs. iteration) for Accuracy-only vs. MAST-Knowing evolution on OlympiadBench.</figcaption>
+</figure>
+<p>Even though the accuracy-based evolution can find programs that give good accuracies in the beginning, the solution that the MAST-driven evolution gives is ultimately lends itself to a higher downstream accuracy.</p>
+<p>Moreover, the MAST-driven evolution also generalizes better. We test the final multi-agent systems on another set of 100 problems from the OlympiadBench dataset and demonstrate that MAST evolved program outperforms the accuracy-only evolved program!</p>
+<figure>
+<img src="accuracy_comparison_final_v2.png" alt="Figure 3: Final downstream accuracy for Initial MAS vs Accuracy-evolved vs MAST-knowing evolved on the held-out OlympiadBench test set." loading="lazy">
+<figcaption>Figure 3: Final downstream accuracy for Initial MAS vs Accuracy-evolved vs MAST-knowing evolved on the held-out OlympiadBench test set.</figcaption>
+</figure>
+<p>The split between the two evolved systems is a key finding:</p>
+<ul>
+<li>The <strong>Accuracy-evolved</strong> MAS becomes a better specialist by learning math heuristics.</li>
+<li>The <strong>MAST-knowing</strong> MAS becomes a better architect by building redundancy, standardizing the state, and adding independent checks.</li>
+</ul>
+<p>This difference shows up downstream: the MAST-knowing design is not just occasionally correct, it is <strong>more consistently robust</strong>, leading to higher generalization on held-out Olympiad questions.</p>
+<figure>
+<img src="new_models_failure_mode_comparison.png" alt="Figure 4: MAST failure-mode histogram for three systems (Initial MAS, Accuracy-evolved, MAST-Knowing evolved) on the same evaluation set." loading="lazy">
+<figcaption>Figure 4: MAST failure-mode histogram for three systems (Initial MAS, Accuracy-evolved, MAST-Knowing evolved) on the same evaluation set.</figcaption>
+</figure>
+<h3>Key Changes Discovered by Evolution</h3>
+<ol>
+<li><strong>Agent Proliferation and Multi-Stage Verification (MAST-Knowing Evolved)</strong></li>
+</ol>
+<p>The most striking change from the <strong>MAST-knowing</strong> run was moving from a simple 3-agent chain to a specialized <strong>7-agent pipeline</strong>. The ADRS framework learned that a single solver pass was brittle for olympiad-style logic and inserted multiple "checking" stages.</p>
+<pre><code># AFTER: 7 roles + explicit verification gate
+# translator → planner → reformulator → reasoner → independent_checker →
+sanity_checker → finalizer
+</code></pre>
+<p>The evolved <code>independent_checker</code> performs a recomputation to catch verification failures early:</p>
+<pre><code class="language-python">AgentSpec(
+    name=&quot;independent_checker&quot;,
+    kind=&quot;generic&quot;,
+    system=(
+        &quot;You are the Independent Checker. Use ONLY the most recent line that begins with 'PROBLEM:' to &quot;
+        &quot;recompute the answer from scratch using exact arithmetic when useful. Ignore any prior arithmetic.\n&quot;
+        &quot;OUTPUT EXACTLY ONE LINE: FINAL ANSWER: &lt;value&gt;&quot;
+    )
+)
+</code></pre>
+<p><strong>Why it works:</strong> Forcing a separate agent to ignore the Reasoner's arithmetic implements a built-in self-consistency check. This sharply reduced <strong>Calculation Quality (1.5)</strong> failures, which were a dominant baseline error.</p>
+<ol>
+<li><strong>Standardizing Internal State with a Reformulator (MAST Evolved)</strong></li>
+</ol>
+<p>Evolution also found that "translator drift" was causing downstream misalignment. It added a <code>reformulator</code> node as a <strong>Problem Normalizer</strong> that emits a single canonical problem line.</p>
+<pre><code class="language-python">AgentSpec(
+    name=&quot;reformulator&quot;,
+    kind=&quot;generic&quot;,
+    system=(
+        &quot;You are the Problem Normalizer. From the prior content, emit a single standardized line:\n&quot;
+        &quot;PROBLEM: &lt;one-line precise statement preserving all numbers/units/constraints&gt;\n&quot;
+        &quot;Do NOT include a plan or any explanation.&quot;
+    )
+)
+
+</code></pre>
+<p><strong>Why it works:</strong> The Reasoner now receives a stable, canonical representation instead of variable translator styles. This reduced ambiguity at the handoff boundary and corresponded with a <strong>62% reduction</strong> in <strong>Logical Reasoning (1.1)</strong> failures.</p>
+<ol>
+<li><strong>Domain-Specific Solving Heuristics (Accuracy-Only Evolved)</strong></li>
+</ol>
+<p>While the MAST-knowing system improved robustness through structure, the <strong>Accuracy-only</strong> run improved performance by injecting domain heuristics directly into the solver prompt.</p>
+<pre><code class="language-python">reasoner_system = (
+    &quot;You are an expert competition-math solver.\n&quot;
+    &quot;- Heuristics: for remainders modulo m, return a least residue in [0, m-1]; &quot;
+    &quot;for distance/optimization, minimize squared distance when suitable; &quot;
+    &quot;for counting Gaussian integers with |a+bi| &lt;= r, include boundary, both axes, and the origin...&quot;
+)
+</code></pre>
+<p><strong>Why it works:</strong> The optimizer learned that reminding the solver about common olympiad edge cases (boundary handling, residue conventions, etc.) boosts accuracy on specific families of problems, even without adding redundancy.</p>
+<ol>
+<li><strong>Hyper-Defensive Output Constraints (Both Evolved Designs)</strong></li>
+</ol>
+<p>Both evolved systems independently converged on the same rule for avoiding <strong>2.6 (Action-Reasoning Mismatch)</strong>: the final output must be stripped down to a single standardized line.</p>
+<pre><code class="language-python">AgentSpec(
+    name=&quot;finalizer&quot;,
+    kind=&quot;generic&quot;,
+    system=(
+        &quot;You are the Finalizer. Reduce the previous content to exactly one line: &quot;
+        &quot;FINAL ANSWER: &lt;value&gt;. No extra text, no explanation, and no additional punctuation.&quot;
+    )
+)
+</code></pre>
+<p><strong>Why it works:</strong> A final bottleneck agent enforces protocol compliance regardless of upstream verbosity, dramatically improving verifier pass rates and preventing formatting-induced failures.</p>
+<h2>Evolution Can Reward-Hack!</h2>
+<p>Closed-loop evolution optimizes whatever you score. If the search space contains ways to <strong>avoid evaluation</strong>, OpenEvolve will often take them.</p>
+<p>In our early runs, when verification was not treated as a hard constraint, evolution found degenerate improvements that lowered "failure penalties" without actually improving reasoning. The simplest version was structural: <strong>remove or bypass verification</strong>, which instantly reduces verification-related failures but worsens downstream correctness.</p>
+<p>Accordingly, we use a <strong>Locked Verifier</strong> architecture. The verifier gate cannot be removed, so the search is forced to improve the workflow in legitimate ways: better problem standardization, less protocol drift, stricter output discipline, and stronger internal checking.</p>
+<p><strong>Takeaway:</strong> If you do not constrain the search space, evolution optimizes the metric, not the system. Guardrails like "verification must exist," and evidence gates are necessary for honest progress. They make the comparison between <strong>accuracy-only evolution</strong> and <strong>MAST-knowing evolution</strong> meaningful. This is also why we use MAST in an accuracy-informed way. Without accuracy anchoring, a failure-minimization objective can drift toward compliance behaviors that do not improve correctness.</p>
+<h2>Tutorial: Minimal Code to Evolve and Measure</h2>
+<p>Interested in evolving your agents with MAST? Below is a minimal, end-to-end template that you can drop into your own stack: <strong>generate a candidate MAS design → run it → score the trace with MAST → keep the best</strong>. The key move is simple: treat the transcript as the evaluation artifact and let MAST convert messy logs into a structured signal your optimizer can actually use.</p>
+<h3>1) Wire Up MAST</h3>
+<p>Initialize the MAST annotator to convert raw traces into structured failure reports.</p>
+<pre><code class="language-python">from agentdash import annotator
+
+MAST = annotator(openai_api_key=&quot;sk-...&quot;)
+
+def mast_metrics(trace: str):
+    ann = MAST.produce_taxonomy(trace)
+    return {
+        &quot;task_completion&quot;: ann.get(&quot;task_completion&quot;),
+        &quot;total_failures&quot;: ann.get(&quot;total_failures&quot;),
+        &quot;failures&quot;: ann.get(&quot;failure_modes&quot;, {}),
+    }
+
+</code></pre>
+<h3>2) Scoring and Guardrails</h3>
+<p>In our experiments, the most stable signal was an inverse failure score, plus a small accuracy boost.</p>
+<pre><code class="language-python">def score(metrics, is_correct: bool, verified: bool, num_agents: int):
+    tf = int(metrics.get(&quot;total_failures&quot;) or 0)
+
+    # base score: minimize failure modes
+    s = 1.0 / (1.0 + tf)
+
+    # accuracy boost
+    if is_correct:
+        s *= 1.2
+
+    # complexity tax (optional)
+    if num_agents &gt; 4:
+        s -= 0.01 * (num_agents - 4)
+
+    return s
+</code></pre>
+<h3>3) Search Loop (Powered by OpenEvolve)</h3>
+<p>This loop iteratively samples edits to your <code>initial_program_locked.py</code> and keeps candidates that maintain protocol discipline while increasing accuracy.</p>
+<pre><code class="language-python">import json
+from your_project import run_agentic  # your MAS entrypoint
+# from openevolve import ...           # your OpenEvolve sampler hook
+
+def search(trials=200):
+    leaderboard = []
+
+    for _ in range(trials):
+        # 1) OpenEvolve samples a candidate design (prompts, topology/EDGES, agent specs)
+        design = sample_next_candidate()
+
+        # 2) Execute on a batch item (or small batch)
+        episode = run_agentic(design, question=&quot;Solve for x...&quot;)
+
+        # 3) Score the trace using MAST-Knowing style reward shaping
+        m = mast_metrics(episode[&quot;trace&quot;])
+        s = score(
+            m,
+            is_correct=episode[&quot;correct&quot;],
+            verified=episode[&quot;verified&quot;],
+            num_agents=episode.get(&quot;num_agents&quot;, 3),
+        )
+
+        leaderboard.append({&quot;score&quot;: s, &quot;metrics&quot;: m, &quot;design_id&quot;: design.get(&quot;id&quot;)})
+
+    best = sorted(leaderboard, key=lambda x: x[&quot;score&quot;])[-1]
+    with open(&quot;evolve_results.json&quot;, &quot;w&quot;) as f:
+        json.dump(leaderboard, f, indent=2)
+
+    return best
+</code></pre>
+<hr />
+<h2>FAQ</h2>
+<p><strong>Why not just use accuracy for evolution?</strong></p>
+<p>We tried. Accuracy-evolved systems became better specialists, learning Olympiad heuristics, but they were brittle. Systems using MAST became better architects, discovering redundancy and protocol discipline that generalizes across problem types.</p>
+<p><strong>What was the impact of the locked verifier?</strong></p>
+<p>Crucial. Because evolution could not delete verification, it had to negotiate with it. This pressure led to the discovery of the <strong>Finalizer</strong> bottleneck that prevents upstream verbosity from ever reaching the verifier.</p>
+<p><strong>Is a 7-agent pipeline too slow?</strong></p>
+<p>Not in our setup. The Knowing system was only slightly slower (8.08s vs 7.90s), but gained <strong>6 percentage points</strong> in accuracy. More agents often meant shorter, more disciplined prompts, which kept token growth under control.</p>
+<h1>Contribute to the ADRS Blog Series!</h1>
+<blockquote>
+<p>The <strong>AI-Driven Research Systems (ADRS)</strong> initiative is an open, collaborative effort to explore how AI can accelerate scientific discovery itself, from evolving algorithms to optimizing real-world systems.</p>
+<p>If you've built, optimized, or experimented with AI-driven research tools, we'd love to hear from you. Share your experiences, insights, or case studies with us in the <strong>ADRS Blog Series</strong>.</p>
+</blockquote>
+<p>👉 Reach out to us via email: <a href="mailto:ucbskyadrs@gmail.com">ucbskyadrs@gmail.com</a></p>
+<p>💬 Join us: <a href="https://join.slack.com/t/adrs-global/shared_invite/zt-3fgme22n5-PKYyAc9aIeTyX5iSQTKIoA">join.slack.com/t</a> and <a href="https://discord.gg/mz8gAnpt">Discord</a></p>
+<p>🗞️ Follow us: <a href="https://x.com/ai4research_ucb">x.com/ai4research_ucb</a></p>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <p>AdaMAST · UC Berkeley</p>
+      <nav aria-label="Footer">
+        <a href="../">Blogs</a>
+        <a href="../../docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+      </nav>
+    </footer>
+  </body>
+</html>

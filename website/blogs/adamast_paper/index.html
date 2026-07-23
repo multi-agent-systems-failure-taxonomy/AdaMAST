@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="AdaMAST gives an agent system a memory of its own failures: a compact, validated taxonomy of named failure codes induced from the system's traces, reused by search, runtime monitoring, and trajectory selection."
+    >
+    <meta name="theme-color" content="#f5f7fb">
+    <link
+      rel="canonical"
+      href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/adamast_paper/"
+    >
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="AdaMAST: A Framework for Building Adaptive Failure Taxonomies to Improve LLM Agents">
+    <meta property="og:description" content="Convert an agent system's traces into a compact taxonomy of named failure codes on three fixed axes, induced automatically and validated before anything trusts them.">
+    <meta property="og:url" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/adamast_paper/">
+    <meta property="og:image" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/adamast_paper/fig-overview.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="preload" href="../../assets/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../../assets/fonts.css">
+    <link rel="stylesheet" href="../../assets/blog.css">
+    <title>AdaMAST: A Framework for Building Adaptive Failure Taxonomies to Improve LLM Agents</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header" aria-label="Site header">
+      <a class="wordmark" href="../../" aria-label="AdaMAST home">
+        <svg
+          class="wordmark__mark"
+          viewBox="0 0 40 40"
+          role="img"
+          aria-label="AdaMAST taxonomy mark"
+        >
+          <path d="M8 20h10M18 20V9M18 20v11M18 9h13M18 31h13"></path>
+          <circle cx="8" cy="20" r="3"></circle>
+          <circle cx="31" cy="9" r="3"></circle>
+          <circle cx="31" cy="31" r="3"></circle>
+        </svg>
+        <span>AdaMAST</span>
+      </a>
+      <nav class="site-nav" aria-label="Site">
+        <a href="../">Blogs</a>
+        <a href="../../docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main-content">
+      <article class="post">
+        <p class="eyebrow">Research blog</p>
+        <h1>AdaMAST: A Framework for Building Adaptive Failure Taxonomies to Improve LLM&nbsp;Agents</h1>
+        <p class="post__meta">
+          Mert Cemri<sup>1</sup>*, Andrei Cojocaru<sup>1</sup>*, Melissa
+          Pan<sup>1</sup>, Shu Liu<sup>1</sup>, Shubham Agarwal<sup>1</sup>,
+          Alexander Krentsel<sup>1</sup>, Jay Tang<sup>2</sup>, Kannan
+          Ramchandran<sup>1</sup>, Joseph E. Gonzalez<sup>1</sup>, Matei
+          Zaharia<sup>1</sup>, Alexandros G. Dimakis<sup>1,3</sup>, Ion
+          Stoica<sup>1</sup>
+        </p>
+        <p class="post__meta post__meta--affil">
+          <sup>1</sup> UC Berkeley &nbsp; <sup>2</sup> Apple &nbsp;
+          <sup>3</sup> Bespoke Labs &nbsp;·&nbsp; * equal contribution
+        </p>
+        <p class="post__date">July 2026</p>
+        <hr class="post__rule">
+
+        <aside class="callout">
+          <p>
+            🤖 Almost every way of improving an LLM agent without retraining
+            it, best-of-N selection, prompt optimization, and runtime
+            monitoring, works by reading execution traces and diagnosing what
+            went wrong. Then it throws the diagnosis away. Traces record
+            everything and remember nothing: long, instance-specific, no
+            stable names for the failures that keep happening.
+          </p>
+          <p>
+            <strong>AdaMAST</strong> gives an agent system a memory of its own
+            failures. It converts the system's traces into a compact taxonomy
+            of named failure codes on three fixed axes (system-level,
+            role-specific, domain-specific), induced automatically, validated
+            before anything trusts them. The taxonomy is not a post-hoc
+            report; it is a shared feedback interface that search, runtime
+            monitoring, and selection consume instead of raw traces.
+          </p>
+          <p><strong>Results across three integration settings:</strong></p>
+          <ul>
+            <li>
+              🏆 <strong>Best-of-N judging (Terminal-Bench 2.0):</strong>
+              these adaptive taxonomies give a massive boost:
+              <strong>89.9%</strong> with the Claude Opus 4.6 / ForgeCode
+              harness and the adaptive taxonomy driving a best-of-5 judge, up
+              to +15 points over Pass@1 and up to +4.5 over fixed taxonomies.
+            </li>
+            <li>
+              🖥️ <strong>Runtime feedback for coding agents
+              (SWE-Bench-Verified Mini):</strong> resolution rises from 60%
+              to <strong>70%</strong> on SWE-agent and from 64.0% to
+              <strong>70.7%</strong> on Claude Code, where the taxonomy
+              attaches as a native runtime skill.
+            </li>
+            <li>
+              🧬 <strong>Mutation feedback in optimization loops:</strong>
+              taxonomy-coded diagnoses beat free-form reflection on all five
+              search benchmarks (+3.5 to +7.5%), reaching
+              <strong>91.9%</strong> on 655 held-out OlympiadBench problems.
+            </li>
+            <li>
+              🔁 <strong>Fully automatic:</strong> no hand-authored codes, no
+              per-trace human annotation; an agreement gate validates each
+              taxonomy before deployment, and online refinement keeps it
+              tracking the current system as it evolves.
+            </li>
+          </ul>
+          <div class="callout__links">
+            <a href="https://escholarship.org/uc/item/5vz5p9qd?#main">📝 Paper</a>
+            <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">👩‍💻 Code</a>
+          </div>
+        </aside>
+
+        <figure class="figure--overview">
+          <img
+            src="fig-overview.png"
+            alt="The AdaMAST logo: a sailboat whose wake becomes circuit traces."
+            width="788"
+            height="788"
+          >
+        </figure>
+
+        <h2 id="traces-are-evidence">Traces Are Evidence, Not an Interface</h2>
+        <p>
+          If you have ever tried to improve an LLM agent system without
+          touching model weights, you have written one of these loops: sample
+          N trajectories and pick the best one; run the agent, read what went
+          wrong, rewrite the prompt; watch a run in flight and intervene
+          before it commits a mistake. Each of these procedures consumes the
+          same input (execution traces) and extracts feedback in one of two
+          forms.
+        </p>
+        <p>
+          A <strong>scalar outcome</strong> (a pass rate, a verifier score)
+          persists and compares cleanly across runs, but it records only
+          <em>that</em> a trajectory failed, never <em>why</em>. A
+          <strong>free-text critique</strong> (Reflexion-style reflection,
+          self-refinement) names the why, but it is generated from scratch on
+          every run and discarded with it. The recurring failures of your
+          particular system (a checker that rubber-stamps its solver, a tool
+          called retried unchanged) get re-diagnosed, in disposable prose,
+          forever.
+        </p>
+        <p>
+          What's missing is an artifact that is <strong>durable, like a
+          score, and diagnostic, like a critique</strong>: a compact
+          vocabulary of named failure modes, produced once from the system's
+          own traces, that downstream procedures reason over instead of long,
+          noisy trajectories.
+        </p>
+        <p>
+          💡 <strong>The central claim:</strong> the raw trace need not
+          double as the feedback interface. An agent system should maintain
+          an explicit representation of <em>how it fails</em>, induced from
+          its own behavior and reusable wherever failure feedback is needed.
+        </p>
+
+        <h2 id="fixed-axes">AdaMAST: Fixed Axes, Induced Vocabulary</h2>
+        <p>
+          AdaMAST, an adaptive extension of
+          <a href="https://ucbskyadrs.github.io/blog/improving-multi-agent-reasoning-systems-using-mast/">MAST</a>,
+          converts a target system's traces into a taxonomy of named failure
+          codes organized along <strong>three fixed axes</strong>:
+        </p>
+        <figure>
+          <img
+            src="fig-1-axes.png"
+            alt="Six representative failure codes arranged on the three AdaMAST axes with verbatim evidence quotes."
+            width="1329"
+            height="318"
+          >
+          <figcaption>
+            Figure 1: The axes of intervention are fixed; everything inside
+            them is induced. Six representative codes from one evolution run;
+            quoted italics are verbatim evidence from the run's judge outputs.
+          </figcaption>
+        </figure>
+        <ul>
+          <li>
+            <strong>Axis A (system-level):</strong> fix the harness or
+            orchestration (context exhaustion, premature termination).
+          </li>
+          <li>
+            <strong>Axis B (role-specific):</strong> fix a discovered role's
+            behavior (a checker that answers the prompt instead of checking).
+          </li>
+          <li>
+            <strong>Axis C (domain-specific):</strong> inject task knowledge
+            (algorithm mismatch, physical-law violations).
+          </li>
+        </ul>
+        <p>
+          Only the axes are fixed, so taxonomies stay comparable across
+          systems, and every code maps to an intervention point. The codes
+          themselves (names, definitions, role labels, evidence patterns) are
+          induced from the traces: no code is hand-authored, no trace is
+          human-annotated. Concretely, induction is eight LLM calls: an
+          analysis pass extracts the domain, the discovered roles, and
+          recurring behavioral signals from the trace pool; a curation pass
+          proposes candidate codes per axis, grounded in quoted trace
+          evidence (one prompt per discovered role); and a consolidation pass
+          merges duplicates, rejects codes without supporting evidence, and
+          enforces coverage. The name carries lineage, not scope: for a
+          single-agent coding harness, the role axis simply names execution
+          <em>phases</em> (Edit / Plan / Verify), and for a flat pipeline, it
+          can be empty.
+        </p>
+        <p>
+          Why induce the vocabulary rather than fix it in advance? MAST
+          distilled 14 recurring failure modes from hundreds of annotated
+          multi-agent traces and remains a strong baseline throughout this
+          work. But any catalog fixed <em>before</em> the target system is
+          observed faces a structural limit, not a quality limit:
+          role-specific failures presuppose roles that exist only once an
+          architecture is instantiated, and domain-specific failures
+          presuppose task knowledge that no general catalog enumerates. No
+          pre-committed list anticipates a competitive-programming agent
+          committing to a greedy strategy where the problem demands dynamic
+          programming.
+        </p>
+        <p>
+          Because the codes are induced, they are validated before anything
+          trusts them: four LLM annotators label held-out traces
+          independently, then reconcile under a bounded deliberation
+          protocol, and the taxonomy is accepted only when they apply it
+          consistently (mean pairwise Cohen's κ ≥ 0.75: a standard measure of
+          inter-annotator agreement, where 1 is perfect and 0.75 counts as
+          substantial; this gate measures annotation consistency, a different
+          quantity from the agreement-with-human-experts κ in Figure 4). A
+          shortfall triggers merge/add/relabel edits and a re-run. And
+          because systems change, online refinement keeps the vocabulary
+          tracking the current system rather than a snapshot of its past.
+        </p>
+
+        <h2 id="three-ways">Three Ways AdaMAST Helps Improve Agents</h2>
+        <p>
+          The point of an interface is reuse. We reuse the same kind of
+          induced vocabulary across three deliberately different improvement
+          procedures.
+        </p>
+
+        <h3 id="search">1. Agent-system search: better targets for the mutator</h3>
+        <p>
+          In evolutionary agent search (we build on
+          <a href="https://skydiscover-ai.github.io/blog-adaevolve.html">AdaEvolve</a>),
+          the mutation step reads the parent's failed traces and decides what
+          to change. The default feedback is free-form LLM reflection;
+          AdaMAST replaces it with a taxonomy-coded diagnosis: fired codes,
+          quoted evidence, cross-problem patterns.
+        </p>
+        <figure>
+          <img
+            src="fig-2-search.png"
+            alt="Bar chart of post-search accuracy across five benchmarks: taxonomy-coded feedback beats free-form reflection on all five."
+            width="1085"
+            height="449"
+          >
+          <figcaption>
+            Figure 2: Post-search accuracy, taxonomy-coded feedback vs.
+            free-form reflection, same search backbone and budget.
+          </figcaption>
+        </figure>
+        <p>
+          Coded diagnoses win on <strong>all five benchmarks</strong>
+          (Frontier-CS competitive programming, OlympiadBench olympiad math,
+          MMLU-Pro STEM QA, TheoremQA graduate-level math, and DROP discrete
+          reasoning) by +3.5 to +7.5 points. On the largest held-out set (655
+          OlympiadBench problems), the taxonomy-guided architecture reaches
+          <strong>91.9%</strong> vs. 87.9% for reflection-guided search, and
+          89.5% for search guided by the fixed MAST checklist.
+        </p>
+        <p>
+          The mechanism is visible in the search trajectory: the vanilla run
+          plateaus at dev score 0.30 and exhausts its search by iteration 26
+          (the open marker in Figure 3), while the taxonomy-guided run keeps
+          finding productive edits, escaping plateaus at iterations 69 and
+          89. Each jump coincides with a code-driven architecture edit:
+          first, the addition of a verification gate, then, after the
+          coordinator-aggregation code B.6 fires, the promotion of that gate
+          into a score boost.
+        </p>
+        <figure>
+          <img
+            src="fig-3-trajectory.png"
+            alt="Two panels: dev-score trajectories over search iterations, and the corresponding held-out accuracy, for vanilla and taxonomy-guided runs."
+            width="1309"
+            height="556"
+          >
+          <figcaption>
+            Figure 3: (a) Dev-score trajectories. The vanilla run exhausts
+            its search at iteration 26 (open marker, dev score 0.30);
+            taxonomy-guided search escapes plateaus at iterations 69 and 89.
+            (b) The jumps carry to held-out accuracy.
+          </figcaption>
+        </figure>
+
+        <h3 id="runtime">2. Runtime monitoring: a failure vocabulary as a skill</h3>
+        <p>
+          At runtime, the taxonomy enters the agent's context, and the agent
+          checks its own recent trace against it at checkpoints: reflection
+          anchored to the system's known failure modes, with no additional
+          LLM calls (the vocabulary rides in the agent's existing context).
+          On <strong>SWE-bench Verified Mini</strong>, the arms form a clean
+          ladder:
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Feedback arm</th>
+                <th>SWE-agent</th>
+                <th>Claude Code</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Base (no reflection)</td><td>50%</td><td>64.0%</td></tr>
+              <tr><td>Free-text reflection</td><td>60%</td><td>n/a</td></tr>
+              <tr><td>Fixed MAST checklist</td><td>68%</td><td>67.3%</td></tr>
+              <tr><td><strong>AdaMAST</strong></td><td><strong>70%</strong></td><td><strong>70.7%</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">
+          Claude Code figures are a three-seed average; SWE-agent is a single
+          seed. The free-text arm belongs to the SWE-agent ladder, where
+          prompted reflection is the main corrective signal; Claude Code
+          natively self-verifies by running tests between edits.
+        </p>
+        <p>
+          Since the three SWE-agent reflection arms share an identical
+          scaffold and differ only in content, the ordering isolates
+          <em>what the reflection should say</em>: structure accounts for
+          most of the gain, and the induced, harness-specific vocabulary adds
+          the rest. On Claude Code, attaching the taxonomy as a native
+          runtime skill still lifts resolution from 64.0% to
+          <strong>70.7%</strong>, with the gains concentrated in
+          verification-phase failures.
+        </p>
+
+        <h3 id="selection">3. Trajectory selection: codes as verification criteria</h3>
+        <p>
+          Given N candidate trajectories and no ground-truth checker, which
+          one actually succeeded? AdaMAST-Judge turns each induced code into
+          a verification criterion (semantic failure modes become LLM scoring
+          prompts, structural ones become cheap heuristic checks) inside an
+          LLM-as-a-Verifier pipeline.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>terminus-2</th>
+                <th>claude-code</th>
+                <th>ForgeCode</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Pass@1 (no selection)</td><td>61.8%</td><td>57.5%</td><td>81.8%</td></tr>
+              <tr><td>LLM-as-a-Verifier</td><td>71.2%</td><td>61.2%</td><td>86.5%</td></tr>
+              <tr><td>Fixed MAST vocabulary</td><td>68.5%</td><td>69.0%</td><td>88.8%</td></tr>
+              <tr><td><strong>AdaMAST-Judge</strong></td><td><strong>73.0%</strong></td><td><strong>72.4%</strong></td><td><strong>89.9%</strong></td></tr>
+              <tr><td>Best-of-5 oracle</td><td>77.5%</td><td>80.5%</td><td>89.9%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">
+          Best-of-5 selection accuracy on Terminal-Bench 2.0 (five
+          pre-recorded trajectories per task, Claude Opus 4.6 agents, GPT-5.4
+          as the verifier for all methods). The MAST row runs the identical
+          verifier pipeline with only the vocabulary swapped. On ForgeCode,
+          both vocabularies reach the best-of-5 oracle ceiling.
+        </p>
+        <p>
+          Across three Terminal-Bench 2.0 harnesses, it improves best-of-5
+          accuracy by 8 to 15% over Pass@1, keeping a +3.4/+4.5% margin over
+          the fixed MAST vocabulary on the two harnesses that aren't already
+          saturated. The underlying signal is simple: passing trajectories
+          fire fewer codes than failing ones, even a selector that just picks
+          the candidate with the fewest fired codes lifts expected accuracy
+          from 58% to 67% on the tasks where selection can change the
+          outcome.
+        </p>
+
+        <h2 id="holds-up">Does the Taxonomy Itself Hold Up?</h2>
+        <p>
+          Downstream gains alone do not establish that the induced
+          representation is compact, faithful, or genuinely adaptive, so we
+          also measure the taxonomy directly.
+        </p>
+        <figure>
+          <img
+            src="fig-4-artifact.png"
+            alt="Three panels measuring the taxonomy directly: compression ratio, human faithfulness on TRAIL, and cross-domain code overlap."
+            width="1350"
+            height="435"
+          >
+          <figcaption>
+            Figure 4: Direct measurements of the artifact: (a) compression,
+            (b) human faithfulness on TRAIL, an expert-annotated benchmark of
+            agent traces, (c) cross-domain overlap.
+          </figcaption>
+        </figure>
+        <ul>
+          <li>
+            <strong>Compact.</strong> Coding compresses the failure-relevant
+            content of traces by ~18x, yet 89% of traces retain unique code
+            signatures, preserving substantial distinctions across runs. In a
+            functional test on Terminal-Bench, a consumer LLM predicting
+            held-out run success performs as well with the 1.2K-token
+            taxonomy as with the 114K-token verbatim trace pool
+            (statistically indistinguishable balanced accuracies across two
+            consumer models).
+          </li>
+          <li>
+            <strong>Human-faithful.</strong> Under the same annotation panel
+            and prompts, the induced vocabulary matches expert failure labels
+            better than the benchmark's hand-crafted one (κ is 0.682 vs.
+            0.516; the full protocol reaches 0.725). This is a different
+            question from the ≥ 0.75 gate earlier: that measured whether
+            annotators applied the codes <em>consistently</em>; this measures
+            whether the codes align with <em>human experts</em>.
+          </li>
+          <li>
+            <strong>Adaptive.</strong> Six domains, mean pairwise code
+            overlap 0.14, backbone projection 0.50. The result supports the
+            need for adaptation: beyond a shared backbone of generic
+            failures, each domain has a substantial vocabulary of its own,
+            role- and task-specific.
+          </li>
+        </ul>
+
+        <h2 id="caveats">Caveats and FAQ</h2>
+        <p>
+          🔧 <strong>Honest caveats.</strong> First, the Terminal-Bench
+          selection gains aren't the vocabulary's alone. AdaMAST-Judge runs
+          the codes through a learned selector that keeps only the most
+          discriminative criteria, so the codes and that machinery share the
+          credit. Search and runtime are the cleaner tests of the vocabulary
+          itself; there, the codes are read directly, with nothing learned in
+          between. Second, fixed catalogs are not straw men. On SWE-agent,
+          the fixed 14-code MAST checklist reaches 68%, compared to AdaMAST's
+          70%. What the induced taxonomy adds is the long tail: the role- and
+          domain-specific failures that no catalog written before seeing your
+          system can include.
+        </p>
+        <p>
+          <strong>Isn't this just better prompting?</strong> A prompt is one
+          consumer of the taxonomy, not the contribution itself. AdaMAST
+          induces and validates a persistent vocabulary from traces,
+          aggregates failures across runs, and reuses that vocabulary in
+          search, runtime monitoring, and selection.
+        </p>
+        <p>
+          <strong>Does it need humans in the loop?</strong> No per-trace
+          human annotation and no hand-authored codes. Human faithfulness is
+          <em>certified</em> against expert annotations (that's how we
+          validate the method), but the pipeline itself runs fully
+          automatically.
+        </p>
+        <p>
+          <strong>Does it only work for multi-agent systems?</strong> No. The
+          role axis adapts: multi-agent systems get role codes (13 for our
+          competitive-programming pipeline), single-agent harnesses get phase
+          codes (Edit/Plan/Verify for Claude Code), and flat pipelines get
+          none.
+        </p>
+
+        <h2 id="closing">Closing the Loop</h2>
+        <p>
+          Between raw traces and scalar outcomes sits a missing
+          representation: named, evidence-grounded, system-specific failure
+          modes. Agents already generate the evidence of their own failures
+          on every run. The cheapest improvement to an agent system may be to
+          first learn, in its own terms, how it fails.
+        </p>
+
+        <hr class="post__rule">
+        <pre><code>@article{cemri2026adamast,
+  title={Fantastic Adaptive Taxonomies and How to Use Them},
+  author={Cemri, Mert and Cojocaru, Andrei and Pan, Melissa and Liu, Shu and
+          Agarwal, Shubham and Krentsel, Alexander and Tang, Jay and
+          Ramchandran, Kannan and Gonzalez, Joseph E. and Zaharia, Matei and
+          Dimakis, Alex and Stoica, Ion},
+  journal={arXiv preprint},
+  year={2026}
+}</code></pre>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <p>AdaMAST · UC Berkeley</p>
+      <nav aria-label="Footer">
+        <a href="../">Blogs</a>
+        <a href="../../docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+        <a href="https://escholarship.org/uc/item/5vz5p9qd?#main">Paper</a>
+      </nav>
+    </footer>
+  </body>
+</html>

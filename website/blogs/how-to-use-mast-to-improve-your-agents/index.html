@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="🤖">
+    <meta name="theme-color" content="#f5f7fb">
+    <link rel="canonical" href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/how-to-use-mast-to-improve-your-agents/">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="How to Use MAST to Improve Your Agents">
+    <meta property="og:description" content="🤖">
+    <meta property="og:url" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/how-to-use-mast-to-improve-your-agents/">
+    <meta property="og:image" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/how-to-use-mast-to-improve-your-agents/image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="preload" href="../../assets/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../../assets/fonts.css">
+    <link rel="stylesheet" href="../../assets/blog.css">
+    <title>How to Use MAST to Improve Your Agents</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header" aria-label="Site header">
+      <a class="wordmark" href="../../" aria-label="AdaMAST home">
+        <svg class="wordmark__mark" viewBox="0 0 40 40" role="img" aria-label="AdaMAST taxonomy mark">
+          <path d="M8 20h10M18 20V9M18 20v11M18 9h13M18 31h13"></path>
+          <circle cx="8" cy="20" r="3"></circle>
+          <circle cx="31" cy="9" r="3"></circle>
+          <circle cx="31" cy="31" r="3"></circle>
+        </svg>
+        <span>AdaMAST</span>
+      </a>
+      <nav class="site-nav" aria-label="Site">
+        <a href="../">Blogs</a>
+        <a href="../../docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main-content">
+      <article class="post">
+        <p class="eyebrow">MAST tutorial</p>
+        <h1>How to Use MAST to Improve Your Agents</h1>
+        <p class="post__meta"><a href="https://people.eecs.berkeley.edu/~mert_cemri/">Mert Cemri</a>, <a href="https://melissa-pan.github.io/">Melissa Z. Pan</a>, <a href="https://y.shuyi.it/">Shuyi Yang</a>, <a href="https://people.eecs.berkeley.edu/~matei/">Matei Zaharia</a>, <a href="https://people.eecs.berkeley.edu/~jegonzal/">Joseph E. Gonzalez</a>, <a href="https://people.eecs.berkeley.edu/~istoica/">Ion Stoica</a>, and the MAST Team</p>
+        <p class="post__date">November 2025</p>
+        <hr class="post__rule">
+<aside class="callout">
+<p>🤖</p>
+<p>We discuss how to use MAST Annotator, an automated evaluator, to <strong>improve the agent performance by up to 53% on downstream tasks</strong>. Our tool analyzes execution traces and categorizes failures using MAST, our taxonomy of failure modes for agentic systems. This automated feedback pinpoints exactly why agents fail, which allows agent builders to fix them.</p>
+<p>Agentic AI systems leverage multiple LLMs and tools to tackle real-world problems. However, once such a sophisticated system is designed, manually going through execution logs and figuring out how to improve the agentic system is a difficult and time consuming process. MAST Annotator provides scalable, systematic feedback on failure modes, which helps improving these agents.</p>
+<p>In this blog, we show a <strong>step-by-step tutorial</strong> for debugging with MAST on a simple LangChain agentic system. We also provide a <strong>quick start guide</strong> on how to use MAST at the end.</p>
+<ul>
+<li>📝  <strong>Paper:</strong>  <a href="https://arxiv.org/abs/2503.13657">https://arxiv.org/abs/2503.13657</a></li>
+<li>👩‍💻 <strong>Code:</strong> <a href="https://github.com/multi-agent-systems-failure-taxonomy/MAST">https://github.com/multi-agent-systems-failure-taxonomy/MAST</a></li>
+<li>📊 <strong>Data</strong>: <a href="https://huggingface.co/datasets/mcemri/MAST-Data">🤗 MAST-Data (1600+ Traces)</a></li>
+<li>📓 <strong>Notebook:</strong> <a href="https://colab.research.google.com/drive/11VDJkJiR6dGD7zxGDLnvkHYP6duusWp9?usp=sharing">Example in this blog</a></li>
+<li>💬 <strong>Join us</strong>:  <a href="https://join.slack.com/t/mast-agentdash/shared_invite/zt-3hqj8tej6-XU5m~e1OQkcmg2bKGtN_6Q">https://join.slack.com/t/mast-agentdash/shared_invite/zt-3hqj8tej6-XU5m~e1OQkcmg2bKGtN_6Q</a>, 🧠 <a href="https://neurips.cc/virtual/2025/loc/san-diego/poster/121528">come chat with us at NeurIPS</a></li>
+</ul>
+</aside>
+<figure class="figure--overview">
+<img src="image.png" alt="The MAST logo" loading="lazy">
+</figure>
+<p><strong>TLDR:</strong></p>
+<ul>
+<li><strong>Build</strong> your agentic AI system however you need: with multiple LLM calls interacting with each other, using tools, and operating within your desired environments.</li>
+<li><strong>Measure</strong> more than just final “accuracy”: use <strong>MAST</strong> to identify the specific failure modes in your system.</li>
+<li><strong>Improve</strong> your agentic system by addressing the errors identified by MAST, for example, by adding missing agents to patch failure modes, removing agents that do not contribute to the workflow, modifying the connectivity (edges) between agents, or adjusting the roles and prompts of different agents.</li>
+</ul>
+<p>Starting to annotate your agentic traces with MAST as easy as:</p>
+<pre><code class="language-python">!pip install agentdash
+from agentdash import annotator
+openai_api_key = &quot;your-api-key&quot;
+MASTAnnotator = annotator(openai_api_key, model=&quot;gpt-5&quot;)
+trace = &quot;&quot;&quot;
+Agent1: I need to calculate the sum of 1 + 1.
+Agent2: I'll help you with that. The answer is 3.
+Agent1: Thank you! Task completed.
+&quot;&quot;&quot;
+mast_annotation = MASTAnnotator.produce_taxonomy(trace)
+</code></pre>
+<p>In the example we discuss later, we show how the feedback provided by MAST annotator helps us <strong>replace a redundant agent</strong> with a key missing one and <strong>introduce better memory management</strong> by making agents stateful. These changes reduce failure modes significantly and <strong>improve downstream task performance by 53%</strong> compared to the initial design, while keeping the underlying LLM the same.</p>
+<figure>
+<img src="image-1.png" alt="Figure1: Failure mode analysis of LangChain agent before and after MAST feedback. Blue bars show failure counts from MAST&#x27;s analysis of the initial multi-agent system&#x27;s execution traces. Orange bars show failure counts * after * implementing new agent workflow based on MAST’s feedback. Lower counts indicate fewer failure modes, demonstrating improved system performance." loading="lazy">
+<figcaption>Figure1: Failure mode analysis of LangChain agent before and after MAST feedback. Blue bars show failure counts from MAST&#x27;s analysis of the initial multi-agent system&#x27;s execution traces. Orange bars show failure counts * after * implementing new agent workflow based on MAST’s feedback. Lower counts indicate fewer failure modes, demonstrating improved system performance.</figcaption>
+</figure>
+<h2>Challenge: Building and Iterating on Agentic Systems</h2>
+<p>Teams are racing to build agentic AI systems, with workflows that call tools, spawn subtasks, and verify results. The promise is real; the pain is, too... In practice, most projects stall not because the models are “too weak,” but because the development loop is fragile. Traces balloon into thousands of tokens across roles and tool calls. Reading logs by hand to spot the <em>actual</em> failure pattern (role drift vs. missed clarification vs. weak verification) rarely scales beyond a few runs. Without structured traces and consistent post-hoc analysis, you can’t reproduce defects or reliably evaluate improvements.</p>
+<p>A 2025 MIT study describes a “<a href="https://mlq.ai/media/quarterly_decks/v0.1_State_of_AI_in_Business_2025_Report.pdf">GenAI Divide</a>,” estimating that <strong>~95% of enterprise AI pilots fail to reach impactful production,</strong> largely due to integration and workflow fit, not raw model capability. The report cites only <strong>~5%</strong> of custom tools making it to durable implementation, with extensive qualitative evidence from interviews; news coverage echoes the same pattern.</p>
+<p>This is why <strong>automating the debugging and the development loop is vital</strong>. You need a fast way to turn execution traces into <em>actionable signals</em> that tell you <em>what to change next</em> without developers spending days to spelunk logs.</p>
+<figure>
+<img src="image-2.png" alt="Figure2: MAST: Multi-Agent System Failure Taxonomy" loading="lazy">
+<figcaption>Figure2: MAST: Multi-Agent System Failure Taxonomy</figcaption>
+</figure>
+<h2>What is MAST (and why use it)?</h2>
+<p><strong>MAST</strong> is the <a href="https://arxiv.org/abs/2503.13657">Multi-Agent System Failure Taxonomy</a> derived from 1600+ annotated traces across 7 MAS frameworks (coding, math, and general agents). <strong>MAST</strong> annotates each trace with a failure-mode vector (booleans per mode), grouped into:</p>
+<ul>
+<li><strong>FC1 — System Design Issues</strong> (e.g., disobeying task/role spec, step repetition, context loss)</li>
+<li><strong>FC2 — Inter-Agent Misalignment</strong> (e.g., ignored input, missing clarifications, derailment)</li>
+<li><strong>FC3 — Task Verification</strong> (e.g., no/incomplete/incorrect verification; premature termination)</li>
+</ul>
+<p>You get immediate, actionable signals to decide <em>what to fix next</em> (spec vs comms vs verification), rather than guessing.</p>
+<h2>Case Study: Build a Minimal MAS with LangGraph and Improve it with MAST</h2>
+<p>Here we demonstrate how to use MAST on a simple math agent workflow in LangGraph. In the <a href="https://arxiv.org/pdf/2503.13657">main paper</a> we also have demonstrations on improving 2 popular realistic multi-agent systems, <a href="https://github.com/ag2ai/ag2">AG2</a> and <a href="https://github.com/OpenBMB/ChatDev">ChatDev</a>.</p>
+<p>We’ll assemble four agents: <strong>translator → reasoner ↔ computation → verification</strong>. The reasoner orchestrates; the verifier is the only one allowed to say <strong>FINAL ANSWER</strong>. </p>
+<figure>
+<img src="image-3.png" alt="Figure3: Initial Multi-Agent System Diagram" loading="lazy">
+<figcaption>Figure3: Initial Multi-Agent System Diagram</figcaption>
+</figure>
+<h3>Step 0: Setup</h3>
+<pre><code class="language-bash">pip install -U langchain langgraph langchain-openai datasets python-dotenv
+</code></pre>
+<p>Setup your OpenAI API Key:</p>
+<pre><code>export OPENAI_API_KEY=&quot;sk-...&quot;
+</code></pre>
+<h3>Step 1: Plumbing: prompts, LLM, routing helpers</h3>
+<p>In this example, we will use the LangChain framework to build our agents. Before we jump into the full graph, we’ll do a bit of plumbing to import the necessary utils and setup some helper functions:</p>
+<p>First, we need to load the OpenAI API key and spin up a shared <code>ChatOpenAI</code> client.</p>
+<p>Second, we will define a reusable system prompt template that we will later tweak and customize for different agents in the system.</p>
+<p>Finally, we need to add a small routing helper that decided where to go next based on whether a message contains a final answer or it needs verification. This will help facilitate the transition of turns between different nodes (agents) in our network of agents. </p>
+<pre><code class="language-python">import os, getpass
+from dotenv import load_dotenv
+load_dotenv()
+if not os.environ.get(&quot;OPENAI_API_KEY&quot;):
+    os.environ[&quot;OPENAI_API_KEY&quot;] = getpass.getpass(&quot;Please provide your OPENAI_API_KEY: &quot;)
+
+from typing import Literal
+from langchain_core.messages import BaseMessage, HumanMessage
+from langchain_openai import ChatOpenAI
+from langgraph.prebuilt import create_react_agent
+from langgraph.graph import MessagesState, END
+
+llm = ChatOpenAI(model=&quot;gpt-4o&quot;)
+
+def make_system_prompt(suffix: str) -&gt; str:
+    return (
+        &quot;You are a helpful AI assistant, collaborating with other assistants.&quot;
+        &quot; Use tools when helpful. Make incremental progress.&quot;
+        &quot; Do NOT include 'FINAL ANSWER' unless you are the verification agent.&quot;
+        f&quot;\n{suffix}&quot;
+    )
+
+def get_next_node(last_message: BaseMessage, primary: str, default: str | None = None):
+    text = last_message.content or &quot;&quot;
+    if &quot;FINAL ANSWER&quot; in text:
+        return END
+    if &quot;VERIFICATION&quot; in text:
+        return default
+    return primary
+</code></pre>
+<h3>Step 2: Agents</h3>
+<p>Now let us build a multi-agent system with 4 agents to solve mathematical reasoning problems (shown in Figure 3). This constraint on the number of agents will both help us keep this experiment minimal and later on help us show under such a budget, the effect of replacing a redundant agent with another one that is vital to our system.</p>
+<p>First, we introduce a <em>translator agent</em> that takes in the mathematical reasoning problem, elaborates on it, cleans it up by extracting the underlying mathematical optimization program, and passes it to the other agents. Second, we use a <em>reasoner agent</em> that analyzes the problem and produces a structured solution. Third, we include a <em>computation agent</em> responsible for carrying out all mathematical computations and calculations. Finally, we add a <em>verification agent</em> that is connected to the reasoner agent, provides feedback on the correctness of the solutions, and finalizes the answer once it is satisfied. </p>
+<p>The dependencies and edges between different agents will be captured by the <code>get_next_node</code> helper function that we defined above and compiled together by wiring the graph which we will do at Step 3.</p>
+<pre><code class="language-python"># Translator: normalize the problem statement
+translator = create_react_agent(
+    llm, tools=[], prompt=make_system_prompt(
+        &quot;You are the translator agent. Convert natural language Olympiad problems into clean, math-only text. &quot;
+        &quot;Do NOT solve. If already clean, hand off to the reasoner.&quot;
+    ),
+)
+
+def translator_node(state: MessagesState):
+    result = translator.invoke(state)
+    goto = get_next_node(result[&quot;messages&quot;][-1], &quot;reasoner&quot;)
+    result[&quot;messages&quot;][-1] = HumanMessage(content=result[&quot;messages&quot;][-1].content, name=&quot;translator&quot;)
+    return {&quot;update&quot;: {&quot;messages&quot;: result[&quot;messages&quot;]}, &quot;goto&quot;: goto}
+
+# Computation: only compute
+computation = create_react_agent(
+    llm, tools=[], prompt=make_system_prompt(
+        &quot;You are the computation agent. Perform algebra, numeric calc, equation solving. &quot;
+        &quot;Do NOT plan—only compute. Keep answers minimal.&quot;
+    ),
+)
+
+def computation_node(state: MessagesState):
+    result = computation.invoke(state)
+    goto = get_next_node(result[&quot;messages&quot;][-1], &quot;reasoner&quot;)
+    result[&quot;messages&quot;][-1] = HumanMessage(content=result[&quot;messages&quot;][-1].content, name=&quot;computation&quot;)
+    return {&quot;update&quot;: {&quot;messages&quot;: result[&quot;messages&quot;]}, &quot;goto&quot;: goto}
+
+# Reasoner: plans &amp; requests computations; hands off to verifier
+reasoner = create_react_agent(
+    llm, tools=[], prompt=make_system_prompt(
+        &quot;You are the reasoning agent. Plan the solution, call the Computation agent for arithmetic/symbolics. &quot;
+        &quot;When ready, send VERIFICATION and the candidate answer to the verifier.&quot;
+    ),
+)
+
+def reasoner_node(state: MessagesState):
+    result = reasoner.invoke(state)
+    goto = get_next_node(result[&quot;messages&quot;][-1], &quot;computation&quot;, default=&quot;verification&quot;)
+    result[&quot;messages&quot;][-1] = HumanMessage(content=result[&quot;messages&quot;][-1].content, name=&quot;reasoner&quot;)
+    return {&quot;update&quot;: {&quot;messages&quot;: result[&quot;messages&quot;]}, &quot;goto&quot;: goto}
+
+# Verification: only entity allowed to emit FINAL ANSWER
+verification = create_react_agent(
+    llm, tools=[], prompt=make_system_prompt(
+        &quot;You are the verification agent. Check the reasoning carefully. &quot;
+        &quot;If wrong or under-justified, send feedback to the reasoner. &quot;
+        &quot;Only when correct, output: FINAL ANSWER &lt;answer&gt;.&quot;
+    ),
+)
+
+def verification_node(state: MessagesState):
+    result = verification.invoke(state)
+    goto = get_next_node(result[&quot;messages&quot;][-1], &quot;reasoner&quot;, default=END)
+    result[&quot;messages&quot;][-1] = HumanMessage(content=result[&quot;messages&quot;][-1].content, name=&quot;verification&quot;)
+    return {&quot;update&quot;: {&quot;messages&quot;: result[&quot;messages&quot;]}, &quot;goto&quot;: goto}
+
+</code></pre>
+<h3>Step 3: Wire the graph</h3>
+<p>A system of multiple agents can be represented as a graph, where each node corresponds to an agent. The topology of this graph (i.e., the edges between nodes) determines how agents communicate with one another. In our setup, the translator agent passes the problem to the reasoner agent, after which the reasoner, verifier, and computation agents iteratively refine the solution until a good solution is found. Once such solution is found, the verifier produces the final answer.</p>
+<p>This is reflected in the diagram in Figure 3. In Python, we can wire the agents together as follows:</p>
+<pre><code class="language-python">from langgraph.graph import StateGraph, START
+workflow = StateGraph(MessagesState)
+workflow.add_node(&quot;translator&quot;, translator_node)
+workflow.add_node(&quot;computation&quot;, computation_node)
+workflow.add_node(&quot;reasoner&quot;, reasoner_node)
+workflow.add_node(&quot;verification&quot;, verification_node)
+workflow.add_edge(START, &quot;translator&quot;)
+graph = workflow.compile()
+</code></pre>
+<h3>Step 4: Benchmark the MAS</h3>
+<p>To evaluate our multi-agent system, we will use the OlympiadBench [2] dataset, which consists of a randomly selected subset of 50 problems. We will also save the full execution trace for each question to help debug issues later. This is critical!</p>
+<pre><code class="language-python">from datasets import load_dataset
+import random, json, os
+from langchain_core.messages import BaseMessage
+
+os.makedirs(&quot;trace_math&quot;, exist_ok=True)
+dataset = load_dataset(&quot;Hothan/OlympiadBench&quot;, &quot;OE_TO_maths_en_COMP&quot;)
+split = random.sample(list(dataset[&quot;train&quot;]), 50)  # small sanity subset
+
+def to_serializable(obj):
+    if isinstance(obj, BaseMessage): return obj.dict()
+    if isinstance(obj, dict): return {k: to_serializable(v) for k, v in obj.items()}
+    if isinstance(obj, list): return [to_serializable(i) for i in obj]
+    return obj
+
+def parse_final(text: str) -&gt; str | None:
+    i = text.find(&quot;FINAL ANSWER&quot;)
+    return text[i + len(&quot;FINAL ANSWER&quot;):].strip() if i != -1 else None
+
+records = []
+for i, q in enumerate(split, 1):
+    events = graph.stream({&quot;messages&quot;: [(&quot;user&quot;, q[&quot;question&quot;])]}, {&quot;recursion_limit&quot;: 75})
+    last_event = None
+    try:
+        for s in events:
+            last_event = s
+    except Exception:
+        pass
+
+    ser = to_serializable(last_event)
+    key = list(ser.keys())[0]
+    last_msg = ser[key][&quot;messages&quot;][-1][&quot;content&quot;]
+    pred = parse_final(last_msg)
+
+    # Save trace + summary files
+    with open(f&quot;trace_math/trace_{i}.json&quot;, &quot;w&quot;) as f:
+        json.dump(ser[key][&quot;messages&quot;], f, indent=2)
+    with open(f&quot;trace_math/trace_{i}_summary.txt&quot;, &quot;w&quot;) as f:
+        f.write(f&quot;MAS FINAL ANSWER: {pred}\n&quot;)
+        f.write(f&quot;TRUE FINAL ANSWER: {''.join(q['final_answer'])}\n&quot;)
+        f.write(&quot;\n--- TRUE SOLUTION ---\n&quot;)
+        f.write(''.join(q['solution']))
+
+    records.append(
+        {&quot;idx&quot;: i, &quot;pred&quot;: pred, &quot;gold&quot;: ''.join(q[&quot;final_answer&quot;]), &quot;question&quot;: q[&quot;question&quot;]}
+    )
+</code></pre>
+<h3>Step 5: Annotate with MAST and aggregate results</h3>
+<p>Install the annotator and run it over your saved traces.</p>
+<pre><code class="language-python"># pip install agentdash
+from agentdash import annotator
+MAST = annotator(os.environ[&quot;OPENAI_API_KEY&quot;])
+
+import glob, json, collections
+
+failure_counts = collections.Counter()
+category_counts = collections.Counter()
+per_example = []
+
+for path in sorted(glob.glob(&quot;trace_math/trace_*.json&quot;)):
+    msgs = json.load(open(path))
+    # Convert the LangGraph messages into a plain-text &quot;trace&quot;
+    trace = &quot;\n&quot;.join([f&quot;{m.get('name','agent')}:\n{m['content']}&quot; for m in msgs])
+
+    ann = MAST.produce_taxonomy(trace)
+    # bool map like {'1.1': True, ...}
+    for fm, detected in ann[&quot;failure_modes&quot;].items():
+        if detected:
+            failure_counts[fm] += 1
+            # also increment its main category
+            main = fm.split(&quot;.&quot;)[0]  # '1', '2', or '3'
+            category_counts[main] += 1
+
+    per_example.append(
+        {&quot;file&quot;: os.path.basename(path),
+         &quot;task_completed&quot;: ann[&quot;task_completion&quot;],
+         &quot;total_failures&quot;: ann[&quot;total_failures&quot;],
+         &quot;summary&quot;: ann[&quot;summary&quot;]}
+    )
+
+print(&quot;Failure-mode histogram:&quot;, failure_counts)
+print(&quot;Category totals (1=System Design, 2=Misalignment, 3=Verification):&quot;, category_counts)
+</code></pre>
+<p>In this system, the failure mode distribution is as follows:</p>
+<figure>
+<img src="image-4.png" alt="Figure 4: Failure mode distribution in the initial multi-agent system as analyzed by MAST. Each bar represents the count of occurrences for a specific failure mode category. Lower counts indicate fewer observed failures." loading="lazy">
+<figcaption>Figure 4: Failure mode distribution in the initial multi-agent system as analyzed by MAST. Each bar represents the count of occurrences for a specific failure mode category. Lower counts indicate fewer observed failures.</figcaption>
+</figure>
+<p>We see that failure modes 3.3 (incorrect verification) and 1.3 (step repetition) dominate. This MAST feedback suggests that we need to improve both the verification quality and the statefulness of our agents. Specifically, failure modes 3.1 and 3.3 indicate issues with verification and with how feedback is incorporated during solution refinement, while failure modes 1.3 and 2.1 indicate that some agents are repeatedly performing steps they have already completed.</p>
+<p>We use this feedback to rewire the graph by adding a <em>feedback agent</em> that proposes additional guidance and suggestions for improvement. The rationale is that this will make the verification process more accurate and help preserve conversation history. Initially, however, we were constrained to using at most four agents. Therefore, we removed one agent, the translator agent, as it appeared to be the least helpful for the OlympiadBench problems.</p>
+<p>Additionally, to prevent step repetition and loss of context, we make the agents <em>stateful</em> by introducing a per-agent conversation memory, enabling them to retain prior steps and avoid repeating them.</p>
+<p>Now, our multi-agent system diagram looks like this</p>
+<figure>
+<img src="image-5.png" alt="Figure 5: New multi-agent system diagram based on MAST error analysis" loading="lazy">
+<figcaption>Figure 5: New multi-agent system diagram based on MAST error analysis</figcaption>
+</figure>
+<p>We again benchmark this system on the same set of problems, and obtain that task accuracy went from 30% to 46%, causing a 53.3% relative gain without changing the underlying LLM! Also the final failure mode distribution under MAST looks like this:</p>
+<figure>
+<img src="image-6.png" alt="Figure 6 (same as Figure1): Failure mode analysis of LangChain agent before and after MAST feedback. Blue bars show failure counts from MAST&#x27;s analysis of the initial multi-agent system&#x27;s execution traces. Orange bars show failure counts * after * implementing new agent workflow based on MAST’s feedback. Lower counts indicate fewer failure modes, demonstrating improved system performance." loading="lazy">
+<figcaption>Figure 6 (same as Figure1): Failure mode analysis of LangChain agent before and after MAST feedback. Blue bars show failure counts from MAST&#x27;s analysis of the initial multi-agent system&#x27;s execution traces. Orange bars show failure counts * after * implementing new agent workflow based on MAST’s feedback. Lower counts indicate fewer failure modes, demonstrating improved system performance.</figcaption>
+</figure>
+<p>To see the full notebook, you can visit: <a href="https://colab.research.google.com/drive/11VDJkJiR6dGD7zxGDLnvkHYP6duusWp9?usp=sharing">https://colab.research.google.com/drive/11VDJkJiR6dGD7zxGDLnvkHYP6duusWp9?usp=sharing</a></p>
+<h2>Quick Start: Setup MAST, Annotate Traces, Interpret Results</h2>
+<p>MAST is super easy to setup, try it out now with your agentic system(s)!</p>
+<h3>1) Install &amp; import</h3>
+<pre><code class="language-python"># If you're in a notebook
+!pip install agentdash
+
+from agentdash import annotator
+</code></pre>
+<h3>2) Initialize</h3>
+<pre><code class="language-python">openai_api_key = &quot;your-api-key&quot;
+MASTAnnotator = annotator(openai_api_key, model=&quot;gpt-5&quot;)
+</code></pre>
+<h3>3) Annotate a trace</h3>
+<pre><code class="language-python">trace = &quot;&quot;&quot;
+Agent1: I need to calculate the sum of 1 + 1.
+Agent2: I'll help you with that. The answer is 3.
+Agent1: Thank you! Task completed.
+&quot;&quot;&quot;
+
+mast_annotation = MASTAnnotator.produce_taxonomy(trace)
+</code></pre>
+<h3>4) Read the results</h3>
+<pre><code class="language-python">print(&quot;Failure Modes Detected:&quot;)
+for failure_mode_id, detected in mast_annotation[&quot;failure_modes&quot;].items():
+    if detected:
+        info = MASTAnnotator.get_failure_mode_info(failure_mode_id)
+        print(f&quot;  {failure_mode_id}: {info['name']}&quot;)
+
+print(f&quot;\nSummary: {mast_annotation['summary']}&quot;)
+print(f&quot;Task Completed: {mast_annotation['task_completion']}&quot;)
+print(f&quot;Total Failures: {mast_annotation['total_failures']}&quot;)
+</code></pre>
+<h2>FAQ</h2>
+<p><strong>Q: Can I evaluate single-agent systems with MAST?</strong></p>
+<p>A: Yes—many FC1/FC3 failures still apply (e.g., spec issues, missing verification). MAST is especially useful as systems become more “compound” (multiple tools/agents). </p>
+<p><strong>Q: Do I need a perfect verifier?</strong></p>
+<p>A: No. Start with small, <strong>deterministic checks</strong> aligned to the objective. Even partial verification dramatically reduces FC3 failures and prevents the system from prematurely declaring “success”.</p>
+<p><strong>Q: What metric should I track over time?</strong></p>
+<p>A: Track <strong>task completion</strong>, <strong>total_failures</strong>, and <strong>failure-mode histograms</strong>. When you ship a change, the distribution should move in the <strong>expected</strong> direction (e.g., fewer FC2 after adding clarification prompts).</p>
+<p>BibTex for this post:</p>
+<pre><code>@article{cemri2025multi,
+  title={Why do multi-agent llm systems fail?},
+  author={Cemri, Mert and Pan, Melissa Z and Yang, Shuyi and Agrawal, Lakshya A and Chopra, Bhavya and Tiwari, Rishabh and Keutzer, Kurt and Parameswaran, Aditya and Klein, Dan and Ramchandran, Kannan and others},
+  journal={Advances in Neural Information Processing Systems},
+  year={2025}
+}
+</code></pre>
+<h2>References</h2>
+<p>[1] Mert Cemri<em>, Melissa Z Pan</em>, Shuyi Yang<em>, Lakshya A Agrawal, Bhavya Chopra, Rishabh Tiwari, Kurt Keutzer, Aditya Parameswaran, Dan Klein, Kannan Ramchandran, Joseph E Gonzalez, Matei Zaharia, Ion Stoica, “Why Do Multi-Agent LLM Systems Fail?” </em>Spotlight Paper at NeurIPS 2025 Dataset and Benchmark Track<em>, 2025. (</em> denotes equal contribution)</p>
+<p>[2] Chaoqun He, Renjie Luo, Yuzhuo Bai, Shengding Hu, Zhen Thai, Junhao Shen, Jinyi Hu et al. "Olympiadbench: A challenging benchmark for promoting agi with olympiad-level bilingual multimodal scientific problems." In <em>Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)</em>, pp. 3828-3850. 2024.</p>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <p>AdaMAST · UC Berkeley</p>
+      <nav aria-label="Footer">
+        <a href="../">Blogs</a>
+        <a href="../../docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+      </nav>
+    </footer>
+  </body>
+</html>

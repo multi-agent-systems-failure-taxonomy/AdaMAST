@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Research blog for AdaMAST and MAST: adaptive failure taxonomies for LLM agents, and the case studies that led here."
+    >
+    <meta name="theme-color" content="#f5f7fb">
+    <link
+      rel="canonical"
+      href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/"
+    >
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Blogs — AdaMAST">
+    <meta property="og:description" content="Research blog for AdaMAST and MAST: adaptive failure taxonomies for LLM agents, and the case studies that led here.">
+    <meta property="og:url" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/">
+    <link rel="preload" href="../assets/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../assets/fonts.css">
+    <link rel="stylesheet" href="../assets/blog.css">
+    <title>Blogs — AdaMAST</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header" aria-label="Site header">
+      <a class="wordmark" href="../" aria-label="AdaMAST home">
+        <svg class="wordmark__mark" viewBox="0 0 40 40" role="img" aria-label="AdaMAST taxonomy mark">
+          <path d="M8 20h10M18 20V9M18 20v11M18 9h13M18 31h13"></path>
+          <circle cx="8" cy="20" r="3"></circle>
+          <circle cx="31" cy="9" r="3"></circle>
+          <circle cx="31" cy="31" r="3"></circle>
+        </svg>
+        <span>AdaMAST</span>
+      </a>
+      <nav class="site-nav" aria-label="Site">
+        <a href="./" aria-current="page">Blogs</a>
+        <a href="../docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main-content" class="post">
+      <p class="eyebrow">Research blog</p>
+      <h1>Blogs</h1>
+      <p class="post__meta">
+        Adaptive failure taxonomies for LLM agents, and the MAST case studies
+        that led here.
+      </p>
+
+      <div class="card-list">
+        <a class="card" href="adamast_paper/">
+          <img class="card__thumb card__thumb--contain" src="adamast_paper/fig-overview.png" alt="">
+          <span class="card__body">
+            <span class="card__date">July 2026</span>
+            <span class="card__title">AdaMAST: A Framework for Building Adaptive Failure Taxonomies to Improve LLM Agents</span>
+            <span class="card__excerpt">
+              AdaMAST gives an agent system a memory of its own failures: a
+              compact, validated taxonomy of named failure codes induced from
+              its traces, reused by search, runtime monitoring, and trajectory
+              selection.
+            </span>
+          </span>
+        </a>
+
+        <a class="card" href="improving-multi-agent-reasoning-systems-using-mast/">
+          <img class="card__thumb" src="improving-multi-agent-reasoning-systems-using-mast/hero.png" alt="">
+          <span class="card__body">
+            <span class="card__date">February 2026 · ADRS series</span>
+            <span class="card__title">Automating Algorithm Discovery: Improving Multi-Agent Reasoning Systems using MAST (Part&nbsp;2)</span>
+            <span class="card__excerpt">
+              The evaluator is the bottleneck: with MAST-based feedback instead
+              of binary reward, evolutionary search finds higher-performing
+              multi-agent reasoning systems on Olympiad-level math.
+            </span>
+          </span>
+        </a>
+
+
+        <a class="card" href="why-do-enterprise-agents-fail-itbench-mast/">
+          <img class="card__thumb" src="why-do-enterprise-agents-fail-itbench-mast/image.png" alt="">
+          <span class="card__body">
+            <span class="card__date">December 2025 · with IBM Research</span>
+            <span class="card__title">Why Do Enterprise Agents Fail? Insights from IT-Bench using MAST</span>
+            <span class="card__excerpt">
+              310 SRE traces, three models, one lesson: success rates hide the
+              failure signature. MAST separates fatal failures from benign
+              friction and turns IT-Bench scores into an engineering roadmap.
+            </span>
+          </span>
+        </a>
+
+        <a class="card" href="improving-multi-agent-system-design-using-mast/">
+          <img class="card__thumb" src="improving-multi-agent-system-design-using-mast/hero.png" alt="">
+          <span class="card__body">
+            <span class="card__date">December 2025 · ADRS series</span>
+            <span class="card__title">Automating Algorithm Discovery: Improving Multi-Agent System Design using MAST</span>
+            <span class="card__excerpt">
+              Replacing hand-tuning with OpenEvolve: MAST failure modes as the
+              fine-grained signal that lets evolution mutate a multi-agent
+              architecture toward a 7x better failure rate.
+            </span>
+          </span>
+        </a>
+
+        <a class="card" href="how-to-use-mast-to-improve-your-agents/">
+          <img class="card__thumb card__thumb--contain" src="how-to-use-mast-to-improve-your-agents/image.png" alt="">
+          <span class="card__body">
+            <span class="card__date">November 2025 · Tutorial</span>
+            <span class="card__title">How to Use MAST to Improve Your Agents</span>
+            <span class="card__excerpt">
+              A step-by-step tutorial: annotate a LangGraph agent's traces with
+              the MAST Annotator, read the failure-mode histogram, and rewire
+              the system for a 53% relative gain — same LLM.
+            </span>
+          </span>
+        </a>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>AdaMAST · UC Berkeley</p>
+      <nav aria-label="Footer">
+        <a href="./">Blogs</a>
+        <a href="../docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+      </nav>
+    </footer>
+  </body>
+</html>
