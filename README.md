@@ -1,7 +1,7 @@
 # AdaMAST
 
 <p align="center">
-  <b>Failure-mode taxonomies for agents, grounded in the traces they actually produce.</b>
+  <b>Find out how your AI agents fail — from their own work.</b>
 </p>
 
 <p align="center">
@@ -11,17 +11,24 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-1F8A70?style=flat-square" alt="License" /></a>
 </p>
 
-**AdaMAST** turns a folder of agent traces into a compact, evidence-grounded catalog of that system's failure modes — a **taxonomy** — and then applies it: judging new traces, measuring coverage, and giving improvement procedures feedback that preserves *why* a trajectory failed. Scalar rewards discard the reason; free-form reflection doesn't aggregate; a fixed catalog can't know your agent's roles, tools, or domain. A learned taxonomy does.
+AI agents — coding assistants, tool-using pipelines, multi-agent systems — don't fail randomly. Each system tends to fail in its own **recurring, recognizable ways**: the checker that always waves work through, the plan that quietly drops a requirement, the tool result that gets ignored. Most teams have no good way to name those patterns, count them, or watch them change.
+
+**AdaMAST** reads the logs of your agent's past runs and automatically builds a **catalog of that system's failure patterns** (we call it a *taxonomy*), with every entry backed by real quotes from your own logs. You can then use the catalog to grade new runs, spot regressions, and feed improvement loops with *what went wrong and why* — instead of just a score.
+
+- 📄 **Works on the logs you already have** — common agent log formats are auto-detected
+- 🔍 **Every failure pattern comes with evidence** — verbatim quotes from real runs, not guesses
+- ✅ **Catalogs are quality-gated** — several independent automated reviews must agree before one is accepted
+- 🔌 **Optional live mode** — plug into Codex or Claude Code and the catalog is learned and applied while you work
 
 **Paper:** [Fantastic Adaptive Taxonomies and How to Use Them](https://arxiv.org/abs/2607.16387) · **Docs:** [Website](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/)
 
 ---
 
-## 🧪 What it does
+## 🧪 How it works
 
-1. **Generate.** Four independent annotators discover, reconcile, type, and code failures from your traces. The draft becomes a taxonomy only if it passes the **inter-annotator agreement gate** — macro Fleiss κ and coverage must meet their targets (defaults 0.75 / 0.70), re-drafting up to 5 rounds. You get `taxonomy.json`, an agreement `manifest.json`, and a browsable field guide.
-2. **Judge.** Apply an accepted taxonomy to new traces: one best code per trace, with cited evidence. Specialized judges also measure mapping, coverage, quality, and calibration, or build a causal reflection graph.
-3. **Trust it.** Every code carries verbatim evidence spans from real traces; the agreement manifest records exactly how well independent annotations converged.
+1. **Generate.** Several independent automated annotators each read your traces and propose failure patterns. The proposals are reconciled, and a catalog is accepted only when the independent annotations agree with each other — otherwise it is redrafted. You get `taxonomy.json`, an agreement `manifest.json`, and a browsable field guide. (The full protocol and its acceptance criteria are in the [paper](https://arxiv.org/abs/2607.16387).)
+2. **Judge.** Apply an accepted taxonomy to new runs: each trace gets the single best-matching failure code, with cited evidence.
+3. **Trust it.** Every code carries verbatim evidence from real traces, and the agreement manifest records how the independent annotations converged.
 
 Learned codes sit on three stable axes:
 
@@ -74,13 +81,13 @@ adamast judge --taxonomy ./my-taxonomy/taxonomy.json --traces ./new_traces --out
 |---|---|
 | `adamast validate <traces>` | Check trace files: count, detected formats, empty trajectories |
 | `adamast normalize <traces> --output out.jsonl` | Convert any accepted format to canonical AdaMAST JSONL |
-| `adamast generate --traces … --output …` | Agreement-gated taxonomy generation (`--kappa-target`, `--coverage-floor`, `--max-rounds`) |
+| `adamast generate --traces … --output …` | Agreement-gated taxonomy generation |
 | `adamast judge --taxonomy … --traces …` | One best code per trace, with evidence |
 | `adamast view <taxonomy.json>` | Open a taxonomy as a read-only browser field guide |
 
 Deeper guides: [Trace formats](docs/TRACE_FORMATS.md) · [Generation](docs/BASELINE_GENERATION.md) · [The agreement gate](docs/AGREEMENT_GATE.md) · [Judging](docs/JUDGING.md) · [Judge types](docs/JUDGE_TYPES.md) · [Outputs](docs/TAXONOMY_OUTPUTS.md)
 
-## 🔌 Runtime integration (optional)
+## 🔌 Runtime integration
 
 AdaMAST can also ride along **live** inside Codex or Claude Code: hooks checkpoint the agent's work at natural boundaries, record evidence, and learn a project-specific taxonomy automatically from completed conversations — no API key or config needed for the interactive path.
 

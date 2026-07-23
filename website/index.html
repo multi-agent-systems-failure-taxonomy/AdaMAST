@@ -48,38 +48,33 @@
       </nav>
     </header>
 
-    <main id="main-content" class="landing">
-      <div class="taxonomy-path" aria-hidden="true">
-        <span class="taxonomy-path__line"></span>
-        <span class="taxonomy-path__node taxonomy-path__node--origin"></span>
-        <span class="taxonomy-path__node taxonomy-path__node--upper"></span>
-        <span class="taxonomy-path__node taxonomy-path__node--lower"></span>
-      </div>
+    <main id="main-content">
+      <section class="landing">
+        <div class="taxonomy-path" aria-hidden="true">
+          <span class="taxonomy-path__line"></span>
+          <span class="taxonomy-path__node taxonomy-path__node--origin"></span>
+          <span class="taxonomy-path__node taxonomy-path__node--upper"></span>
+          <span class="taxonomy-path__node taxonomy-path__node--lower"></span>
+        </div>
 
-      <section class="landing__content" aria-labelledby="page-title">
-        <p class="eyebrow">Adaptive failure taxonomies</p>
-        <h1 id="page-title">AdaMAST</h1>
-        <p class="lede">
-          Agents already generate the evidence of their own failures on every
-          run. AdaMAST converts those traces into a compact taxonomy of named
-          failure codes, induced automatically, validated before anything
-          trusts them, and reused as feedback by search, runtime monitoring,
-          and trajectory selection.
-        </p>
-        <div class="cta-row">
-          <a class="docs-link" href="blogs/adamast_paper/">
-            Read the blog
-            <span aria-hidden="true">→</span>
-          </a>
-          <a class="docs-link docs-link--ghost" href="docs/">
-            Documentation
-          </a>
-          <a
-            class="docs-link docs-link--ghost"
-            href="https://escholarship.org/uc/item/5vz5p9qd?#main"
-          >
-            Paper
-          </a>
+        <div class="landing__content">
+          <p class="eyebrow">Adaptive failure taxonomies</p>
+          <h1 id="page-title">AdaMAST</h1>
+          <p class="lede">
+            Agents already generate the evidence of their own failures on every
+            run. AdaMAST converts those traces into a compact taxonomy of named
+            failure codes, induced automatically, validated before anything
+            trusts them, and reused as feedback by search, runtime monitoring,
+            and trajectory selection.
+          </p>
+          <div class="cta-row">
+            <a class="docs-link" href="blogs/adamast_paper/">
+              Read the blog
+              <span aria-hidden="true">→</span>
+            </a>
+            <a class="docs-link docs-link--ghost" href="docs/">Documentation</a>
+            <a class="docs-link docs-link--ghost" href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+          </div>
         </div>
       </section>
 
@@ -89,6 +84,78 @@
         <span>Map</span>
         <span>Decide</span>
       </p>
+
+      <section class="section" aria-labelledby="papers-title">
+        <p class="eyebrow" id="papers-title">Papers</p>
+        <div class="paper-grid">
+          <article class="paper">
+            <p class="paper__badge paper__badge--gold">ICML 2026 FAGEN Workshop · Best Paper</p>
+            <h2 class="paper__title">Fantastic Adaptive Taxonomies and How to Use Them</h2>
+            <p class="paper__authors">
+              Mert Cemri*, Andrei Cojocaru*, Melissa Pan, Shu Liu, Shubham
+              Agarwal, Alexander Krentsel, Jay Tang, Kannan Ramchandran,
+              Joseph&nbsp;E. Gonzalez, Matei Zaharia, Alexandros&nbsp;G. Dimakis,
+              Ion Stoica
+            </p>
+            <p class="paper__links">
+              <a href="https://escholarship.org/uc/item/5vz5p9qd?#main">Paper</a>
+              <a href="blogs/adamast_paper/">Blog post</a>
+              <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">Code</a>
+            </p>
+          </article>
+          <article class="paper">
+            <p class="paper__badge">NeurIPS 2025 · Spotlight</p>
+            <h2 class="paper__title">Why Do Multi-Agent LLM Systems Fail?</h2>
+            <p class="paper__authors">
+              Mert Cemri*, Melissa&nbsp;Z. Pan*, Shuyi Yang*, Lakshya&nbsp;A.
+              Agrawal, Bhavya Chopra, Rishabh Tiwari, Kurt Keutzer, Aditya
+              Parameswaran, Dan Klein, Kannan Ramchandran, Joseph&nbsp;E.
+              Gonzalez, Matei Zaharia, Ion Stoica
+            </p>
+            <p class="paper__links">
+              <a href="https://arxiv.org/abs/2503.13657">Paper</a>
+              <a href="blogs/how-to-use-mast-to-improve-your-agents/">Blog post</a>
+              <a href="https://github.com/multi-agent-systems-failure-taxonomy/MAST">Code</a>
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="blog-title">
+        <p class="eyebrow" id="blog-title">Blog</p>
+        <div class="post-rows">
+          <a class="post-row" href="blogs/adamast_paper/">
+            <span class="post-row__date">Jul 2026</span>
+            <span class="post-row__title">AdaMAST: A Framework for Building Adaptive Failure Taxonomies to Improve LLM Agents</span>
+          </a>
+          <a class="post-row" href="blogs/improving-multi-agent-reasoning-systems-using-mast/">
+            <span class="post-row__date">Feb 2026</span>
+            <span class="post-row__title">Automating Algorithm Discovery: Improving Multi-Agent Reasoning Systems using MAST (Part 2)</span>
+          </a>
+          <a class="post-row" href="blogs/why-do-enterprise-agents-fail-itbench-mast/">
+            <span class="post-row__date">Dec 2025</span>
+            <span class="post-row__title">Why Do Enterprise Agents Fail? Insights from IT-Bench using MAST</span>
+          </a>
+          <a class="post-row" href="blogs/improving-multi-agent-system-design-using-mast/">
+            <span class="post-row__date">Dec 2025</span>
+            <span class="post-row__title">Automating Algorithm Discovery: Improving Multi-Agent System Design using MAST</span>
+          </a>
+          <a class="post-row" href="blogs/how-to-use-mast-to-improve-your-agents/">
+            <span class="post-row__date">Nov 2025</span>
+            <span class="post-row__title">How to Use MAST to Improve Your Agents</span>
+          </a>
+        </div>
+        <p class="section__more"><a href="blogs/">All posts →</a></p>
+      </section>
     </main>
+
+    <footer class="site-footer">
+      <p>AdaMAST · UC Berkeley</p>
+      <nav aria-label="Footer">
+        <a href="blogs/">Blogs</a>
+        <a href="docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+      </nav>
+    </footer>
   </body>
 </html>
