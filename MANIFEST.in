@@ -22,3 +22,4 @@ recursive-include adamast/hosts/claude_code/assets *.json
 recursive-include adamast/hosts/codex/assets *.md
 recursive-include adamast/hosts/codex/assets *.yaml
 recursive-include adamast/hosts/single_llm/assets *.md
+recursive-include adamast/examples *.jsonl *.json *.md

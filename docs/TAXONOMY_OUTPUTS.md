@@ -1,10 +1,13 @@
 # Taxonomy outputs and field guide
 
+This page shows what a finished BASELINE run leaves on disk, which file to
+build on, and how to open the browser field guide.
+
 Every BASELINE run produces a self-contained result directory. Keep the whole
 directory when reproducibility matters; `taxonomy.json` alone is enough for the
 core judge.
 
-## Output directory
+## 📁 Output directory
 
 ```text
 taxonomy-run/
@@ -20,7 +23,55 @@ taxonomy-run/
     └── agreement/
 ```
 
-## `taxonomy.json`
+## 👀 Open the browser field guide
+
+```bash
+adamast view ./taxonomy-run/taxonomy.json
+```
+
+This creates or refreshes a self-contained `taxonomy.html` and opens it in the
+default browser. The view is read-only and is scoped to that one taxonomy. It
+does not start the adaptive runtime or expose the local runtime dashboard.
+
+!!! tip "Make it yours"
+    `--manifest` points at a manifest stored elsewhere; `--output` plus
+    `--no-open` writes the HTML without opening a browser; `--view` on
+    `adamast generate` opens the guide right after generation. Full commands
+    below.
+
+### Supply a manifest explicitly
+
+When the manifest is not next to the taxonomy:
+
+```bash
+adamast view ./taxonomy.json --manifest ./run-manifest.json
+```
+
+### Write without opening
+
+```bash
+adamast view \
+  ./taxonomy-run/taxonomy.json \
+  --output ./exports/taxonomy-field-guide.html \
+  --no-open
+```
+
+The resulting HTML is portable and can be archived with experiment artifacts.
+
+### Open directly after generation
+
+```bash
+adamast generate \
+  --provider openai \
+  --traces ./traces.jsonl \
+  --output ./taxonomy-run \
+  --view
+```
+
+Generation always writes `taxonomy.html`; `--view` controls whether the browser
+opens automatically.
+
+## 📄 `taxonomy.json`
 
 This is the stable, integration-neutral taxonomy document. The important fields
 are the public status and the flat code catalog:
@@ -47,7 +98,7 @@ are the public status and the flat code catalog:
 Consumers should use `codes[].id` as the displayed code, validate the taxonomy
 status, and preserve unknown fields for forward compatibility.
 
-## `manifest.json`
+## 🧾 `manifest.json`
 
 The manifest records how the result was produced:
 
@@ -57,61 +108,21 @@ The manifest records how the result was produced:
 - final status;
 - paths to the draft and intermediate artifacts.
 
-Credentials are never written to the manifest.
+!!! note
+    Credentials are never written to the manifest.
 
-## Draft and agreement artifacts
+## 🗃️ Draft and agreement artifacts
 
 `taxonomy.draft.json` is the pre-agreement layered A/B/C draft. The
 `artifacts/draft/` directory contains generation-stage intermediates, while
 `artifacts/agreement/` contains round-level annotations, reconciliations,
 assignments, metrics, and refinements.
 
-These files are research and debugging artifacts. Downstream integrations
-should depend on `taxonomy.json`, not an internal round filename.
+!!! warning
+    These files are research and debugging artifacts. Downstream integrations
+    should depend on `taxonomy.json`, not an internal round filename.
 
-## Open the browser field guide
-
-```bash
-adamast view ./taxonomy-run/taxonomy.json
-```
-
-This creates or refreshes a self-contained `taxonomy.html` and opens it in the
-default browser. The view is read-only and is scoped to that one taxonomy. It
-does not start the adaptive runtime or expose the local runtime dashboard.
-
-### Supply a manifest explicitly
-
-When the manifest is not next to the taxonomy:
-
-```bash
-adamast view ./taxonomy.json --manifest ./run-manifest.json
-```
-
-### Write without opening
-
-```bash
-adamast view \
-  ./taxonomy-run/taxonomy.json \
-  --output ./exports/taxonomy-field-guide.html \
-  --no-open
-```
-
-The resulting HTML is portable and can be archived with experiment artifacts.
-
-## Open directly after generation
-
-```bash
-adamast generate \
-  --provider openai \
-  --traces ./traces.jsonl \
-  --output ./taxonomy-run \
-  --view
-```
-
-Generation always writes `taxonomy.html`; `--view` controls whether the browser
-opens automatically.
-
-## Preserve reproducibility
+## 🔒 Preserve reproducibility
 
 - Archive the normalized inputs, manifest, and agreement artifacts together.
 - Record the exact model ID rather than relying only on a changing provider
@@ -119,3 +130,10 @@ opens automatically.
 - Keep taxonomy status and thresholds with any reported evaluation result.
 - Do not edit `taxonomy.json` without recording that it is now a manually
   revised artifact.
+
+## ➡️ Continue with
+
+- [Judge traces](JUDGING.md) — apply the accepted `taxonomy.json` to new
+  traces.
+- [Providers and models](PROVIDERS.md) — run the same workflows on a
+  different provider.

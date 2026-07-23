@@ -19,7 +19,7 @@ read the natural-language assets directly and supply its own execution layer:
 - `adamast/judges/assets/<judge>/system.md` and `user.md` — simple judge prompts
   for Selection, Mapping, Coverage, Quality, Calibration.
 - `adamast/judges/reflection_judge/assets/*.md` — Reflection Judge staged prompts.
-- `vendor/adamast/pipeline/assets/*.md` — taxonomy-generation prompts.
+- `adamast/learning/vendor/pipeline/assets/*.md` — taxonomy-generation prompts.
 
 The Python modules remain useful as controllers: they load context, render
 assets, validate JSON, record traces, and call the lifecycle API. Direct
@@ -29,7 +29,7 @@ themselves.
 Install the package, then install project-local hooks:
 
 ```powershell
-adamast-claude-install `
+adamast claude install `
   --project-dir C:\path\to\project `
   --trace-output C:\path\to\program-traces `
   --trace-root C:\path\to\learning-traces `
@@ -40,7 +40,7 @@ Registrations invoke the installed module rather than a source-checkout file.
 Uninstall with:
 
 ```powershell
-adamast-claude-uninstall --project-dir C:\path\to\project
+adamast claude uninstall --project-dir C:\path\to\project
 ```
 
 When upgrading from the old global `adamast-failure-modes` hooks, add
@@ -50,8 +50,8 @@ preserved.
 For the Codex-style interactive experience in every Claude Code project, use:
 
 ```powershell
-adamast-claude-install --user-level
-adamast-doctor --claude-code
+adamast claude install --user-level
+adamast doctor --claude-code
 ```
 
 User-level installation writes `~/.claude/adamast.json` and merges hooks
@@ -59,10 +59,10 @@ into `~/.claude/settings.json`. Automatic routing creates one Claude-owned
 program branch per conversation. Neither another Claude conversation nor Codex
 can claim its traces, active taxonomy head, or learning job.
 The installer also writes `.claude/agents/adamast-taxonomy-worker.md`. The
-native Claude worker is one background Agent subtask in the active session; it does
-not require a separately supplied model API key, standalone `claude -p`
-process, or second login. The default browser selector can be replaced with
-the inline numbered surface via `--selector-surface inline`.
+native Claude worker is one background Agent subtask in the active session;
+it needs no separate model API key, standalone `claude -p` process, or second
+login. Swap the default browser selector for the inline numbered surface with
+`--selector-surface inline`.
 
 For the browser surface, Claude Code's first `UserPromptSubmit` hook remains
 open until the user chooses. A successful choice releases that same original
@@ -76,8 +76,8 @@ a nested repository does not reopen the selector or change its taxonomy. The
 shared live monitor displays Claude's latest custom conversation title while
 retaining that session ID as the routing key.
 
-The matching reversible cleanup command is
-`adamast-claude-uninstall --user-level`; unrelated Claude settings remain.
+Reverse the user-level install with `adamast claude uninstall --user-level`;
+unrelated Claude settings remain.
 
 The installer verifies the locally installed Claude Code binary before writing
 `.claude/settings.local.json`. Built-in events:
@@ -100,7 +100,7 @@ All built-ins are installed by default for backwards compatibility, but you can
 reduce noise for a project. Disable an event:
 
 ```powershell
-adamast-claude-install `
+adamast claude install `
   --project-dir C:\path\to\project `
   --trace-output C:\path\to\program-traces `
   --adamast-model claude-sonnet-4-6 `
@@ -111,7 +111,7 @@ Restrict successful/failed tool-result nudges to specific Claude Code tool
 matchers:
 
 ```powershell
-adamast-claude-install `
+adamast claude install `
   --project-dir C:\path\to\project `
   --trace-output C:\path\to\program-traces `
   --adamast-model claude-sonnet-4-6 `
@@ -139,7 +139,7 @@ built-in events are on/off.
 
 Taxonomy content is supplied privately only when a checkpoint fires. Built-in gates ask
 Claude to send four compact fields through the private
-`adamast-claude-checkpoint` recorder; checkpoint text is not printed in the
+`adamast claude checkpoint` recorder; checkpoint text is not printed in the
 conversation. Accepted reflections write taxonomy-version-scoped runtime evidence to
 `<trace-output>/.adamast-runtime-evidence.json`; the live dashboard overlays it
 without changing the taxonomy record. Every checkpoint created in one Claude
@@ -192,20 +192,20 @@ Lifecycle controls exposed by the installer include generation threshold and
 blocking, initial/standard refinement thresholds, refinement blocking,
 advanced refinement, failure-nudge throttling, and `--skip-judge` (which
 bypasses the end-of-generation Reflection Judge + refiner step). Run
-`adamast-claude-install --help` for the exact options. `--no-dashboard`
+`adamast claude install --help` for the exact options. `--no-dashboard`
 persistently suppresses integration-managed dashboards when an outer harness
 owns the dashboard.
 
 ## Custom hooks
 
-Beyond the seven built-in events, you can bind the same reflection<->refinement
+Beyond the eight built-in events, you can bind the same reflection<->refinement
 loop to **any** Claude Code event without writing Python. Use the
-`adamast-claude-add-hook` CLI after `adamast-claude-install` has placed a
+`adamast claude add-hook` CLI after `adamast claude install` has placed a
 config:
 
 ```powershell
 # Block before any Bash call; require an AdaMAST reflection before it runs.
-adamast-claude-add-hook `
+adamast claude add-hook `
   --project-dir C:\path\to\project `
   --name pre-bash-gate `
   --event PreToolUse `
@@ -213,7 +213,7 @@ adamast-claude-add-hook `
   --mode blocking
 
 # Emit a non-blocking nudge whenever the user submits a new prompt.
-adamast-claude-add-hook `
+adamast claude add-hook `
   --project-dir C:\path\to\project `
   --name on-user-prompt `
   --event UserPromptSubmit `
@@ -225,8 +225,8 @@ The CLI rewrites `.claude/adamast.json` and refreshes
 its next session. Inspect or remove:
 
 ```powershell
-adamast-claude-list-hooks --project-dir C:\path\to\project
-adamast-claude-remove-hook --project-dir C:\path\to\project --name pre-bash-gate
+adamast claude list-hooks --project-dir C:\path\to\project
+adamast claude remove-hook --project-dir C:\path\to\project --name pre-bash-gate
 ```
 
 What each `--mode` does:
@@ -247,7 +247,7 @@ under the top-level `"custom_hooks"` array; each entry is
 `{name, event, mode, matcher?}`. The installer treats two custom hooks on the
 same event with different matchers as separate `settings.local.json` entries
 (so e.g. one Bash gate + one Edit nudge co-exist cleanly), and
-`adamast-claude-uninstall` removes every custom registration alongside the
+`adamast claude uninstall` removes every custom registration alongside the
 built-ins.
 
 Available events: `SessionStart`, `SessionEnd`, `Stop`, `TaskCompleted`,
@@ -264,20 +264,20 @@ their built-in handler regardless; a custom hook on a built-in event
 | [`config.py`](config.py) | `ClaudeCodeConfig` dataclass + built-in/custom hook specs — serialized to `.claude/adamast.json`, loaded by every hook |
 | [`custom.py`](custom.py) | Reflection runtime for `CustomHookSpec` entries: `custom_blocking_checkpoint` + `custom_advisory` reuse the same reflection-shape validator as the built-in gates |
 | [`dispatcher.py`](dispatcher.py) | Single command entry point. Built-in events route by `hook_event_name`; custom hooks route via `--custom <spec_name>` |
-| [`install.py`](install.py) | `adamast-claude-install` CLI: write project-local or user-level settings + `adamast.json`, register built-in events + every `custom_hooks` entry, verify Claude Code binary contract |
+| [`install.py`](install.py) | `adamast claude install` CLI: write project-local or user-level settings + `adamast.json`, register built-in events + every `custom_hooks` entry, verify Claude Code binary contract |
 | [`learning_jobs.py`](learning_jobs.py) | Claude policy facade for shared durable jobs, threshold polling, and foreground reconciliation |
 | [`subagent_protocol.py`](subagent_protocol.py) | Claude Agent-instruction facade for the shared signed receipt protocol |
 | [`session_routes.py`](session_routes.py) | Claude-namespaced facade for stable conversation-owned branch routing |
 | [`browser_picker.py`](browser_picker.py) | Claude-namespaced facade for the shared localhost picker transport |
 | [`native_worker.py`](native_worker.py) | Legacy detached-worker compatibility entry point; native in-session learning does not invoke it |
-| [`manage_hooks.py`](manage_hooks.py) | `adamast-claude-add-hook` / `remove-hook` / `list-hooks` CLIs to mutate `custom_hooks` and refresh `settings.local.json` in one command |
+| [`manage_hooks.py`](manage_hooks.py) | `adamast claude add-hook` / `remove-hook` / `list-hooks` CLIs to mutate `custom_hooks` and refresh `settings.local.json` in one command |
 | [`checkpoint.py`](checkpoint.py) | Private compact-checkpoint recorder used by Claude during built-in gates |
 | [`prompts.py`](prompts.py) | Claude Code standing instruction, recorder context, and legacy gate-prompt compatibility |
 | [`reflection.py`](reflection.py) | Compatibility re-export for the shared `adamast.core.reflection` parser |
 | [`runtime.py`](runtime.py) | Hook behavior: session/episode lifecycle, private built-in checkpoints, tool polling, and transcript capture |
 | [`state.py`](state.py) | Claude Code per-session hook state (mode, pending checkpoints); runtime evidence is recorded by `adamast.core.evidence` |
 | [`transcript.py`](transcript.py) | Claude Code JSONL transcript readers/writers |
-| [`uninstall.py`](uninstall.py) | `adamast-claude-uninstall` CLI: remove the hook registrations, preserve unrelated settings |
+| [`uninstall.py`](uninstall.py) | `adamast claude uninstall` CLI: remove the hook registrations, preserve unrelated settings |
 
 ## Sub-folders
 

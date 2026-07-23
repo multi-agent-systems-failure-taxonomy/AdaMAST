@@ -1,7 +1,7 @@
 # adamast/judges/
 
-Seven taxonomy-aware judges adamast exposes. Each judge consumes a
-taxonomy and produces a different structured signal.
+The seven taxonomy-aware judges `adamast` exposes. Each consumes a taxonomy
+and produces a different structured signal.
 
 | # | Judge | Status | Implementation | Purpose |
 |---|---|---|---|---|

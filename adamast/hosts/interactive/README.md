@@ -1,8 +1,8 @@
 # `adamast/hosts/interactive/`
 
 Shared conversation infrastructure for the Codex and Claude Code adapters.
-This package contains behavior that is independent of either host's hook JSON
-or transcript format.
+Everything here is independent of either host's hook JSON or transcript
+format.
 
 ## Runtime contract
 
@@ -43,5 +43,5 @@ The host packages retain facade modules such as
 New host-neutral behavior belongs here; host event parsing belongs in the
 corresponding adapter.
 
-See [Native taxonomy learning](../../docs/NATIVE_LEARNING.md) for the persisted
+See [Native taxonomy learning](../../../docs/NATIVE_LEARNING.md) for the persisted
 state machine and security boundary.

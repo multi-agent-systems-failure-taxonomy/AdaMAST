@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adamast"
-version = "0.2.0.dev0"
+version = "0.2.0"
 description = "Adaptive failure-mode taxonomy runtime for Codex, Claude Code, and custom agent harnesses."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -31,6 +31,7 @@ dependencies = ["openai>=1.40"]
 [project.optional-dependencies]
 anthropic = ["anthropic>=0.40"]
 bedrock = ["boto3>=1.43"]
+google = ["google-genai>=1.0"]
 test = ["pytest>=7", "pytest-cov>=5", "ruff>=0.12,<1"]
 docs = ["mkdocs-material>=9.5"]
 
@@ -69,7 +70,7 @@ include-package-data = true
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["adamast*"]
-exclude = ["examples*", "tests*"]
+exclude = ["tests*"]
 
 [tool.setuptools.package-data]
 "adamast.core" = ["mast.json", "assets/*.json"]
@@ -79,6 +80,7 @@ exclude = ["examples*", "tests*"]
 "adamast.learning.vendor" = ["LICENSE", "VENDORED.md", "assets/*.md"]
 "adamast.learning.vendor.pipeline" = ["assets/*.md", "assets/*.json"]
 "adamast.dashboard" = ["assets/*.html"]
+"adamast.examples" = ["*.jsonl", "*.json", "README.md"]
 "adamast.judges" = ["assets/*/*.md"]
 "adamast.judges.reflection_judge" = ["assets/*.md", "assets/*.json"]
 "adamast.hosts.claude_code" = ["assets/*.md", "assets/*.json"]
@@ -110,4 +112,6 @@ testpaths = ["tests"]
 omit = [
   "adamast/learning/vendor/*",
   "adamast/learning/pipeline/*",
+  # Runnable demos: shipped for users, never part of the gate.
+  "adamast/examples/*",
 ]

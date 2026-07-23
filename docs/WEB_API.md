@@ -1,29 +1,30 @@
 # Local web API
 
-AdaMAST exposes a small localhost HTTP API for the runtime dashboard. It is meant
-for local monitoring, notebooks, benchmark harnesses, and lightweight external
-dashboards.
+Read AdaMAST's runtime state over localhost HTTP: a health check, the live
+monitor model, and the taxonomy view with runtime evidence. The API serves the
+runtime dashboard and is meant for local monitoring, notebooks, benchmark
+harnesses, and lightweight external dashboards.
 
 The API is read-only except for the managed-dashboard shutdown endpoint.
 
-## Start the server
+## 🚀 Start the server
 
 ```bash
-adamast-dashboard \
+adamast dashboard \
   --trace-output ./adamast-program \
   --store-dir ~/.adamast/taxonomies
 ```
 
 By default the dashboard binds to `127.0.0.1:8765`.
 
-Integrations may start the dashboard automatically when `dashboard` is `true` in
-`adamast.json`.
+!!! note
+    Integrations may start the dashboard automatically when `dashboard` is
+    `true` in `adamast.json`.
 
-## `GET /api/health`
+## 🩺 `GET /api/health`
 
-Returns whether the dashboard process is serving the expected program.
-
-Example:
+Returns whether the dashboard process is serving the expected program. Use it
+for lightweight liveness checks.
 
 ```json
 {
@@ -33,9 +34,7 @@ Example:
 }
 ```
 
-Use this for lightweight liveness checks.
-
-## `GET /api/monitor`
+## 📊 `GET /api/monitor`
 
 Returns the project, conversation, timeline, and checkpoint model used by the
 live monitor.
@@ -107,7 +106,7 @@ The response also includes the current taxonomy label, failure-mode metadata,
 timeline settings, and summary counts. It contains checkpoint reasoning
 summaries, not private model chain-of-thought.
 
-## `GET /api/taxonomy`
+## 🧬 `GET /api/taxonomy`
 
 Returns the current taxonomy view for one program, overlaid with program-local
 runtime evidence.
@@ -174,30 +173,39 @@ Example shape:
 }
 ```
 
-Notes:
+How to read the fields:
 
-- `taxonomy_id` is the latest taxonomy visible to the program.
-- `bound_taxonomy_id` is the taxonomy the program originally held before
-  lineage resolution.
-- `repo` and `domain` are display metadata only.
-- `runtime_evidence` is program-local. It overlays the taxonomy view without
-  mutating the stored taxonomy record.
-- `clean_checkpoints` are accepted reflections where no code fired.
-- Evidence text is clipped server-side for dashboard readability.
+| Field | Meaning |
+|---|---|
+| `taxonomy_id` | The latest taxonomy visible to the program. |
+| `bound_taxonomy_id` | The taxonomy the program originally held before lineage resolution. |
+| `repo` / `domain` | Display metadata only. |
+| `runtime_evidence` | Program-local. It overlays the taxonomy view without mutating the stored taxonomy record. |
+| `clean_checkpoints` | Accepted reflections where no code fired. |
 
-## `POST /api/shutdown`
+Evidence text is clipped server-side for dashboard readability.
+
+## 🛑 `POST /api/shutdown`
 
 This endpoint exists only for dashboards started by AdaMAST integrations through
 the managed-dashboard lifecycle. It requires the private `X-AdaMAST-Token` header
 written into the program's `.adamast-dashboard.json` state file.
 
-Do not call this endpoint from external dashboards unless you own the managed
-dashboard lifecycle.
+!!! warning
+    Do not call this endpoint from external dashboards unless you own the
+    managed dashboard lifecycle.
 
-## Security model
+## 🔒 Security model
 
 The dashboard is designed for localhost use. Do not expose it publicly without
 an external authentication layer.
 
-The API can include task labels, evidence snippets, checkpoint IDs, and reasoning
-captured during runtime. Treat the response as run data, not a public asset.
+!!! warning "Responses are run data"
+    The API can include task labels, evidence snippets, checkpoint IDs, and
+    reasoning captured during runtime. Treat the response as run data, not a
+    public asset.
+
+## ➡️ Continue with
+
+- [Live monitor](DASHBOARD.md) — the browser view served from this API.
+- [Configuration](CONFIGURATION.md) — the `dashboard` field and program paths.

@@ -1,4 +1,4 @@
-# vendor/adamast/
+# adamast/learning/vendor/
 
 Vendored snapshot of the upstream AdaMAST package
 (`multi-agent-systems-failure-taxonomy/ATLAS`) — a research toolkit that

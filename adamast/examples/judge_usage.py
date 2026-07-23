@@ -2,7 +2,7 @@
 
 Set the provider credential first, then run from the repository root:
 
-    python examples/judge_usage.py
+    python -m adamast.examples.judge_usage
 """
 
 from adamast import create_judge, load_traces

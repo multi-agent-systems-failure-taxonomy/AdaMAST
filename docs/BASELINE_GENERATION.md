@@ -1,20 +1,24 @@
 # Generate a taxonomy
 
+On this page you turn a folder of completed traces into a validated failure
+taxonomy — one command, no agent integration required.
+
 BASELINE is the simplest AdaMAST workflow: provide completed traces, select a
 model provider, and receive a standalone failure taxonomy with the full
-inter-annotator agreement layer. It does not install AdaMAST into an agent
-harness or refine the result as new traces arrive.
+inter-annotator agreement layer (independent annotators must be able to agree
+on the codes before the result counts). It does not install AdaMAST into an
+agent harness or refine the result as new traces arrive.
 
-## Before you run
+## 🚀 Generate from the CLI
 
 1. Install AdaMAST from the [documentation home](index.md#install-adamast).
-2. Prepare a supported JSON or JSONL source.
+2. Prepare a supported JSON or JSONL source — see
+   [Prepare traces](TRACE_FORMATS.md).
 3. Run `adamast validate` and inspect the normalized form when importing a new
    trace format.
 4. Configure one provider as described in
    [Providers and models](PROVIDERS.md).
-
-## Generate from the CLI
+5. Run:
 
 ```bash
 adamast generate \
@@ -28,17 +32,14 @@ The `--traces` value may be one accepted file or a directory. The output must
 be a directory because AdaMAST writes the public taxonomy, a manifest, a
 browser view, normalized inputs, and intermediate agreement artifacts.
 
-Add `--view` to open the field guide after generation:
+!!! tip "Make it yours"
+    | I want to… | Do this |
+    | --- | --- |
+    | Open the browser field guide after generation | add `--view` (details in [Outputs and field guide](TAXONOMY_OUTPUTS.md)) |
+    | Tune the acceptance gate | `--max-rounds`, `--kappa-target`, `--coverage-floor` (see "Configure the gate") |
+    | Call it from code instead | `generate_taxonomy(...)` (next section) |
 
-```bash
-adamast generate \
-  --provider openai \
-  --traces ./traces.jsonl \
-  --output ./taxonomy-run \
-  --view
-```
-
-## Generate from Python
+## 🐍 Generate from Python
 
 ```python
 from adamast import generate_taxonomy
@@ -57,7 +58,7 @@ print(len(taxonomy["codes"]))
 
 The function returns the same dictionary written to `taxonomy.json`.
 
-## What BASELINE does
+## 🔬 What BASELINE does
 
 ### 1. Normalize traces
 
@@ -91,9 +92,10 @@ The public taxonomy receives one of two statuses:
 - `review_required` when artifacts were produced but the configured gate was
   not satisfied.
 
-BASELINE never changes `review_required` to `accepted` silently.
+!!! note
+    BASELINE never changes `review_required` to `accepted` silently.
 
-## Configure the gate
+## 🎛️ Configure the gate
 
 ```bash
 adamast generate \
@@ -107,10 +109,13 @@ adamast generate \
 ```
 
 Use `--no-early-stop` when an experiment requires every configured round even
-after the stopping conditions are stable. Raising a target makes acceptance
-stricter; it does not automatically make the taxonomy better.
+after the stopping conditions are stable.
 
-## Interpret the exit code
+!!! warning
+    Raising a target makes acceptance stricter; it does not automatically make
+    the taxonomy better.
+
+## 🚥 Interpret the exit code
 
 | Exit code | Meaning |
 | --- | --- |
@@ -119,12 +124,16 @@ stricter; it does not automatically make the taxonomy better.
 | `2` | Input, provider configuration, or pipeline execution failed |
 
 Automation should inspect both the process exit code and `taxonomy.json.status`.
-Do not feed a `review_required` taxonomy into production judging unless the
-caller explicitly accepts that risk.
 
-## Next steps
+!!! warning
+    Do not feed a `review_required` taxonomy into production judging unless the
+    caller explicitly accepts that risk.
 
-- Read [Outputs and field guide](TAXONOMY_OUTPUTS.md) to inspect the result.
-- Read [Judge traces](JUDGING.md) to apply an accepted taxonomy to new traces.
-- Move to [Adaptive runtime](GETTING_STARTED.md) only when taxonomy generation
-  or refinement must happen as traces accumulate.
+When a fixed one-shot taxonomy stops being enough, move on to the
+[adaptive runtime](GETTING_STARTED.md), which regenerates and refines as
+traces accumulate.
+
+## ➡️ Continue with
+
+- [Outputs and field guide](TAXONOMY_OUTPUTS.md) — inspect what the run wrote.
+- [Judge traces](JUDGING.md) — apply the accepted taxonomy to new traces.

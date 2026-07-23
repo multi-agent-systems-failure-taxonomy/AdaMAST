@@ -10,12 +10,12 @@ fixtures (under [`fixtures/`](fixtures/)) — no live LLM calls.
 |---|---|
 | [`__init__.py`](__init__.py) | Test-package marker + shared defaults |
 | [`test_claude_code_integration.py`](test_claude_code_integration.py) | Claude Code runtime skin: hooks, install/uninstall, config round-trip, transcript handling |
-| [`test_cli.py`](test_cli.py) | `adamast-find` CLI: stdout/exit-code wiring for inherit-by-id, explicit picker, deprecated bare-picker, and missing-id errors |
+| [`test_cli.py`](test_cli.py) | `adamast find` CLI: stdout/exit-code wiring for inherit-by-id, explicit picker, deprecated bare-picker, and missing-id errors |
 | [`test_config.py`](test_config.py) | Shared `adamast.json` config loading, validation, precedence, and CLI wiring |
 | [`test_dashboard.py`](test_dashboard.py) | Persistent live taxonomy dashboard (HTTP server, refresh, stop semantics) |
-| [`test_doctor.py`](test_doctor.py) | `adamast-doctor` health checks for storage, model recognition, JSON output, and error status |
+| [`test_doctor.py`](test_doctor.py) | `adamast doctor` health checks for storage, model recognition, JSON output, and error status |
 | [`test_generation_lifecycle.py`](test_generation_lifecycle.py) | MAST → generated-taxonomy lifecycle: warm-up threshold, blocking vs background, rejection paths |
-| [`test_import_generation.py`](test_import_generation.py) | `adamast-import-traces` flow: trace loading, refinement-based registration, atomic rollback on failure |
+| [`test_import_generation.py`](test_import_generation.py) | `adamast import-traces` flow: trace loading, refinement-based registration, atomic rollback on failure |
 | [`test_judge_types.py`](test_judge_types.py) | `adamast/judges/` registry, natural-language simple-judge asset loading, selection-summary bucket completeness, Reflection Judge construction |
 | [`test_learning_calls.py`](test_learning_calls.py) | LLM-transport boundaries (Anthropic / OpenAI / Gemini), JSON repair-retry, prompt formatters |
 | [`test_lifecycle.py`](test_lifecycle.py) | Agent- and model-agnostic lifecycle (start/record/pre_submission/end), idempotency, error paths |
@@ -31,7 +31,7 @@ fixtures (under [`fixtures/`](fixtures/)) — no live LLM calls.
 | [`test_store.py`](test_store.py) | Flat taxonomy store: register / fetch_by_id / list_all / unregister, schema validation, atomic writes |
 | [`test_taxonomy_data.py`](test_taxonomy_data.py) | Taxonomy data-model helpers: round-trips, mutations, retirement bookkeeping |
 | [`test_traces.py`](test_traces.py) | Generation-trace storage + retention reports |
-| [`test_traces_cli.py`](test_traces_cli.py) | `adamast-traces` status/export/prune behavior, including dry-run pruning |
+| [`test_traces_cli.py`](test_traces_cli.py) | `adamast traces` status/export/prune behavior, including dry-run pruning |
 | [`test_webview.py`](test_webview.py) | Webview HTTP server: table rendering, detail view, choice recording (no browser needed) |
 | [`test_adapter_contracts.py`](test_adapter_contracts.py) | Shared adapter prompt, checkpoint, and lifecycle contracts |
 | [`test_claude_native_learning.py`](test_claude_native_learning.py) | Claude native subagent claims, UTF-8 receipts, polling, and activation |
@@ -47,6 +47,16 @@ fixtures (under [`fixtures/`](fixtures/)) — no live LLM calls.
 | [`test_register_taxonomy.py`](test_register_taxonomy.py) | Existing-taxonomy registration CLI and validation |
 | [`test_runtime_robustness.py`](test_runtime_robustness.py) | Manifest, worker, and persistence recovery paths |
 | [`test_status.py`](test_status.py) | Program status output and health fields |
+| [`test_api.py`](test_api.py) | Public `generate_taxonomy` / `judge_trace` API surface |
+| [`test_browser_picker_wait.py`](test_browser_picker_wait.py) | Liveness semantics of the synchronous picker wait: startup grace, consecutive-failure death verdict, receipt-on-exit race |
+| [`test_checkpoint_code_citation.py`](test_checkpoint_code_citation.py) | Checkpoint code-citation matching against the active taxonomy |
+| [`test_judge_surface.py`](test_judge_surface.py) | Judge-focused evaluation checks across the judges surface |
+| [`test_judges.py`](test_judges.py) | Provider-neutral JUDGES contract |
+| [`test_providers.py`](test_providers.py) | Provider transports behind the one call shape |
+| [`test_trace_formats.py`](test_trace_formats.py) | External trace-format normalization into the canonical shape |
+| [`test_umbrella_cli.py`](test_umbrella_cli.py) | Umbrella `adamast` command dispatch to subcommands |
+| [`test_viewer.py`](test_viewer.py) | Read-only taxonomy viewer |
+| [`test_worker_prompt_rendering.py`](test_worker_prompt_rendering.py) | Line-readable worker prompt rendering |
 
 ## Sub-folders
 

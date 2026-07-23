@@ -9,9 +9,9 @@ but the main integration is hook-based.
 
 Each Stop callback commits one episode trace from the current user turn, agent
 work, tool activity, repairs, and directly recorded final checkpoint since the
-previous Stop. The main agent creates the same four gate fields as before and
-sends them to `adamast-codex-checkpoint`; they are no longer appended to the
-assistant message. Codex Desktop builds do not all redeliver Stop after a hook
+previous Stop. The main agent sends the four gate fields to
+`adamast codex checkpoint` rather than appending them to the assistant
+message. Not all Codex Desktop builds redeliver Stop after a hook
 continuation, so this adapter intentionally uses one callback rather than
 depending on a second reflection-only turn.
 
@@ -23,7 +23,7 @@ interrupted episode is closed on resume or the next substantive user prompt.
 ## Install hooks
 
 ```bash
-adamast-codex-install \
+adamast codex install \
   --project-dir /path/to/project \
   --trace-output /path/to/adamast-program \
   --adamast-model gpt-5
@@ -32,7 +32,7 @@ adamast-codex-install \
 Or with a shared `adamast.json`:
 
 ```bash
-adamast-codex-install --project-dir . --config adamast.json
+adamast codex install --project-dir . --config adamast.json
 ```
 
 Use `--selector-surface browser` (the default) or
@@ -78,9 +78,9 @@ becomes the episode task; the user does not need to submit it again. The
 installer gives this hook the picker timeout plus a small shutdown margin while
 keeping the other lifecycle-hook timeouts short.
 
-MAST is recommended alongside compatible stored taxonomies and `No taxonomy`.
-The picker runs in a detached, time-bounded process and writes a durable
-activation receipt after updating Codex state. Choosing either MAST or a stored
+The picker lists MAST (recommended) alongside compatible stored taxonomies
+and `No taxonomy`. It runs in a detached, time-bounded process and writes a
+durable activation receipt after updating Codex state. Choosing either MAST or a stored
 taxonomy seeds a durable conversation-owned branch. Later traces, generation,
 refinement, and activation remain inside that branch. `No taxonomy` disables
 AdaMAST gates and trace capture for only that conversation.
@@ -121,7 +121,7 @@ trust against the hook definition hash, so changed hooks need review again.
 | `SubagentStop` | Capture signed taxonomy-worker receipts; ordinary visible subagent text is never parsed as a checkpoint. |
 | `PostToolUse` | Silent polling and durable-state reconciliation after supported successful tools. |
 
-Routine polling is intentionally silent as assistant text. Codex can show the
+Routine polling intentionally emits no assistant text. Codex can show the
 hook's transient `Polling AdaMAST` status while it runs. Tool failure review lives
 in the always-loaded managed skill: when the agent receives an actual failed
 tool result, it maps the evidence privately and records one `tool_failure`
@@ -136,7 +136,7 @@ Codex documents model-context delivery. `PostToolUse` does not consume them.
 Defaults can be customized:
 
 ```bash
-adamast-codex-install \
+adamast codex install \
   --project-dir . \
   --config adamast.json \
   --disable-hook SubagentStop \
@@ -162,7 +162,7 @@ The config-file equivalent is top-level `codex_hooks`:
 To also install the reusable Codex skill guidance:
 
 ```bash
-adamast-codex-install --project-dir . --config adamast.json --install-skill
+adamast codex install --project-dir . --config adamast.json --install-skill
 ```
 
 By default this writes `adamast-failure-modes` under the documented user skill
@@ -172,19 +172,19 @@ repository-local copy.
 ## Uninstall
 
 ```bash
-adamast-codex-uninstall --project-dir .
+adamast codex uninstall --project-dir .
 ```
 
 This removes only AdaMAST hook registrations from `.codex/hooks.json` and deletes
 `.codex/adamast.json`. To also remove the optional skill files:
 
 ```bash
-adamast-codex-uninstall --project-dir . --remove-skill
+adamast codex uninstall --project-dir . --remove-skill
 ```
 
 For the zero-config user-level integration, use
-`adamast-codex-install --user-level` and reverse it with
-`adamast-codex-uninstall --user-level`.
+`adamast codex install --user-level` and reverse it with
+`adamast codex uninstall --user-level`.
 
 ## Programs
 

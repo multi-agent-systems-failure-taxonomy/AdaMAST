@@ -1,9 +1,10 @@
 # Providers and models
 
-BASELINE and the core JUDGES workflow use one provider-neutral text interface.
-The prompts and output validation stay the same when the provider changes.
+Run AdaMAST generation and judging on the provider you already use. BASELINE
+and the core JUDGES workflow share one provider-neutral text interface, so the
+prompts and output validation stay the same when the provider changes.
 
-## Supported providers
+## 🧩 Supported providers
 
 | Provider flag | Install extra | Credential environment | Model environment |
 | --- | --- | --- | --- |
@@ -12,11 +13,11 @@ The prompts and output validation stay the same when the provider changes.
 | `google` | `[google]` | `GEMINI_API_KEY` or `GOOGLE_API_KEY` | `GEMINI_MODEL` or `GOOGLE_MODEL` |
 | `bedrock` | `[bedrock]` | AWS bearer token or normal AWS credential chain | `BEDROCK_MODEL_ID` |
 
-Select a provider explicitly with `--provider` or `ADAMAST_PROVIDER`. Except
-for the OpenAI default model, also pass `--model` or set the provider's model
-environment variable.
+Select a provider explicitly with `--provider` or `ADAMAST_PROVIDER`. Also
+pass `--model` or set the provider's model environment variable — only OpenAI
+ships a package default model.
 
-## OpenAI
+## 🟢 OpenAI
 
 ```bash
 pip install adamast
@@ -29,10 +30,11 @@ adamast generate \
   --output ./taxonomy-run
 ```
 
-If neither `--model` nor `OPENAI_MODEL` is set, the current package defaults to
-`gpt-5-nano`.
+!!! note
+    If neither `--model` nor `OPENAI_MODEL` is set, the current package
+    defaults to `gpt-5-nano`.
 
-## Anthropic
+## 🟣 Anthropic
 
 ```bash
 pip install "adamast[anthropic]"
@@ -45,7 +47,7 @@ adamast generate \
   --output ./taxonomy-run
 ```
 
-## Google
+## 🔵 Google
 
 ```bash
 pip install "adamast[google]"
@@ -60,7 +62,7 @@ adamast generate \
 
 `GOOGLE_API_KEY` and `GOOGLE_MODEL` are accepted aliases.
 
-## AWS Bedrock
+## 🟠 AWS Bedrock
 
 ```bash
 pip install "adamast[bedrock]"
@@ -90,7 +92,7 @@ adamast generate \
   --output ./taxonomy-run
 ```
 
-## Environment-only configuration
+## 🌱 Environment-only configuration
 
 ```bash
 export ADAMAST_PROVIDER="anthropic"
@@ -102,7 +104,7 @@ adamast generate --traces ./traces.jsonl --output ./taxonomy-run
 
 Explicit CLI values take precedence over model environment variables.
 
-## Output and timeout controls
+## ⏱️ Output and timeout controls
 
 `--max-output-tokens` sets the maximum output for each model call. Its default
 is `8192` for both generation and judging.
@@ -116,10 +118,11 @@ adamast judge \
   --traces ./new-traces.jsonl
 ```
 
-Provider request errors stop the workflow. AdaMAST does not silently switch to
-another provider or model.
+!!! note "No silent fallback"
+    Provider request errors stop the workflow. AdaMAST does not silently
+    switch to another provider or model.
 
-## Credential safety
+## 🔐 Credential safety
 
 - Put credentials in the provider's environment or standard credential store,
   never in trace files or AdaMAST JSON artifacts.
@@ -127,3 +130,9 @@ another provider or model.
 - Use least-privilege AWS credentials that allow only the required Bedrock
   model actions.
 - Treat model IDs as experiment inputs and record them in reproducible runs.
+
+## ➡️ Continue with
+
+- [Generate a taxonomy](BASELINE_GENERATION.md) — run BASELINE on the
+  provider you just configured.
+- [Judge traces](JUDGING.md) — the same provider flags apply to judging.

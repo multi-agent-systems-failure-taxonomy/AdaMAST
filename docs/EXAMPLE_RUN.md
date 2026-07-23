@@ -1,16 +1,18 @@
 # An example run
 
-This page shows what the agent actually sees and produces at each stage of one
-AdaMAST-supervised task. The running example is the bundled demo taxonomy
-(orbital task scheduling); every shape below is the real format the runtime
-parses. Try the matching dashboard locally with
-`python -m examples.dashboard_demo`.
+Follow one AdaMAST-supervised task from first checkpoint to learned taxonomy.
+Everything below is what the agent actually sees and produces — every shape
+is the real format the runtime parses, not an illustration.
 
-## 1. A checkpoint fires
+The running example is the bundled demo taxonomy (orbital task scheduling).
+Try the matching dashboard locally with `python -m adamast.examples.dashboard_demo`.
 
-At a configured boundary — here, after a tool call — the harness delivers the
-active taxonomy plus the recent trajectory window, and the agent responds in
-the required reflection shape:
+## 🛑 1. A checkpoint fires
+
+A checkpoint is a configured boundary where the agent pauses to self-check —
+here, after a tool call. The harness delivers the active taxonomy plus the
+recent trajectory window, and the agent responds in the required reflection
+shape:
 
 ```text
 Observe:   The schedule reused the cached AOS/LOS window after a newer
@@ -24,7 +26,7 @@ Decide:    Recompute the window before dispatch.
 The firing is recorded as runtime evidence with its gate, task UID, and
 checkpoint id.
 
-## 2. A clean checkpoint
+## ✅ 2. A clean checkpoint
 
 `none apply` is a valid outcome and is recorded too — clean checkpoints are
 part of the evidence, not a skipped step:
@@ -36,10 +38,11 @@ Map:       none apply (considered ORB-01, ORB-05).
 Decide:    Submit without repair.
 ```
 
-## 3. The final gate
+## 🚦 3. The final gate
 
-Before the final answer is released, the pre-submission gate requires this
-exact format and allows at most `repair_rounds` repairs:
+Before the final answer is released, the final gate — the blocking
+pre-submission checkpoint — requires this exact format and allows at most
+`repair_rounds` repairs:
 
 ```text
 Final AdaMAST status: READY_TO_SUBMIT
@@ -50,19 +53,20 @@ Repair attempts used: 1
 Final decision: submit
 ```
 
-A `REPAIR_REQUIRED` status blocks completion; after `repair_rounds`
-unsuccessful attempts the agent must report the unresolved issue honestly
-instead of claiming clean success.
+!!! warning "Honest failure beats claimed success"
+    A `REPAIR_REQUIRED` status blocks completion; after `repair_rounds`
+    unsuccessful attempts the agent must report the unresolved issue honestly
+    instead of claiming clean success.
 
-## 4. What the dashboard shows
+## 📊 4. What the dashboard shows
 
-For a standalone harness run, the program-level dashboard makes failure-mode
-firings, clean checkpoints, evidence snippets, and per-task UID filters
-browsable live:
+For a standalone harness run, the program-level
+[dashboard](DASHBOARD.md) makes failure-mode firings, clean checkpoints,
+evidence snippets, and per-task UID filters browsable live:
 
 ![AdaMAST runtime dashboard](assets/screenshots/dashboard-demo.png)
 
-## 5. What learning produces
+## 🧠 5. What learning produces
 
 At session end, one canonical trace is recorded. After enough traces
 accumulate, generation (or refinement) proposes a taxonomy specialized to the
@@ -92,8 +96,8 @@ observed failures — a normal stored record that future runs can inherit:
 
 Inherit it in a later run with `--inherit tax-skylab-orbital-demo-001`.
 
-## Where to go next
+## 📚 Where to go next
 
-- The lifecycle behind steps 4–5: [TRACES_AND_LEARNING.md](TRACES_AND_LEARNING.md)
-- The gate and reflection contract for harness authors: [INTEGRATION.md](INTEGRATION.md)
-- Program dashboard and live monitor: [DASHBOARD.md](DASHBOARD.md)
+Continue with [TRACES_AND_LEARNING.md](TRACES_AND_LEARNING.md) — the
+lifecycle behind steps 4–5 — or with [INTEGRATION.md](INTEGRATION.md) for the
+checkpoint and reflection contract harness authors implement.

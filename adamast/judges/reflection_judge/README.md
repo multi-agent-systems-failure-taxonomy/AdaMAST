@@ -2,7 +2,7 @@
 
 The AdaMAST Reflection Judge — a multi-stage trace-analysis judge that
 identifies failure points, builds a backward-grounded causal graph
-between them, and only AFTER that assigns taxonomy codes.
+between them, and only then assigns taxonomy codes.
 
 Used by `adamast/learning/reflection_refinement.py` as the end-of-generation
 validation gate.

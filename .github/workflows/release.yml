@@ -26,6 +26,11 @@ jobs:
         run: |
           version="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
           test "$GITHUB_REF_NAME" = "v$version"
+      # The bundled README becomes the PyPI project page: strip the
+      # private-repository note and absolutize relative links/images,
+      # which PyPI does not resolve. CI-workspace only; the committed
+      # README keeps its repository-relative form.
+      - run: python scripts/pypi_readme.py --pypi --in-place
       - run: python -m build
       - run: python -m twine check dist/*
       - uses: actions/upload-artifact@v7

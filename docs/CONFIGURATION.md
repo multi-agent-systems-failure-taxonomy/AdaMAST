@@ -1,20 +1,23 @@
 # Configuration reference
 
-This page is the canonical reference for `adamast.json`. Other pages show only
-the fields they need; every field, default, and precedence rule is defined
-here.
+Every `adamast.json` field, default, and precedence rule is defined on this
+page — it is the canonical reference. Other pages show only the fields they
+need.
 
-## How loading works
+## 📥 How loading works
 
-- AdaMAST reads one dependency-free JSON file, `adamast.json` by default, or the
-  path given by `--config`.
+- AdaMAST reads one dependency-free JSON file, `adamast.json` by default, or
+  the path given by `--config`.
 - Explicit CLI/API arguments win over config-file values.
 - Unknown fields are rejected so spelling mistakes fail loudly.
 - Relative paths are resolved relative to the config file; `~` is expanded.
 - `"version"` must be `1` (or omitted).
-- AdaMAST never stores credential values. Set provider keys in your environment.
 
-## Minimal config
+!!! warning "Credentials"
+    AdaMAST never stores credential values. Set provider keys in your
+    environment.
+
+## 🪶 Minimal config
 
 Most projects only need this:
 
@@ -28,7 +31,7 @@ Most projects only need this:
 
 Everything else has a sensible default.
 
-## Core fields
+## 🧱 Core fields
 
 | Field | Default | Purpose |
 |---|---|---|
@@ -41,7 +44,7 @@ Everything else has a sensible default.
 | `evidence_export` | unset | Optional external snapshot sink for session-end evidence. A `.json` value is written as that exact file; any other value is treated as a directory receiving one `<program_id>.json` per program. |
 | `redact_traces` | `true` | First-party adapters strip credential-looking substrings (API keys, tokens, cookies) from traces before persistence. Disable only when traces are known clean and exact text matters. |
 
-## Learning fields
+## 📈 Learning fields
 
 | Field | Default | Purpose |
 |---|---|---|
@@ -54,17 +57,21 @@ Everything else has a sensible default.
 | `advanced_refinement` | `false` | Add one support-judge repair pass during refinement. |
 | `freeze` | `false` | Inference-only mode: record traces and evidence but skip generation and refinement. Use for pinned-taxonomy A/B evaluations. |
 
-Hook integrations (Claude Code, Codex) always run generation and refinement
-in background workers regardless of `generation_stops` / `refinement_stops`:
-a hook process is killed at the harness's per-hook timeout, so inline learning
-is honored only by the single-LLM and CLI paths that own their process.
+!!! note "Hook hosts always learn in the background"
+    Hook integrations (Claude Code, Codex) always run generation and
+    refinement in background workers regardless of `generation_stops` /
+    `refinement_stops`: a hook process is killed at the harness's per-hook
+    timeout, so inline learning is honored only by the single-LLM and CLI
+    paths that own their process.
 
 See [TRACES_AND_LEARNING.md](TRACES_AND_LEARNING.md) for how these interact.
 
-## Gate fields
+## 🚦 Gate fields
 
-Form failures (unparseable reflections) and substantive repairs draw on
-separate budgets, so tuning one loop cannot silently disable the other.
+These fields budget the runtime checkpoints — the reflection boundaries also
+called gates — and the final pre-submission checkpoint. Form failures
+(unparseable reflections) and substantive repairs draw on separate budgets, so
+tuning one loop cannot silently disable the other.
 
 | Field | Default | Purpose |
 |---|---|---|
@@ -73,20 +80,20 @@ separate budgets, so tuning one loop cannot silently disable the other.
 | `max_retries` | `3` | Legacy shared knob, accepted indefinitely: maps to `repair_rounds` when `repair_rounds` is not set. |
 | `gate_exhaustion_policy` | `"raise"` | Single-LLM only. `"raise"` errors when the repair cap is hit; `"release"` returns the best answer and records `gate_allowed=false` (useful for benchmark wrappers). |
 
-## Model transport fields
+## 🔌 Model transport fields
 
 Transport is selected by model-id shape; these fields adjust it:
 
 | Field | Default | Purpose |
 |---|---|---|
-| `model` | unset | Task-solving model for `adamast-single-run` (same as its `--model` flag). Not used by learning calls. |
+| `model` | unset | Task-solving model for `adamast single-run` (same as its `--model` flag). Not used by learning calls. |
 | `openai_base_url` | unset | OpenAI-compatible endpoint override; also honored via the `OPENAI_BASE_URL` environment variable. |
 | `openai_api_key_env` | unset | Name of the environment variable holding the key for that endpoint. Store the variable *name*, never the value. |
 
 Credential expectations per provider are covered in
 [INSTALLATION.md](INSTALLATION.md).
 
-## Integration-scoped fields
+## 🧩 Integration-scoped fields
 
 | Field | Default | Purpose |
 |---|---|---|
@@ -101,14 +108,15 @@ Credential expectations per provider are covered in
 The legacy top-level `built_in_hooks`, `custom_hooks`, and `codex_hooks`
 fields are still accepted as compatibility aliases for the scoped forms.
 
-The defaults in the tables below describe explicit project installs.
-`adamast-codex-install --user-level` instead defaults to `project_scope: "auto"`,
-`session_selector: "prompt"`, `selector_surface: "browser"`, and
-`learning_backend: "codex_subagent"`.
-`adamast-claude-install --user-level` uses the parallel Claude values with
-`learning_backend: "claude_subagent"`. Both user-level commands default to the
-shared root `~/.adamast/interactive` and runtime identity
-`interactive-session`.
+!!! note "User-level installs use different defaults"
+    The defaults in the tables below describe explicit project installs.
+    `adamast codex install --user-level` instead defaults to
+    `project_scope: "auto"`, `session_selector: "prompt"`,
+    `selector_surface: "browser"`, and `learning_backend: "codex_subagent"`.
+    `adamast claude install --user-level` uses the parallel Claude values
+    with `learning_backend: "claude_subagent"`. Both user-level commands
+    default to the shared root `~/.adamast/interactive` and runtime identity
+    `interactive-session`.
 
 Codex user-level interactive hooks may also set:
 
@@ -138,14 +146,14 @@ Claude Code accepts parallel interactive fields:
 | `claude_code.claude_cli_path` | unset | Legacy detached-worker compatibility field; native in-session learning does not use it. |
 | `claude_code.worker_timeout_seconds` | `1800` | Browser-selection wait limit and claim lease for each native generation/refinement and support-review Agent. The installed browser `UserPromptSubmit` hook adds a 15-second shutdown margin. |
 
-## Display metadata
+## 🏷️ Display metadata
 
 | Field | Default | Purpose |
 |---|---|---|
 | `repo` | auto-discovered | Display-only repository label shown in the picker and dashboard. Never routes taxonomy selection. |
 | `repo_path` | unset | Directory used to auto-discover the display repo label from git metadata. |
 
-## Full example
+## ✅ Full example
 
 ```json
 {
@@ -182,5 +190,12 @@ Claude Code accepts parallel interactive fields:
 Validate any config with:
 
 ```bash
-adamast-doctor --config adamast.json
+adamast doctor --config adamast.json
 ```
+
+## ➡️ Continue with
+
+- [Traces and learning](TRACES_AND_LEARNING.md) — how the learning fields
+  interact at runtime.
+- [Troubleshooting](TROUBLESHOOTING.md) — when a resolved value does not
+  behave as expected.

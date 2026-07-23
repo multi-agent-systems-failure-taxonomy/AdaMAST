@@ -1,4 +1,4 @@
-# vendor/adamast/traces/
+# adamast/learning/vendor/traces/
 
 Trace loading + normalization + behavioral signal extraction for the
 AdaMAST pipeline. Accepts multiple input formats and converts everything to

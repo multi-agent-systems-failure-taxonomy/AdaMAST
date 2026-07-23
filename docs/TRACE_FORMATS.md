@@ -1,10 +1,66 @@
 # Prepare traces
 
-BASELINE and the core trace judge use the same loader. Give AdaMAST one `.json`
-or `.jsonl` file, or a directory containing those files, and it normalizes every
-accepted record to one stable shape before any model call.
+On this page you turn the agent logs you already have into traces AdaMAST
+accepts — and check them locally, before a single model call is spent.
 
-## Canonical AdaMAST record
+A **trace** is one recorded agent run: the task, what the agent did, and how it
+ended. BASELINE and the core trace judge use the same loader. Give AdaMAST one
+`.json` or `.jsonl` file, or a directory containing those files, and it
+normalizes every accepted record to one stable shape before any model call.
+
+## ✅ The three-step path
+
+1. Collect traces into one `.json` or `.jsonl` file, or a directory of those
+   files. Most existing formats load as-is — see the shapes table below.
+2. Validate: `adamast validate ./my-traces`
+3. Optional: normalize and read the result yourself:
+   `adamast normalize ./my-traces --output ./traces.normalized.jsonl`
+
+!!! tip "Make it yours"
+    - Point step 2 at a single file or a whole directory — both work.
+    - Keep your existing export format; the shapes table below shows what the
+      loader already recognizes.
+    - Choose where the normalized copy goes with `--output`.
+
+## 🔍 Validate before generation
+
+```bash
+adamast validate ./my-traces
+```
+
+Example report:
+
+```json
+{
+  "trace_count": 24,
+  "files": ["C:/work/my-traces/run.jsonl"],
+  "formats": {"messages": 24},
+  "empty_trajectories": 0
+}
+```
+
+!!! note
+    Validation is local and makes no model calls.
+
+Fix missing or empty trajectories before starting BASELINE; an empty
+trajectory cannot provide useful evidence for drafting or agreement.
+
+## 🧐 Normalize for inspection
+
+```bash
+adamast normalize ./my-traces --output ./traces.normalized.jsonl
+```
+
+The normalized file is deterministic UTF-8 JSONL. Inspect it to verify that
+roles, tool activity, task text, and outcome signals survived import as
+intended.
+
+!!! tip
+    You never have to run this step: both `adamast generate` and `adamast judge`
+    perform this normalization automatically for file-based input. Run it when
+    you want to see exactly what the models will see.
+
+## 🧾 The canonical record
 
 When you control trace export, use this format:
 
@@ -25,7 +81,7 @@ and `metadata` may contain any JSON object useful to your experiment. Use a
 stable, unique `problem_id` so annotations and artifacts can be traced back to
 their source.
 
-## Accepted containers
+## 📦 Accepted containers
 
 ### JSON
 
@@ -57,7 +113,10 @@ In JSONL, each line is a complete JSON object. Blank lines are ignored.
 When the source is a directory, AdaMAST recursively reads every `.json` and
 `.jsonl` file in sorted path order. Other file types are ignored.
 
-## Accepted record shapes
+## 🔄 Accepted record shapes
+
+You usually do not need to convert to the canonical record — the loader
+recognizes these shapes on its own:
 
 | Source shape | Required signal | Normalization behavior |
 | --- | --- | --- |
@@ -74,39 +133,7 @@ For ordinary records, `trace_id`, `problem_id`, or `id` can identify the trace.
 `raw_trajectory`, `trajectory`, `messages`, or `trace.trajectory` is present,
 validation fails instead of guessing.
 
-## Validate before generation
-
-```bash
-adamast validate ./my-traces
-```
-
-Example report:
-
-```json
-{
-  "trace_count": 24,
-  "files": ["C:/work/my-traces/run.jsonl"],
-  "formats": {"messages": 24},
-  "empty_trajectories": 0
-}
-```
-
-Validation is local and makes no model calls. Fix missing or empty trajectories
-before starting BASELINE; an empty trajectory cannot provide useful evidence
-for drafting or agreement.
-
-## Normalize for inspection
-
-```bash
-adamast normalize ./my-traces --output ./traces.normalized.jsonl
-```
-
-The normalized file is deterministic UTF-8 JSONL. Inspect it to verify that
-roles, tool activity, task text, and outcome signals survived import as
-intended. Both `adamast generate` and `adamast judge` perform this normalization
-automatically for file-based input.
-
-## Trace quality checklist
+## 🧼 Trace quality checklist
 
 - Include the attempted task, not only the final answer.
 - Preserve the observations and tool results that support a failure diagnosis.
@@ -117,6 +144,14 @@ automatically for file-based input.
   would leak the answer to the judge.
 - Split unrelated tasks into separate trace records.
 
-Runtime integrations use a related episode-level trace contract; see
-[Traces and learning](TRACES_AND_LEARNING.md) after completing the standalone
-workflow.
+!!! note
+    Runtime integrations use a related episode-level trace contract; see
+    [Traces and learning](TRACES_AND_LEARNING.md) after completing the
+    standalone workflow.
+
+## ➡️ Continue with
+
+- [Generate a taxonomy](BASELINE_GENERATION.md) — run BASELINE on your
+  validated traces.
+- [Judge traces](JUDGING.md) — label validated traces with an existing
+  taxonomy.

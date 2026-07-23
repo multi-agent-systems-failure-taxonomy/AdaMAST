@@ -1,7 +1,7 @@
-# vendor/adamast/pipeline/
+# adamast/learning/vendor/pipeline/
 
 The 8-step AdaMAST taxonomy generation pipeline. Driven by
-`TaxonomyPipeline.run` which threads outputs from each step into the next.
+`TaxonomyPipeline.run`, which threads each step's output into the next.
 Each step is an LLM-driven analysis — `domain` understands the task
 domain, `structure` discovers agent roles, `generator` produces candidate
 codes per axis, `dedup`/`validate`/`check` clean up the result.

@@ -1,10 +1,13 @@
 # Choose an AdaMAST workflow
 
-AdaMAST is a set of composable taxonomy workflows, not only a Codex or Claude
-Code integration. Choose by the decision you need to make and by who owns the
-trace lifecycle.
+This page does two things: routes you to the right guide for what you need,
+and defines the handful of words — taxonomy, trace, checkpoint, judge — that
+every other page uses. AdaMAST is a set of composable taxonomy workflows, not
+only a Codex or Claude Code integration.
 
-## Workflow map
+## 🗺️ Workflow map
+
+Choose by the decision you need to make and by who owns the trace lifecycle:
 
 | Need | Persistent state? | Model calls | Guide |
 | --- | --- | --- | --- |
@@ -14,13 +17,13 @@ trace lifecycle.
 | Label new traces with one best code | No | One judge call per trace | [Judge traces](JUDGING.md) |
 | Analyze causality, coverage, quality, or calibration | Optional | Depends on judge type | [Choose a judge](JUDGE_TYPES.md) |
 | Generate/refine as traces accumulate | Yes | Threshold-triggered learning calls | [Adaptive runtime](GETTING_STARTED.md) |
-| Add runtime gates to a custom program | Yes | Harness-defined | [Custom agent harness](INTEGRATION.md) |
-| Add runtime gates to Codex or Claude Code | Yes | Native host workers or configured provider | [Host integrations](CODEX.md) |
+| Add runtime checkpoints to a custom program | Yes | Harness-defined | [Custom agent harness](INTEGRATION.md) |
+| Add runtime checkpoints to Codex or Claude Code | Yes | Native host workers or configured provider | [Host integrations](CODEX.md) |
 
-## Taxonomy
+## 🏷️ Taxonomy
 
-A taxonomy is a versioned catalog of observable failure modes. Public BASELINE
-output uses a flat `codes` list. Runtime storage adds an immutable
+A taxonomy is a versioned catalog of observable failure modes. Public
+BASELINE output uses a flat `codes` list. Runtime storage adds an immutable
 `taxonomy_id`, activation state, and successor lineage.
 
 AdaMAST uses three code categories:
@@ -31,46 +34,48 @@ AdaMAST uses three code categories:
 | B | Role-specific quality failures |
 | C | Domain reasoning or cross-role failures |
 
-## Trace
+## 🧾 Trace
 
 A trace is the evidence from one completed task or episode: a stable ID, the
 task, the raw trajectory, and optional metadata. Standalone workflows read
 files. Runtime integrations create the same conceptual record at an accepted
 task boundary.
 
-## Generation
+## ✍️ Generation
 
-Generation proposes a new taxonomy from traces. In BASELINE it runs on demand.
-In the adaptive runtime it runs after a program reaches its warm-up threshold.
-These strategies need not remain identical: the shared trace and taxonomy
-contracts leave room for additional generation methods.
+Generation proposes a new taxonomy from traces. In BASELINE it runs on
+demand. In the adaptive runtime it runs after a program reaches its warm-up
+threshold. These strategies need not remain identical: the shared trace and
+taxonomy contracts leave room for additional generation methods.
 
-## Agreement
+## 🤝 Agreement
 
 The BASELINE agreement layer asks four independent annotators to discover,
-reconcile, type, and code failures. The taxonomy is accepted only if final macro
-Fleiss kappa and coverage meet their configured targets.
+reconcile, type, and code failures. The taxonomy is accepted only if final
+macro Fleiss kappa and coverage meet their configured targets.
 
-## Judge
+## ⚖️ Judge
 
-A judge applies or evaluates a taxonomy. The core judge chooses one best code
-for a trace. Specialized judges can select multiple codes, map a failure point,
-measure coverage, review codebook quality, calibrate an annotation, or build a
-causal reflection graph.
+A judge applies or evaluates a taxonomy. The core judge chooses one best
+code for a trace. Specialized judges can select multiple codes, map a
+failure point, measure coverage, review codebook quality, calibrate an
+annotation, or build a causal reflection graph.
 
-## Program and runtime state
+## 🧮 Program and runtime state
 
-A runtime **program** is one learning stream identified by its `trace_output`
-folder. It owns pending traces, the active taxonomy, generation/refinement
-counters, and local status. Codex and Claude Code allocate one program branch
-per conversation; custom harnesses opt into sharing only by reusing a path.
+A runtime **program** is one learning stream identified by its
+`trace_output` folder. It owns pending traces, the active taxonomy,
+generation/refinement counters, and local status. Codex and Claude Code give
+each conversation its own **conversation branch**; custom harnesses opt into
+sharing only by reusing a path.
 
-## Gate and checkpoint
+## 🚧 Checkpoint (gate)
 
-A gate is a runtime boundary where the agent reflects on recent evidence using
-the active taxonomy. Checkpoints are usually advisory; the final submission
-gate can block until the required response shape passes or the retry policy is
-exhausted.
+A **checkpoint** — also called a **gate**; the two words name the same event,
+and these docs standardize on *checkpoint* — is a runtime boundary where the
+agent reflects on recent evidence using the active taxonomy. Most checkpoints
+are advisory; the **final gate**, the pre-submission checkpoint, can block
+until the required response shape passes or the retry policy is exhausted.
 
 The runtime reflection shape is:
 
@@ -79,26 +84,29 @@ The runtime reflection shape is:
 3. **Map** supported evidence to taxonomy codes.
 4. **Decide** whether to repair or continue.
 
-`none apply` is a valid clean checkpoint.
+!!! note
+    `none apply` is a valid clean checkpoint. Finding nothing wrong is an
+    answer, not a skipped step.
 
-## MAST warm-up
+## 🌱 MAST warm-up
 
-When no stored taxonomy is inherited, the runtime can begin with the built-in
-14-code MAST adaptation. Completed warm-up traces support the first generated
-project taxonomy. MAST is a runtime seed, not a requirement for standalone
-BASELINE generation.
+When no stored taxonomy is inherited, the runtime can begin with the
+built-in 14-code MAST adaptation. Completed warm-up traces support the first
+generated project taxonomy. MAST is a runtime seed, not a requirement for
+standalone BASELINE generation.
 
-## Refinement and lineage
+## 🔀 Refinement and lineage
 
-Refinement reviews one branch's active stored taxonomy after that conversation
-accumulates additional traces. An accepted change receives a new `taxonomy_id`;
-the predecessor and child remain connected by lineage. Several branches may
-create different children from the same parent, so the current taxonomy is
-resolved from the branch head rather than a global latest pointer. A valid
-`no_change` review advances that branch's cadence without replacing it.
+Refinement reviews one branch's active stored taxonomy after that
+conversation accumulates additional traces. An accepted change receives a
+new `taxonomy_id`; the predecessor and child remain connected by lineage.
+Several branches may create different children from the same parent, so the
+current taxonomy is resolved from the branch head rather than a global
+latest pointer. A valid `no_change` review advances that branch's cadence
+without replacing it.
 
-## Next step
+## ➡️ Next step
 
-Start with [Prepare traces](TRACE_FORMATS.md) unless you already have a
-validated AdaMAST source. Move down the numbered sidebar levels only when the
-preceding workflow is insufficient for your use case.
+Continue with [Prepare traces](TRACE_FORMATS.md) unless you already have a
+validated AdaMAST source. Move down the numbered sidebar levels only when
+the preceding workflow is insufficient for your use case.

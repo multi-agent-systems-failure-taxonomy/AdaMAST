@@ -28,7 +28,7 @@ body {
     linear-gradient(90deg, rgba(45, 91, 206, 0.045) 1px, transparent 1px),
     var(--paper);
   background-size: 48px 48px;
-  font-family: "Aptos", "Segoe UI", Arial, sans-serif;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
 }
 
 a {
@@ -96,7 +96,7 @@ a {
 
 .site-nav a {
   color: var(--graphite);
-  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   text-decoration: none;
@@ -126,7 +126,7 @@ a {
 .eyebrow {
   margin: 0 0 1rem;
   color: var(--mint);
-  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.09em;
@@ -136,11 +136,11 @@ a {
 h1 {
   max-width: 700px;
   margin: 0;
-  font-family: "Aptos Display", "Segoe UI", Arial, sans-serif;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
   font-size: clamp(3.5rem, 8vw, 7.8rem);
-  font-weight: 750;
-  letter-spacing: -0.065em;
-  line-height: 0.9;
+  font-weight: 830;
+  letter-spacing: -0.055em;
+  line-height: 0.92;
 }
 
 .lede {
@@ -274,7 +274,7 @@ h1 {
 .runtime-sequence span {
   padding-top: 0.75rem;
   color: var(--graphite);
-  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 0.68rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;

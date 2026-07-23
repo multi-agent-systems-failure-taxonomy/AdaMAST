@@ -14,6 +14,31 @@ from importlib import import_module, metadata
 
 # command -> (module path, attribute, one-line description)
 _COMMANDS: dict[str, tuple[str, str, str]] = {
+    "generate": (
+        "adamast.foundation_cli",
+        "main_generate",
+        "generate an agreement-gated taxonomy from trace files",
+    ),
+    "judge": (
+        "adamast.foundation_cli",
+        "main_judge",
+        "apply an existing taxonomy to one or more traces",
+    ),
+    "validate": (
+        "adamast.foundation_cli",
+        "main_validate",
+        "validate accepted trace formats",
+    ),
+    "normalize": (
+        "adamast.foundation_cli",
+        "main_normalize",
+        "write canonical AdaMAST JSONL from any accepted format",
+    ),
+    "view": (
+        "adamast.foundation_cli",
+        "main_view",
+        "open one taxonomy as a read-only browser field guide",
+    ),
     "doctor": (
         "adamast.doctor",
         "main",

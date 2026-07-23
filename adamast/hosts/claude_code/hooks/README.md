@@ -2,9 +2,9 @@
 
 One file per Claude Code hook event. Each file exports a single `handle`
 function (`(event, config) -> (exit_code, payload)`) that the
-[`dispatcher`](../dispatcher.py) routes to. The implementations themselves
-are thin shims — all real behavior lives in [`../runtime.py`](../runtime.py)
-so the hook files stay as a 1-to-1 map of the Claude Code hook surface.
+[`dispatcher`](../dispatcher.py) routes to. The implementations are thin
+shims — all real behavior lives in [`../runtime.py`](../runtime.py), so the
+hook files stay a 1-to-1 map of the Claude Code hook surface.
 
 ## Programs
 
@@ -12,6 +12,7 @@ so the hook files stay as a 1-to-1 map of the Claude Code hook surface.
 |---|---|---|---|
 | [`__init__.py`](__init__.py) | — | — | Package marker |
 | [`session_start.py`](session_start.py) | `SessionStart` | no | Pick & hold the session taxonomy; return the standing-instruction additionalContext |
+| [`user_prompt_submit.py`](user_prompt_submit.py) | `UserPromptSubmit` | yes | Resolve taxonomy selection: hold the first substantive prompt until the picker choice lands, then continue it |
 | [`session_end.py`](session_end.py) | `SessionEnd` | no | Persist pending traces; trigger generation/refinement; release dashboard |
 | [`task_completed.py`](task_completed.py) | `TaskCompleted` | yes | Sub-task checkpoint: enforce a reflection block in the transcript, block until satisfied |
 | [`subagent_stop.py`](subagent_stop.py) | `SubagentStop` | yes | Sub-agent checkpoint: same shape as `task_completed` but on the agent transcript |

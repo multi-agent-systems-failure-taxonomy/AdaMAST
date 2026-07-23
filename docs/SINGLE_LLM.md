@@ -1,11 +1,20 @@
 # Single-LLM integration
 
-Use this path when your application owns the model call: scripts, notebooks, benchmarks, batch jobs, or custom pipelines.
+Wrap one direct model call with AdaMAST checkpoints, a final gate, and trace
+recording. Use this path when your application owns the model call — scripts,
+notebooks, benchmarks, batch jobs, or custom pipelines — and:
 
-## CLI wrapper
+- there is no agent harness with hooks;
+- each dataset row or benchmark sample is a separate task;
+- you want deterministic control over when AdaMAST is invoked;
+- you want to compare AdaMAST-on and AdaMAST-off runs from the same script.
+
+## 🚀 CLI wrapper
+
+One command wraps a single task:
 
 ```bash
-adamast-single-run \
+adamast single-run \
   --config adamast.json \
   --task "Solve the task, then pass through AdaMAST before final answer." \
   --model gpt-5 \
@@ -14,20 +23,24 @@ adamast-single-run \
   --recent-activity-chars 12000
 ```
 
-The `--model` flag is the task-solving model. The `adamast_model` field in `adamast.json` is the AdaMAST generation, judge, and refinement model.
+!!! tip "Two models, two knobs"
+    The `--model` flag is the task-solving model. The `adamast_model` field in
+    `adamast.json` is the AdaMAST generation, judge, and refinement model.
 
-`gate_exhaustion_policy` controls what happens when the final gate still
-blocks after the retry cap:
+**Make it yours:**
 
-- `raise` keeps the strict default and exits with an error.
-- `release` returns the best available answer and records `gate_allowed=false`.
+| Flag | What it changes |
+|---|---|
+| `--gate-exhaustion-policy` | What happens when the final gate still blocks after the retry cap: `raise` keeps the strict default and exits with an error; `release` returns the best available answer and records `gate_allowed=false`. |
+| `--recent-activity-messages` / `--recent-activity-chars` | The recent-activity limits bound checkpoint/final-gate prompt growth while preserving the original task prompt and a tail of recent messages. |
 
-The recent-activity limits bound checkpoint/final-gate prompt growth while
-preserving the original task prompt and a tail of recent messages.
+Every config-file counterpart of these flags is defined in the
+[configuration reference](CONFIGURATION.md).
 
-## Programmatic integration
+## 🐍 Programmatic integration
 
-Custom programs can call the runtime directly. A minimal adapter looks like this:
+Custom programs can call the runtime directly. A minimal adapter looks like
+this:
 
 ```python
 from adamast import GenerationTrace, end_session, load_adamast_config, record_trace, start_session
@@ -68,20 +81,14 @@ finally:
     end_session(session)
 ```
 
-The exact method names depend on the adapter layer you choose, but the contract is stable:
+The exact method names depend on the adapter layer you choose, but the
+contract is stable:
 
 1. start a session with a mandatory trace output;
 2. resolve the active taxonomy;
 3. call checkpoint/final gates at meaningful boundaries;
 4. record one canonical trace at the end.
 
-## When to use this path
-
-Use the single-LLM path when:
-
-- there is no agent harness with hooks;
-- each dataset row or benchmark sample is a separate task;
-- you want deterministic control over when AdaMAST is invoked;
-- you want to compare AdaMAST-on and AdaMAST-off runs from the same script.
-
-See [API_OR_RUNTIME.md](API_OR_RUNTIME.md) for lower-level runtime notes.
+Continue with [API_OR_RUNTIME.md](API_OR_RUNTIME.md) for lower-level runtime
+notes, or step up to a [custom agent harness](INTEGRATION.md) when your
+application owns more than one model call.

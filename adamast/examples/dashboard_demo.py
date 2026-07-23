@@ -2,7 +2,7 @@
 
 Run from the repository root:
 
-    python -m examples.dashboard_demo
+    python -m adamast.examples.dashboard_demo
 
 The temporary program and taxonomy store disappear when the server stops.
 """
