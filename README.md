@@ -7,6 +7,7 @@
 <p align="center">
   <a href="https://arxiv.org/abs/2607.16387"><img src="https://img.shields.io/badge/paper-arXiv-B31B1B?style=flat-square&logo=arxiv&logoColor=white" alt="Paper" /></a>
   <a href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/"><img src="https://img.shields.io/badge/docs-website-2457D6?style=flat-square" alt="Docs" /></a>
+  <a href="https://pypi.org/project/adamast/"><img src="https://img.shields.io/pypi/v/adamast?style=flat-square" alt="PyPI" /></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-1F8A70?style=flat-square" alt="License" /></a>
 </p>
@@ -20,7 +21,7 @@ AI agents — coding assistants, tool-using pipelines, multi-agent systems — d
 - ✅ **Catalogs are quality-gated** — several independent automated reviews must agree before one is accepted
 - 🔌 **Live mode** — plug into Codex or Claude Code and the catalog is learned and applied while you work
 
-**Paper:** [Fantastic Adaptive Taxonomies and How to Use Them](https://arxiv.org/abs/2607.16387) · **Docs:** [Website](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/)
+**Paper:** [Fantastic Adaptive Taxonomies and How to Use Them](https://arxiv.org/abs/2607.16387) · **Blog:** [AdaMAST announcement](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/adamast_paper/) · **Docs:** [Website](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/)
 
 ---
 
@@ -80,16 +81,16 @@ Set one provider credential (OpenAI shown; Anthropic, Google, and AWS Bedrock wo
 export OPENAI_API_KEY="..."
 ```
 
-**Generate a taxonomy** from a trace file or folder (any of the 8 auto-detected formats):
+**Generate a taxonomy** from a trace file or folder (any of the 7 auto-detected formats):
 
 ```bash
-adamast generate --traces adamast-examples/traces.jsonl --output ./my-taxonomy --view
+adamast generate --provider openai --traces adamast-examples/traces.jsonl --output ./my-taxonomy --view
 ```
 
 **Judge new traces** with it:
 
 ```bash
-adamast judge --taxonomy ./my-taxonomy/taxonomy.json --traces ./new_traces --output judgments.json
+adamast judge --provider openai --taxonomy ./my-taxonomy/taxonomy.json --traces ./new_traces --output judgments.json
 ```
 
 **The everyday commands:**
@@ -99,7 +100,7 @@ adamast judge --taxonomy ./my-taxonomy/taxonomy.json --traces ./new_traces --out
 | `adamast validate <traces>` | Check trace files: count, detected formats, empty trajectories |
 | `adamast normalize <traces> --output out.jsonl` | Convert any accepted format to canonical AdaMAST JSONL |
 | `adamast generate --traces … --output …` | Agreement-gated taxonomy generation |
-| `adamast judge --taxonomy … --traces …` | One best code per trace, with evidence |
+| `adamast judge --taxonomy … --traces …` | Every supported failure code per trace, with evidence |
 | `adamast view <taxonomy.json>` | Open a taxonomy as a read-only browser field guide |
 
 Deeper guides: [Trace formats](docs/TRACE_FORMATS.md) · [Generation](docs/GENERATION.md) · [The agreement gate](docs/AGREEMENT_GATE.md) · [Judging](docs/JUDGING.md) · [Judge types](docs/JUDGE_TYPES.md) · [Outputs](docs/TAXONOMY_OUTPUTS.md)
@@ -141,6 +142,7 @@ The full story — how checkpoints work, the taxonomy picker, background learnin
 | `adamast view` | Browser field guide for one taxonomy |
 | `adamast find` | List or select stored taxonomies |
 | `adamast import-traces` | Generate a taxonomy from existing traces into the local store |
+| `adamast register-taxonomy` | Register an existing taxonomy file into the local store |
 | `adamast doctor` | Validate paths, configuration, hooks, and host contracts |
 | `adamast status` | Active taxonomy, traces, learning state, recent decisions |
 | `adamast dashboard` | Local taxonomy dashboard / checkpoint monitor |

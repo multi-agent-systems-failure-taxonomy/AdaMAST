@@ -57,6 +57,9 @@ fixtures (under [`fixtures/`](fixtures/)) — no live LLM calls.
 | [`test_umbrella_cli.py`](test_umbrella_cli.py) | Umbrella `adamast` command dispatch to subcommands |
 | [`test_viewer.py`](test_viewer.py) | Read-only taxonomy viewer |
 | [`test_worker_prompt_rendering.py`](test_worker_prompt_rendering.py) | Line-readable worker prompt rendering |
+| [`test_examples_packaging.py`](test_examples_packaging.py) | Bundled examples ship inside the package; `python -m adamast.examples` materializes them locally |
+| [`test_foundation_cli.py`](test_foundation_cli.py) | Foundation verbs on the umbrella CLI: generate, judge, validate, normalize, view |
+| [`test_pypi_readme.py`](test_pypi_readme.py) | PyPI/public README transform: private-note stripping and relative-link absolutizing |
 
 ## Sub-folders
 

@@ -1,24 +1,26 @@
 # Judge traces
 
-On this page you label each completed trace with the single best-supported
-failure code from a taxonomy you already have — from the CLI or from Python.
+On this page you label completed traces with the failure codes their evidence
+supports, using a taxonomy you already have — from the CLI or from Python.
 
-The core JUDGES workflow applies one existing taxonomy to one or more completed
-traces. It is separate from generation and adaptive runtime: it does not collect
-new traces, mutate the taxonomy, choose best-of-N candidates, or install hooks.
+The judge applies one existing taxonomy to one or more completed traces. A
+trace can carry several failure modes at once — even a single failure point
+can express more than one — so the default judge returns every supported
+code, each with its evidence.
 
-## 🎯 When to use the core judge
+## 🎯 What it does
 
-Use `adamast judge` when you need a simple, integration-neutral classifier that:
+`adamast judge` selects every failure code the trace evidence supports —
+zero, one, or several per trace — quoting the evidence for each. Finding
+nothing wrong is an explicit answer (`none_apply`), not an error. Returned
+codes are always validated against the taxonomy, and it reads the same trace
+formats and providers as generation.
 
-- selects the single best-supported failure code for each trace;
-- cites trace evidence;
-- reports confidence and a recovery hint;
-- validates every returned code against the taxonomy;
-- works with the same trace formats and providers as generation.
+Pass `--mode single` when you need exactly one best-supported code per trace,
+with a confidence score and a recovery hint.
 
-For causal analysis, coverage checks, calibration, or taxonomy-level quality
-review, continue to [Choose a judge](JUDGE_TYPES.md).
+Judges that map failure points or analyze coverage, calibration, and
+causality live in [Choose a judge](JUDGE_TYPES.md).
 
 ## 🚀 Judge from the CLI
 
@@ -39,6 +41,7 @@ adamast judge \
     | --- | --- |
     | Print to standard output instead of a file | omit `--output` |
     | Judge a whole directory of traces | point `--traces` at the directory |
+    | Force exactly one code per trace | `--mode single` |
     | Give the model more of each long trace | `--max-trace-chars 12000` (see "Trace sampling limit") |
     | Evaluate a `review_required` taxonomy anyway | `--allow-review-required` (see below) |
 
@@ -60,14 +63,17 @@ judge = create_judge(
 )
 
 for diagnosis in judge.judge_many(traces):
-    print(diagnosis.trace_id, diagnosis.code, diagnosis.confidence)
+    print(diagnosis.trace_id, diagnosis.code_ids(), diagnosis.none_apply)
 ```
+
+Pass `mode="single"` to `create_judge` for the one-code-per-trace judge; its
+diagnoses carry `code`, `confidence`, and `recovery_hint` instead.
 
 ### One-off helpers
 
 `judge_trace(...)` judges one normalized trace dictionary.
 `judge_traces(...)` accepts an iterable of normalized dictionaries or a file or
-directory path.
+directory path. Both accept the same `mode` parameter.
 
 ```python
 from adamast import judge_traces
@@ -83,7 +89,29 @@ diagnoses = judge_traces(
 
 ## 📄 Diagnosis schema
 
-Each trace produces a validated diagnosis:
+Each trace produces a validated diagnosis. The default judge returns every
+supported failure mode with its evidence:
+
+```json
+{
+  "trace_id": "trace-17",
+  "failure_modes": [
+    {
+      "code": "A.1",
+      "name": "Tool response truncated",
+      "evidence": "Specific evidence identified in the trace",
+      "confidence": "high",
+      "severity": "moderate"
+    }
+  ],
+  "none_apply": false,
+  "judge_metadata": {"judge": "selection", "warnings": []}
+}
+```
+
+A clean trace returns `"failure_modes": []` with `"none_apply": true`.
+
+With `--mode single`, each trace instead produces one best-supported code:
 
 ```json
 {
@@ -97,9 +125,11 @@ Each trace produces a validated diagnosis:
 }
 ```
 
-The code, label, and category are taken from the loaded taxonomy. Unknown
-codes, malformed JSON, and confidence values outside `[0, 1]` fail explicitly.
-AdaMAST does not replace an unknown code with a guessed closest match.
+Returned codes are validated against the loaded taxonomy in both modes.
+AdaMAST does not replace an unknown code with a guessed closest match: the
+default judge drops unknown codes and records a warning in
+`judge_metadata`, and the single-code judge fails explicitly on unknown
+codes, malformed JSON, or confidence values outside `[0, 1]`.
 
 ## 🚦 Accepted taxonomy requirement
 
@@ -120,8 +150,8 @@ adamast judge \
 
 ## ✂️ Trace sampling limit
 
-The core judge allocates `6000` prompt characters to each normalized trace by
-default. Longer trajectories preserve the beginning and end with an explicit
+The judge allocates `6000` prompt characters to each normalized trace by
+default, in both modes. Longer trajectories preserve the beginning and end with an explicit
 truncation marker between them.
 
 ```bash
@@ -141,14 +171,6 @@ adamast judge \
 The judge accepts the stable flat AdaMAST schema and legacy layered ATLAS
 taxonomy files during migration. New integrations should use the flat
 `taxonomy.json` generated by `adamast generate`.
-
-## 🙅 What the core judge does not do
-
-- It does not refine or activate taxonomy versions.
-- It does not determine whether the taxonomy itself has good coverage.
-- It does not build a causal graph of failure points.
-- It does not audit another judge's confidence.
-- It does not manage an agent's runtime checkpoints or final gate.
 
 ## ➡️ Continue with
 

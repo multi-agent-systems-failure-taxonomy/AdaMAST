@@ -143,6 +143,8 @@ _PUBLIC_API = {
     ),
     "Diagnosis": ("adamast.judges.contract", "Diagnosis"),
     "JudgeResponseError": ("adamast.judges.contract", "JudgeResponseError"),
+    "SelectionDiagnosis": ("adamast.judges.contract", "SelectionDiagnosis"),
+    "SelectionTraceJudge": ("adamast.judges.contract", "SelectionTraceJudge"),
     "TaxonomyJudge": ("adamast.judges.contract", "TaxonomyJudge"),
     "create_judge": ("adamast.judges.contract", "create_judge"),
     "judge_trace": ("adamast.judges.contract", "judge_trace"),

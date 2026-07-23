@@ -28,28 +28,23 @@ their own prior annotations.
 
 ```mermaid
 flowchart TD
-    A["1 · Discover<br/>each annotator finds failures independently"] --> B["2 · Reconcile<br/>vote on which failures are supported"]
-    B --> C["3 · Type<br/>A system · B role · C domain"]
-    C --> D["4 · Assign codes<br/>map each error to taxonomy codes"]
-    D --> E["5 · Measure &amp; refine<br/>agreement + coverage"]
-    E -->|"another round needed"| A
-    E -->|"done"| F["🚦 Final status"]
+    A["🔍 Find failures<br/>each annotator reads the traces on its own"] --> B["🤝 Compare notes<br/>keep the failures the annotators support"]
+    B --> C["🏷️ Assign failure modes<br/>match each failure to the draft catalog"]
+    C --> D["📏 Measure agreement<br/>did the independent annotations converge?"]
+    D -->|"not yet — improve the draft"| A
+    D -->|"yes"| E["🚦 Final status"]
 ```
 
-1. **Discover candidate errors.** Each annotator independently identifies
-   observable failures in sampled traces. The process is not limited to codes
-   already present in the draft.
-2. **Reconcile discoveries.** Annotators see the merged proposals, vote on
-   which failures are supported, and discuss borderline cases. This separates
-   disagreement about whether an error exists from disagreement about which
-   code describes it.
-3. **Assign A/B/C types.** Agreed errors are typed as system/execution (A),
-   role-specific (B), or domain reasoning/cross-role (C).
-4. **Assign taxonomy codes.** Annotators independently map each typed error to
-   one or more taxonomy codes. Low-agreement assignments enter a bounded
-   deliberation step where the evidence and competing choices are compared.
-5. **Measure and refine.** AdaMAST computes agreement and coverage, records the
-   round, and rewrites low-agreement definitions when another round is needed.
+1. **Find failures.** Each annotator reads the sampled traces independently
+   and marks what went wrong — including failures the current draft has no
+   entry for.
+2. **Compare notes.** The findings are merged; only failures supported across
+   annotators move forward.
+3. **Assign failure modes.** Each supported failure is matched — again
+   independently — to the draft's failure modes.
+4. **Measure agreement.** AdaMAST checks how well the independent assignments
+   converged and how much of what was found the draft covers. If either falls
+   short, the weak definitions are rewritten and another round runs.
 
 ## 📏 Acceptance metrics
 
@@ -78,7 +73,7 @@ improving the result. Pass `--no-early-stop` to force every configured round.
 ### `accepted`
 
 Both final metrics meet their configured thresholds. The taxonomy can be used
-by the core judge without an override.
+by the judge without an override.
 
 ### `review_required`
 
@@ -87,7 +82,7 @@ final candidate, annotations, per-round measurements, and browser view so a
 researcher can inspect what failed.
 
 !!! warning
-    The core judge rejects this status by default. `--allow-review-required`
+    The judge rejects this status by default. `--allow-review-required`
     exists for explicit experiments, but it is not equivalent to passing the
     gate.
 

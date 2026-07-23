@@ -1,15 +1,17 @@
 """Provider-neutral judges for applying an AdaMAST taxonomy to new traces.
 
 The JUDGES layer is deliberately narrower than adaptive runtime integration:
-it loads an existing taxonomy, asks one configured model to select the single
-best-supported failure code for each trace, and returns validated structured
-diagnoses. It does not accumulate traces, refine taxonomies, or modify an
-agent harness.
+it loads an existing taxonomy, asks one configured model which failure codes
+each trace's evidence supports, and returns validated structured diagnoses.
+The default mode selects every supported code — zero, one, or several per
+trace; single mode classifies each trace into exactly one best-supported
+code. It does not accumulate traces, refine taxonomies, or modify an agent
+harness.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 from pathlib import Path
 from typing import Any, Iterable, Mapping
@@ -22,7 +24,11 @@ from adamast.llm.providers import (
     resolve_model,
     validate_provider_credentials,
 )
+from adamast.core.taxonomy_data import Taxonomy
 from adamast.core.trace_formats import load_traces
+from adamast.judges.simple import SelectionJudge
+
+JUDGE_MODES = ("default", "single")
 
 
 DEFAULT_MAX_TRACE_CHARS = 6000
@@ -60,6 +66,27 @@ class Diagnosis:
         }
 
 
+@dataclass(frozen=True)
+class SelectionDiagnosis:
+    """Validated default-judge result: every supported code for one trace."""
+
+    trace_id: str
+    failure_modes: list[dict[str, Any]] = field(default_factory=list)
+    none_apply: bool = False
+    judge_metadata: dict[str, Any] = field(default_factory=dict)
+
+    def code_ids(self) -> list[str]:
+        return [m["code"] for m in self.failure_modes if m.get("code")]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "trace_id": self.trace_id,
+            "failure_modes": [dict(m) for m in self.failure_modes],
+            "none_apply": self.none_apply,
+            "judge_metadata": dict(self.judge_metadata),
+        }
+
+
 class TaxonomyJudge:
     """Apply one existing taxonomy with one provider-neutral model adapter."""
 
@@ -74,20 +101,9 @@ class TaxonomyJudge:
         if max_trace_chars <= 0:
             raise ValueError("max_trace_chars must be positive")
 
-        self.taxonomy = _load_taxonomy(taxonomy)
-        if (
-            self.taxonomy.get("status") == "review_required"
-            and not allow_review_required
-        ):
-            raise ValueError(
-                "taxonomy status is review_required; use an accepted taxonomy "
-                "or explicitly allow review-required input"
-            )
-
-        codes = _extract_codes(self.taxonomy)
-        if not codes:
-            raise ValueError("taxonomy contains no usable failure codes")
-
+        self.taxonomy, codes = _prepare_taxonomy(
+            taxonomy, allow_review_required=allow_review_required
+        )
         self.provider = provider
         self.max_trace_chars = max_trace_chars
         self.codes = {code["id"]: code for code in codes}
@@ -165,19 +181,89 @@ class TaxonomyJudge:
         )
 
 
+class SelectionTraceJudge:
+    """Default judge: select every failure code the trace evidence supports.
+
+    Wraps the shared selection judge behind the same provider adapters,
+    taxonomy loading, and trace formatting as :class:`TaxonomyJudge`, so one
+    surface serves both judge modes.
+    """
+
+    def __init__(
+        self,
+        taxonomy: Mapping[str, Any] | Path | str,
+        provider: TextProvider,
+        *,
+        max_trace_chars: int = DEFAULT_MAX_TRACE_CHARS,
+        allow_review_required: bool = False,
+        max_retries: int = 1,
+    ) -> None:
+        if max_trace_chars <= 0:
+            raise ValueError("max_trace_chars must be positive")
+
+        self.taxonomy, codes = _prepare_taxonomy(
+            taxonomy, allow_review_required=allow_review_required
+        )
+        self.provider = provider
+        self.max_trace_chars = max_trace_chars
+        self.codes = {code["id"]: code for code in codes}
+
+        def _call(prompt: str, model: str) -> str | None:
+            return provider.complete(prompt, response_format="json")
+
+        self._selection = SelectionJudge(
+            Taxonomy.from_flat({"codes": codes}),
+            judge_model=provider.model,
+            llm_call=_call,
+            max_retries=max_retries,
+        )
+
+    def judge(self, trace: Mapping[str, Any]) -> SelectionDiagnosis:
+        """Return every supported taxonomy code for ``trace`` — possibly none."""
+
+        trace_id = str(
+            trace.get("problem_id") or trace.get("trace_id") or "unknown"
+        )
+        trace_text = _format_trace(trace, self.max_trace_chars)
+        result = self._selection.run(trace_text)
+        return SelectionDiagnosis(
+            trace_id=trace_id,
+            failure_modes=[dict(m) for m in result.failure_modes],
+            none_apply=result.none_apply,
+            judge_metadata=dict(result.judge_metadata),
+        )
+
+    def judge_many(
+        self, traces: Iterable[Mapping[str, Any]]
+    ) -> list[SelectionDiagnosis]:
+        """Judge multiple traces sequentially while preserving input order."""
+
+        return [self.judge(trace) for trace in traces]
+
+
 def create_judge(
     taxonomy: Mapping[str, Any] | Path | str,
     *,
     provider: str | None,
     model: str | None = None,
+    mode: str = "default",
     max_trace_chars: int = DEFAULT_MAX_TRACE_CHARS,
     max_output_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
     aws_region: str | None = None,
     aws_profile: str | None = None,
     allow_review_required: bool = False,
-) -> TaxonomyJudge:
-    """Create a reusable judge using the same providers as BASELINE."""
+) -> SelectionTraceJudge | TaxonomyJudge:
+    """Create a reusable judge with one provider-neutral model adapter.
 
+    ``mode="default"`` selects every failure code the trace evidence
+    supports — zero, one, or several per trace. ``mode="single"`` classifies
+    each trace into exactly one best-supported code.
+    """
+
+    if mode not in JUDGE_MODES:
+        raise ValueError(
+            f"mode must be one of {', '.join(JUDGE_MODES)}; got {mode!r}"
+        )
     taxonomy_document = _load_taxonomy(taxonomy)
     provider_name = normalize_provider_name(provider)
     validate_provider_credentials(provider_name)
@@ -189,7 +275,14 @@ def create_judge(
         aws_region=aws_region,
         aws_profile=aws_profile,
     )
-    return TaxonomyJudge(
+    if mode == "single":
+        return TaxonomyJudge(
+            taxonomy_document,
+            adapter,
+            max_trace_chars=max_trace_chars,
+            allow_review_required=allow_review_required,
+        )
+    return SelectionTraceJudge(
         taxonomy_document,
         adapter,
         max_trace_chars=max_trace_chars,
@@ -203,18 +296,24 @@ def judge_trace(
     *,
     provider: str | None,
     model: str | None = None,
+    mode: str = "default",
     max_trace_chars: int = DEFAULT_MAX_TRACE_CHARS,
     max_output_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
     aws_region: str | None = None,
     aws_profile: str | None = None,
     allow_review_required: bool = False,
-) -> Diagnosis:
-    """Judge one normalized trace against an existing taxonomy."""
+) -> SelectionDiagnosis | Diagnosis:
+    """Judge one normalized trace against an existing taxonomy.
+
+    Returns a :class:`SelectionDiagnosis` in the default mode and a
+    single-code :class:`Diagnosis` with ``mode="single"``.
+    """
 
     judge = create_judge(
         taxonomy,
         provider=provider,
         model=model,
+        mode=mode,
         max_trace_chars=max_trace_chars,
         max_output_tokens=max_output_tokens,
         aws_region=aws_region,
@@ -230,13 +329,18 @@ def judge_traces(
     *,
     provider: str | None,
     model: str | None = None,
+    mode: str = "default",
     max_trace_chars: int = DEFAULT_MAX_TRACE_CHARS,
     max_output_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
     aws_region: str | None = None,
     aws_profile: str | None = None,
     allow_review_required: bool = False,
-) -> list[Diagnosis]:
-    """Judge a trace iterable or every normalized trace in a file/directory."""
+) -> list[SelectionDiagnosis] | list[Diagnosis]:
+    """Judge a trace iterable or every normalized trace in a file/directory.
+
+    Returns :class:`SelectionDiagnosis` entries in the default mode and
+    single-code :class:`Diagnosis` entries with ``mode="single"``.
+    """
 
     if isinstance(traces, (str, Path)):
         trace_records = load_traces(traces)
@@ -247,6 +351,7 @@ def judge_traces(
         taxonomy,
         provider=provider,
         model=model,
+        mode=mode,
         max_trace_chars=max_trace_chars,
         max_output_tokens=max_output_tokens,
         aws_region=aws_region,
@@ -272,6 +377,28 @@ def _load_taxonomy(
     if not isinstance(document, dict):
         raise ValueError("taxonomy JSON must be an object")
     return document
+
+
+def _prepare_taxonomy(
+    taxonomy: Mapping[str, Any] | Path | str,
+    *,
+    allow_review_required: bool,
+) -> tuple[dict[str, Any], list[dict[str, str]]]:
+    """Load one taxonomy document and its usable codes behind the status gate."""
+
+    document = _load_taxonomy(taxonomy)
+    if (
+        document.get("status") == "review_required"
+        and not allow_review_required
+    ):
+        raise ValueError(
+            "taxonomy status is review_required; use an accepted taxonomy "
+            "or explicitly allow review-required input"
+        )
+    codes = _extract_codes(document)
+    if not codes:
+        raise ValueError("taxonomy contains no usable failure codes")
+    return document, codes
 
 
 def _extract_codes(taxonomy: Mapping[str, Any]) -> list[dict[str, str]]:

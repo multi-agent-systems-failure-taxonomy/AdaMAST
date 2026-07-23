@@ -8,9 +8,13 @@ import pytest
 
 from adamast.judges.contract import (
     JUDGE_SYSTEM_PROMPT,
+    Diagnosis,
     JudgeResponseError,
+    SelectionDiagnosis,
+    SelectionTraceJudge,
     TaxonomyJudge,
     create_judge,
+    judge_trace,
     judge_traces,
 )
 
@@ -209,7 +213,9 @@ def test_judge_traces_loads_every_trace_from_a_file(
 ) -> None:
     monkeypatch.setenv("OPENAI_API_KEY", "test-only")
     provider_factory.return_value = _StubProvider(
-        '{"code":"A.1"}', '{"code":"B.1"}'
+        '{"failure_modes":[{"code":"A.1","evidence":"e","reason":"r"}],'
+        '"none_apply":false}',
+        '{"failure_modes":[],"none_apply":true}',
     )
     source = tmp_path / "traces.jsonl"
     source.write_text(
@@ -226,6 +232,8 @@ def test_judge_traces_loads_every_trace_from_a_file(
     )
 
     assert [item.trace_id for item in diagnoses] == ["one", "two"]
+    assert diagnoses[0].code_ids() == ["A.1"]
+    assert diagnoses[1].none_apply is True
 
 
 def test_trace_sampling_keeps_beginning_and_end() -> None:
@@ -245,3 +253,109 @@ def test_trace_sampling_keeps_beginning_and_end() -> None:
     assert "BEGIN-" in prompt
     assert "-END" in prompt
     assert "[TRUNCATED]" in prompt
+
+
+def test_default_judge_selects_every_supported_code() -> None:
+    provider = _StubProvider(
+        '{"failure_modes":[{"code":"A.1","evidence":"no source cited",'
+        '"reason":"claim lacks support"},{"code":"B.1","evidence":"checker '
+        'approved","reason":"weak support accepted"}],"none_apply":false}'
+    )
+
+    diagnosis = SelectionTraceJudge(_taxonomy(), provider).judge(_trace())
+
+    assert isinstance(diagnosis, SelectionDiagnosis)
+    assert diagnosis.trace_id == "trace-1"
+    assert diagnosis.code_ids() == ["A.1", "B.1"]
+    assert diagnosis.none_apply is False
+    assert provider.calls[0]["response_format"] == "json"
+
+
+def test_default_judge_none_apply_is_a_valid_result() -> None:
+    provider = _StubProvider('{"failure_modes":[],"none_apply":true}')
+
+    diagnosis = SelectionTraceJudge(_taxonomy(), provider).judge(_trace())
+
+    assert diagnosis.none_apply is True
+    assert diagnosis.failure_modes == []
+    assert diagnosis.code_ids() == []
+
+
+def test_default_judge_drops_alien_codes_with_warning() -> None:
+    provider = _StubProvider(
+        '{"failure_modes":[{"code":"Z.9","evidence":"e","reason":"r"},'
+        '{"code":"A.1","evidence":"e","reason":"r"}],"none_apply":false}'
+    )
+
+    diagnosis = SelectionTraceJudge(_taxonomy(), provider).judge(_trace())
+
+    assert diagnosis.code_ids() == ["A.1"]
+    assert diagnosis.judge_metadata["warnings"]
+
+
+def test_default_judge_honors_review_required_gate() -> None:
+    with pytest.raises(ValueError):
+        SelectionTraceJudge(
+            _taxonomy(status="review_required"), _StubProvider()
+        )
+
+    judge = SelectionTraceJudge(
+        _taxonomy(status="review_required"),
+        _StubProvider('{"failure_modes":[],"none_apply":true}'),
+        allow_review_required=True,
+    )
+    assert judge.judge(_trace()).none_apply is True
+
+
+def test_default_judge_serializes_to_dict() -> None:
+    provider = _StubProvider(
+        '{"failure_modes":[{"code":"A.1","evidence":"e","reason":"r"}],'
+        '"none_apply":false}'
+    )
+
+    payload = SelectionTraceJudge(_taxonomy(), provider).judge(_trace()).to_dict()
+
+    assert payload["trace_id"] == "trace-1"
+    assert payload["failure_modes"][0]["code"] == "A.1"
+    assert payload["none_apply"] is False
+    assert "judge_metadata" in payload
+
+
+@patch("adamast.judges.contract.create_provider")
+def test_create_judge_mode_selects_judge_class(
+    provider_factory, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-only")
+    provider_factory.return_value = _StubProvider()
+
+    default_judge = create_judge(_taxonomy(), provider="openai", model="m")
+    single_judge = create_judge(
+        _taxonomy(), provider="openai", model="m", mode="single"
+    )
+
+    assert isinstance(default_judge, SelectionTraceJudge)
+    assert isinstance(single_judge, TaxonomyJudge)
+    with pytest.raises(ValueError):
+        create_judge(_taxonomy(), provider="openai", model="m", mode="both")
+
+
+@patch("adamast.judges.contract.create_provider")
+def test_judge_trace_mode_controls_result_shape(
+    provider_factory, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-only")
+
+    provider_factory.return_value = _StubProvider(
+        '{"failure_modes":[],"none_apply":true}'
+    )
+    default_result = judge_trace(
+        _taxonomy(), _trace(), provider="openai", model="m"
+    )
+    assert isinstance(default_result, SelectionDiagnosis)
+
+    provider_factory.return_value = _StubProvider('{"code":"A.1"}')
+    single_result = judge_trace(
+        _taxonomy(), _trace(), provider="openai", model="m", mode="single"
+    )
+    assert isinstance(single_result, Diagnosis)
+    assert single_result.code == "A.1"

@@ -34,7 +34,9 @@ The installer merges AdaMAST into `~/.claude/settings.json` and writes
 
 From then on, in each conversation AdaMAST will:
 
-1. open the local taxonomy library for MAST, stored taxonomies, or `No taxonomy`;
+1. open the local taxonomy library for MAST (the built-in general-purpose
+   catalog of 14 common agent failure modes — [what is MAST?](CONCEPTS.md#the-starting-taxonomy)),
+   stored taxonomies, or `No taxonomy`;
 2. hold the first substantive prompt until that choice is resolved;
 3. record checkpoint reflections privately at configured boundaries;
 4. block final completion until the final gate passes or exhausts the retry envelope;

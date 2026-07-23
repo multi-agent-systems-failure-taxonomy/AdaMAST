@@ -34,7 +34,7 @@ All code lives in the single `adamast` package (see the repository map in
 | Shared selectors, routes, jobs, and receipts | [adamast/hosts/interactive/README.md](adamast/hosts/interactive/README.md) |
 | Claude Code adapter | [adamast/hosts/claude_code/README.md](adamast/hosts/claude_code/README.md) |
 | Codex adapter | [adamast/hosts/codex/README.md](adamast/hosts/codex/README.md) |
-| Reproducible experiment artifacts | [runs/README.md](runs/README.md) |
+| Evaluation runs and taxonomies (private) | [runs/README.md](runs/README.md) |
 | Test suite map | [tests/README.md](tests/README.md) |
 
 User-facing behavior (prompts, hooks, judge specs) lives in Markdown/JSON
@@ -68,5 +68,5 @@ python -m http.server 8000 --directory site
 [docs/CONFIGURATION.md](docs/CONFIGURATION.md) — other pages should show
 minimal configs and link there rather than duplicating field tables.
 
-Release versioning, artifact checks, tags, and the future PyPI trusted-publisher
+Release versioning, artifact checks, tags, and the PyPI trusted-publisher
 path are documented in [RELEASING.md](RELEASING.md).

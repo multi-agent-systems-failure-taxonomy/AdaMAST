@@ -1,9 +1,8 @@
 # Releasing AdaMAST
 
 Cut a release: verify the tree, tag it, and let the workflow publish to GitHub
-and to PyPI as `adamast` through Trusted Publishing. The pending publisher was
-claimed by the v0.1.0 release and the public docs advertise `pip install
-adamast`.
+and to PyPI as `adamast` through Trusted Publishing. The public docs advertise
+`pip install adamast`.
 
 ## 📦 Layout migration: 0.1.0 -> 0.2.0
 
@@ -47,8 +46,8 @@ interface. The CHANGELOG carries the breaking-change entry.
 Create and push a tag that exactly matches the package version:
 
 ```bash
-git tag -a v0.1.0 -m "AdaMAST 0.1.0"
-git push origin v0.1.0
+git tag -a v0.2.0 -m "AdaMAST 0.2.0"
+git push origin v0.2.0
 ```
 
 The `release` workflow then does the rest:

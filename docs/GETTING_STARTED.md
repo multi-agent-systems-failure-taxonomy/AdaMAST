@@ -113,14 +113,15 @@ record_trace(
 result = end_session(session)
 ```
 
-`end_session()` checks learning thresholds. It may start generation when MAST
-is active or refinement when a stored taxonomy is active.
+`end_session()` checks learning thresholds. It may start generation when
+MAST — the built-in seed taxonomy ([what is MAST?](CONCEPTS.md#the-starting-taxonomy))
+— is active, or refinement when a stored taxonomy is active.
 
 ## ⏱️ Default learning cadence
 
 | Transition | Default threshold |
 | --- | ---: |
-| MAST warm-up to first generated taxonomy | `generation_threshold = 5` traces |
+| Starting taxonomy (MAST) to first generated taxonomy | `generation_threshold = 5` traces |
 | First refinement after activation | `k_init = 10` new traces |
 | Later refinement reviews | `k = 20` new traces |
 

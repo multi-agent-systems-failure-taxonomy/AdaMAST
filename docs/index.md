@@ -93,8 +93,8 @@ Three workflows appear throughout the docs:
 
 | Name | Meaning |
 |---|---|
-| **Generation** | The standalone starting point: take completed traces, create a taxonomy, and run the full inter-annotator agreement layer. It installs no hooks and keeps no state. |
-| **Judging** | Applies an existing taxonomy to new evidence. The core judge returns one validated, evidence-backed failure code per trace; specialized judges cover mapping, coverage, taxonomy quality, calibration, and causal reflection. |
+| **Generation** | The standalone starting point: take completed traces, create a taxonomy, and run the full inter-annotator agreement layer. |
+| **Judging** | Applies an existing taxonomy to new evidence. The default judge returns every validated, evidence-backed failure code a trace supports — or none; other modes and judges cover single-code classification, mapping, coverage, taxonomy quality, calibration, and causal reflection. |
 | **Adaptive runtime** | Everything above, added on top of a live agent: records new traces as you work, keeps a taxonomy active at task boundaries, and regenerates or refines it when thresholds are reached. |
 
 The full glossary — taxonomy, trace, checkpoint, judge, program — lives in

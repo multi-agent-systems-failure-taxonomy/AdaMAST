@@ -106,8 +106,9 @@ Explicit CLI values take precedence over model environment variables.
 
 ## ⏱️ Output and timeout controls
 
-`--max-output-tokens` sets the maximum output for each model call. Its default
-is `8192` for both generation and judging.
+`--max-output-tokens` caps the output of each model call. The default is
+`8192` for both generation and judging; pass the flag only when you want a
+different cap — here, lowering it to `4096`:
 
 ```bash
 adamast judge \

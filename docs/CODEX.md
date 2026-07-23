@@ -114,7 +114,9 @@ then continues as the first episode task without requiring a second
 submission. A selection timeout stops the original turn and lets the next
 submission reopen the library safely.
 
-The catalog recommends MAST and includes compatible stored taxonomies plus
+The catalog recommends MAST — the built-in general-purpose catalog of 14
+common agent failure modes ([what is MAST?](CONCEPTS.md#the-starting-taxonomy)) —
+and includes compatible stored taxonomies plus
 `No taxonomy`. Its `/choose` handler validates the session's allowed options,
 updates Codex state, and seeds the **conversation branch** — that
 conversation's isolated program state.

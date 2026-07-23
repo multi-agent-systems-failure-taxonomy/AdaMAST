@@ -5,15 +5,18 @@ run by ``JudgeController``. Reflection remains a deeper orchestrated judge, and
 selection-summary remains deterministic Python.
 
 :mod:`adamast.judges.contract` carries the provider-neutral JUDGES layer for
-applying a finished taxonomy to new traces (one shared judge base plus the
-single alien-code filter policy); its surface is re-exported here.
+applying a finished taxonomy to new traces — the default selection mode plus
+the single-code mode; its surface is re-exported here.
 """
 
 from __future__ import annotations
 
 from .contract import (
     Diagnosis,
+    JUDGE_MODES,
     JudgeResponseError,
+    SelectionDiagnosis,
+    SelectionTraceJudge,
     TaxonomyJudge,
     create_judge,
     judge_trace,
@@ -58,7 +61,10 @@ __all__ = [
     "PLACEHOLDER",
     "ALL",
     "Diagnosis",
+    "JUDGE_MODES",
     "JudgeResponseError",
+    "SelectionDiagnosis",
+    "SelectionTraceJudge",
     "TaxonomyJudge",
     "create_judge",
     "judge_trace",

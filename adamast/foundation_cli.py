@@ -16,7 +16,11 @@ from pathlib import Path
 import sys
 
 from adamast.learning.api import generate_taxonomy
-from adamast.judges.contract import DEFAULT_MAX_TRACE_CHARS, create_judge
+from adamast.judges.contract import (
+    DEFAULT_MAX_TRACE_CHARS,
+    JUDGE_MODES,
+    create_judge,
+)
 from adamast.llm.providers import DEFAULT_MAX_OUTPUT_TOKENS, SUPPORTED_PROVIDERS
 from adamast.core.trace_formats import (
     TraceFormatError,
@@ -85,6 +89,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     judge.add_argument("--output", type=Path)
     judge.add_argument(
+        "--mode",
+        choices=JUDGE_MODES,
+        default="default",
+        help=(
+            "default selects every failure code the trace evidence supports; "
+            "single classifies each trace into exactly one best code"
+        ),
+    )
+    judge.add_argument(
         "--provider",
         choices=SUPPORTED_PROVIDERS,
         default=os.getenv("ADAMAST_PROVIDER"),
@@ -119,7 +132,7 @@ def build_parser() -> argparse.ArgumentParser:
     judge.add_argument(
         "--allow-review-required",
         action="store_true",
-        help="allow a taxonomy that did not pass the BASELINE agreement gate",
+        help="allow a taxonomy that did not pass the agreement gate",
     )
 
     validate = commands.add_parser(
@@ -224,6 +237,7 @@ def _run_judge(args: argparse.Namespace) -> int:
         args.taxonomy,
         provider=args.provider,
         model=args.model,
+        mode=args.mode,
         max_trace_chars=args.max_trace_chars,
         max_output_tokens=args.max_output_tokens,
         aws_region=(args.aws_region or "").strip() or None,
@@ -232,7 +246,8 @@ def _run_judge(args: argparse.Namespace) -> int:
     )
     diagnoses = judge.judge_many(traces)
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
+        "mode": args.mode,
         "taxonomy": str(args.taxonomy.expanduser().resolve()),
         "judge": {
             "provider": judge.provider.name,

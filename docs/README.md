@@ -9,6 +9,7 @@ standalone taxonomy generation to adaptive host integration.
 | Goal | Page |
 |---|---|
 | Install AdaMAST | [index.md](index.md#install-adamast) |
+| Pick an install shape: provider extras, source checkout | [INSTALLATION.md](INSTALLATION.md) |
 | Choose the right workflow | [CONCEPTS.md](CONCEPTS.md) |
 | Prepare and validate traces | [TRACE_FORMATS.md](TRACE_FORMATS.md) |
 | Generate a taxonomy | [GENERATION.md](GENERATION.md) |
@@ -26,13 +27,17 @@ standalone taxonomy generation to adaptive host integration.
 | Direct single-LLM calls, scripts, notebooks, benchmarks | [SINGLE_LLM.md](SINGLE_LLM.md) |
 | Runtime API reference | [API_OR_RUNTIME.md](API_OR_RUNTIME.md) |
 | Harness-author contract, privacy, and redaction | [INTEGRATION.md](INTEGRATION.md) |
+| Choose an interactive host | [INTERACTIVE_SETUP.md](INTERACTIVE_SETUP.md) |
 | Codex | [CODEX.md](CODEX.md) |
 | Claude Code | [CLAUDE_CODE.md](CLAUDE_CODE.md) |
+| Native in-host taxonomy learning (no API key) | [NATIVE_LEARNING.md](NATIVE_LEARNING.md) |
+| Follow one supervised task end to end | [EXAMPLE_RUN.md](EXAMPLE_RUN.md) |
 
 ## 🗃️ Runtime data
 
 | Topic | Page |
 |---|---|
+| The canonical `adamast.json` configuration reference | [CONFIGURATION.md](CONFIGURATION.md) |
 | Taxonomy records, inheritance, and importing existing taxonomies | [TAXONOMIES.md](TAXONOMIES.md) |
 | Trace storage, generation thresholds, refinement thresholds | [TRACES_AND_LEARNING.md](TRACES_AND_LEARNING.md) |
 | Live project/conversation checkpoint monitoring | [DASHBOARD.md](DASHBOARD.md) |
@@ -61,6 +66,8 @@ GitHub's file view.
 
 These pages are useful when changing internals:
 
+- [CUSTOMIZATION.md](CUSTOMIZATION.md) — change what AdaMAST says, decides, or enforces, one asset file at a time
+- [ARCHITECTURE.md](ARCHITECTURE.md) — package layout, event flow, and the ownership rules between engine and hosts
 - [adamast/hosts/interactive/README.md](../adamast/hosts/interactive/README.md)
 - [adamast/hosts/claude_code/README.md](../adamast/hosts/claude_code/README.md)
 - [adamast/hosts/codex/README.md](../adamast/hosts/codex/README.md)

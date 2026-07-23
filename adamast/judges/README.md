@@ -5,7 +5,7 @@ and produces a different structured signal.
 
 | # | Judge | Status | Implementation | Purpose |
 |---|---|---|---|---|
-| 1 | Selection | **real** | [`simple.py`](simple.py) + [`assets/selection/`](assets/selection/) | trace + taxonomy -> flat failure-mode labels (shallow, scalable; for selection/comparison) |
+| 1 | Selection | **real** | [`simple.py`](simple.py) + [`assets/selection/`](assets/selection/) | trace + taxonomy -> flat failure-mode labels (shallow, scalable; the default `adamast judge` mode) |
 | 2 | Reflection | **real** | [`reflection_judge/`](reflection_judge/) | trace + taxonomy -> failure-point causal graph + taxonomy mappings (deep; for mutation/repair) |
 | 3 | Mapping | **real** | [`simple.py`](simple.py) + [`assets/mapping/`](assets/mapping/) | failure_point + taxonomy -> best code(s) (modular sub-judge) |
 | 4 | Coverage | **real** | [`simple.py`](simple.py) + [`assets/coverage/`](assets/coverage/) | trace/failure_point + taxonomy -> covered / partially / missing (drives expansion) |

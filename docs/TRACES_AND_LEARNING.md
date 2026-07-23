@@ -12,7 +12,7 @@ refine taxonomies for future tasks.
 
 ```mermaid
 flowchart LR
-    A["🧭 MAST warm-up<br/>built-in taxonomy active"] -->|"generation_threshold<br/>default 5 traces"| B["🧪 Generation<br/>draft + taxonomy check"]
+    A["🧭 Starting taxonomy<br/>built-in MAST active"] -->|"generation_threshold<br/>default 5 traces"| B["🧪 Generation<br/>draft + taxonomy check"]
     B -->|accepted| C["📚 Stored taxonomy active"]
     B -->|"rejected — accumulate<br/>new traces, retry"| A
     C -->|"k_init: 10 traces"| D["♻️ Refinement"]
@@ -65,7 +65,7 @@ For example:
 }
 ```
 
-## 🌱 Default MAST warm-up
+## 🌱 The starting taxonomy (MAST)
 
 When no taxonomy is inherited, AdaMAST starts with built-in MAST.
 
@@ -98,7 +98,7 @@ generation. The default threshold is `5`.
 Generated taxonomies must pass the configured taxonomy check unless
 `skip_judge` is enabled.
 
-If the generated taxonomy is rejected or generation fails, warm-up traces stay
+If the generated taxonomy is rejected or generation fails, the starting-period traces stay
 in the program folder. They are not moved into a taxonomy trace folder until a
 valid taxonomy is accepted.
 
@@ -166,7 +166,7 @@ For clean A/B evaluations, turn on inference-only mode:
 ```
 
 Freeze mode still records runtime evidence and traces. It skips both MAST
-warm-up generation and stored-taxonomy refinement, so the active taxonomy stays
+first-generation and stored-taxonomy refinement, so the active taxonomy stays
 pinned for the run.
 
 ## 📤 Evidence export

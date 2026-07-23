@@ -5,7 +5,7 @@ build on, and how to open the browser field guide.
 
 Every generation run produces a self-contained result directory. Keep the whole
 directory when reproducibility matters; `taxonomy.json` alone is enough for the
-core judge.
+judge.
 
 ## 📁 Output directory
 
@@ -30,8 +30,7 @@ adamast view ./taxonomy-run/taxonomy.json
 ```
 
 This creates or refreshes a self-contained `taxonomy.html` and opens it in the
-default browser. The view is read-only and is scoped to that one taxonomy. It
-does not start the adaptive runtime or expose the local runtime dashboard.
+default browser. The view is read-only and scoped to that one taxonomy.
 
 !!! tip "Make it yours"
     `--manifest` points at a manifest stored elsewhere; `--output` plus

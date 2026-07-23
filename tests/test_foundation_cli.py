@@ -100,11 +100,23 @@ def test_judge_writes_output_payload(tmp_path):
     fake_judge = SimpleNamespace(
         provider=SimpleNamespace(name="stub", model="stub-model"),
         judge_many=lambda traces: [
-            SimpleNamespace(to_dict=lambda: {"trace_id": "t1", "code": "A.1"})
+            SimpleNamespace(
+                to_dict=lambda: {
+                    "trace_id": "t1",
+                    "failure_modes": [{"code": "A.1"}],
+                    "none_apply": False,
+                }
+            )
         ],
     )
+    captured_kwargs = {}
+
+    def fake_create_judge(*args, **kwargs):
+        captured_kwargs.update(kwargs)
+        return fake_judge
+
     output = tmp_path / "judgments.json"
-    with patch.object(foundation_cli, "create_judge", lambda *a, **k: fake_judge):
+    with patch.object(foundation_cli, "create_judge", fake_create_judge):
         code = foundation_cli.main(
             [
                 "judge",
@@ -117,8 +129,43 @@ def test_judge_writes_output_payload(tmp_path):
             ]
         )
     assert code == 0
+    assert captured_kwargs["mode"] == "default"
     payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["schema_version"] == 2
+    assert payload["mode"] == "default"
     assert payload["trace_count"] == 1
+    assert payload["diagnoses"][0]["failure_modes"][0]["code"] == "A.1"
+
+
+def test_judge_mode_single_is_passed_through(tmp_path, capsys):
+    fake_judge = SimpleNamespace(
+        provider=SimpleNamespace(name="stub", model="stub-model"),
+        judge_many=lambda traces: [
+            SimpleNamespace(to_dict=lambda: {"trace_id": "t1", "code": "A.1"})
+        ],
+    )
+    captured_kwargs = {}
+
+    def fake_create_judge(*args, **kwargs):
+        captured_kwargs.update(kwargs)
+        return fake_judge
+
+    with patch.object(foundation_cli, "create_judge", fake_create_judge):
+        code = foundation_cli.main(
+            [
+                "judge",
+                "--mode",
+                "single",
+                "--taxonomy",
+                str(FIXTURE_TAXONOMY),
+                "--traces",
+                str(_trace_file(tmp_path)),
+            ]
+        )
+    assert code == 0
+    assert captured_kwargs["mode"] == "single"
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["mode"] == "single"
     assert payload["diagnoses"][0]["code"] == "A.1"
 
 

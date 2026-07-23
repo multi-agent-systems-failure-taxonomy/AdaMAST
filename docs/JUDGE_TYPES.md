@@ -10,28 +10,29 @@ perform every kind of evaluation.
 
 | Judge | Input | Output | Best suited for |
 | --- | --- | --- | --- |
-| Core trace judge | trace + taxonomy | one validated code, evidence, confidence, recovery hint | Simple standalone classification |
-| Selection | trace + taxonomy | zero or more supported codes | Scalable labeling, comparison, statistics, CI |
+| Default judge (Selection) | trace + taxonomy | every supported code — zero or more, with evidence | Labeling, comparison, statistics, CI |
+| Single-code judge | trace + taxonomy | one validated code, evidence, confidence, recovery hint | Forcing one primary label per trace |
 | Reflection | trace + taxonomy | failure points, causal graph, mappings, summary | Deep diagnosis, mutation, repair, refinement |
 | Mapping | one failure point + taxonomy | primary/secondary codes or a proposed missing mode | Modular code assignment |
 | Coverage | trace or failure point + taxonomy | covered, partially covered, or not covered | Deciding whether the taxonomy needs expansion |
 | Quality | taxonomy + optional support traces | per-code issues and overall quality | Periodic codebook review |
-| Calibration | annotation + evidence + taxonomy | validity and evidence support | Auditing Selection annotations |
+| Calibration | annotation + evidence + taxonomy | validity and evidence support | Auditing default-judge annotations |
 | Selection-Summary | Reflection output | deterministic selection buckets | Compressing a causal analysis without another model call |
 
-The [core trace judge](JUDGING.md) is the public CLI/API path. The specialized
+The [default judge](JUDGING.md) is the public CLI/API path — `adamast judge`
+and `create_judge` run it unless you ask for a different mode. The specialized
 controllers live under `adamast/judges/` and are used by the adaptive runtime and
 research pipelines.
 
 !!! tip
-    Start with the core trace judge; reach for a specialized judge only when
-    the table names your exact decision.
+    Start with the default judge; reach for a specialized judge only when the
+    table names your exact decision.
 
-## 🎯 Core trace judge
+## 🎯 Default judge (Selection)
 
-Choose the core judge when exactly one failure code per trace is sufficient and
-you want a provider-neutral CLI or Python interface with strict output
-validation.
+The default judge selects every failure code the trace evidence supports — a
+trace can carry several failure modes, one, or none. Each returned mode cites
+its evidence, and `none apply` is an explicit valid answer.
 
 ```bash
 adamast judge \
@@ -40,26 +41,21 @@ adamast judge \
   --traces ./traces.jsonl
 ```
 
-## 🏷️ Selection judge
+[Judge traces](JUDGING.md) covers the full CLI and Python surface.
 
-Selection is a shallow, scalable multi-label classifier — it may return several
-codes, or none. It returns supported failure modes with evidence, confidence
-tier, and severity, or explicitly says that no mode applies.
+## 🏷️ Single-code judge
 
-```python
-from adamast.core.taxonomy_data import Taxonomy
-from adamast.judges import SelectionJudge
+Choose the single-code judge when exactly one failure code per trace is
+required — it classifies each trace into its one best-supported code with a
+confidence score and a recovery hint.
 
-taxonomy = Taxonomy.from_json("./taxonomy.json")
-judge = SelectionJudge(taxonomy, judge_model="gpt-5")
-result = judge.run("the normalized trace text")
-
-print(result.code_ids())
-print(result.judge_metadata["warnings"])
+```bash
+adamast judge \
+  --mode single \
+  --provider openai \
+  --taxonomy ./taxonomy.json \
+  --traces ./traces.jsonl
 ```
-
-Use Selection for repeated labeling. Use Calibration when those labels require
-an independent evidence audit.
 
 ## 🪞 Reflection judge
 

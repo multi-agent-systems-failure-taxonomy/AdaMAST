@@ -2,8 +2,7 @@
 
 This page does two things: routes you to the right guide for what you need,
 and defines the handful of words — taxonomy, trace, checkpoint, judge — that
-every other page uses. AdaMAST is a set of composable taxonomy workflows, not
-only a Codex or Claude Code integration.
+every other page uses. AdaMAST is a set of composable taxonomy workflows.
 
 ## 🗺️ Workflow map
 
@@ -14,7 +13,7 @@ Choose by the decision you need to make and by who owns the trace lifecycle:
 | Check or convert trace files | No | None | [Prepare traces](TRACE_FORMATS.md) |
 | Build a taxonomy from a fixed trace set | No | Draft + four-annotator agreement | [Generate a taxonomy](GENERATION.md) |
 | Inspect one generated taxonomy | No | None | [Outputs and field guide](TAXONOMY_OUTPUTS.md) |
-| Label new traces with one best code | No | One judge call per trace | [Judge traces](JUDGING.md) |
+| Label new traces with supported failure codes | No | One judge call per trace | [Judge traces](JUDGING.md) |
 | Analyze causality, coverage, quality, or calibration | Optional | Depends on judge type | [Choose a judge](JUDGE_TYPES.md) |
 | Generate/refine as traces accumulate | Yes | Threshold-triggered learning calls | [Adaptive runtime](GETTING_STARTED.md) |
 | Add runtime checkpoints to a custom program | Yes | Harness-defined | [Custom agent harness](INTEGRATION.md) |
@@ -53,10 +52,11 @@ macro Fleiss kappa and coverage meet their configured targets.
 
 ## ⚖️ Judge
 
-A judge applies or evaluates a taxonomy. The core judge chooses one best
-code for a trace. Specialized judges can select multiple codes, map a
-failure point, measure coverage, review codebook quality, calibrate an
-annotation, or build a causal reflection graph.
+A judge applies or evaluates a taxonomy. The default judge selects every
+failure code a trace's evidence supports; a single-code mode returns one
+best code instead. Specialized judges can map a failure point, measure
+coverage, review codebook quality, calibrate an annotation, or build a
+causal reflection graph.
 
 ---
 
@@ -94,12 +94,20 @@ The runtime reflection shape is:
     `none apply` is a valid clean checkpoint. Finding nothing wrong is an
     answer, not a skipped step.
 
-## 🌱 MAST warm-up
+## 🌱 The starting taxonomy
 
-When no stored taxonomy is inherited, the runtime can begin with the
-built-in 14-code MAST adaptation. Completed warm-up traces support the first
-generated project taxonomy. MAST is a runtime seed, not a requirement for
-standalone generation.
+When the runtime integration starts working in a project that has no learned
+taxonomy yet, checkpoints still need a catalog to check against from the very
+first message. For that period the runtime uses a static, pre-made taxonomy —
+selected once at conversation start — until enough traces accumulate to
+generate a custom one for your project.
+
+We selected [MAST](https://arxiv.org/abs/2503.13657) for this role: a
+general-purpose 14-code taxonomy of common agent failure modes from *"Why Do
+Multi-Agent LLM Systems Fail?"* (Cemri et al., 2025), which AdaMAST ships in
+an adapted form. The traces completed while MAST is active feed the first
+taxonomy generated for your own project — standalone generation never needs
+it.
 
 ## 🔀 Refinement and lineage
 

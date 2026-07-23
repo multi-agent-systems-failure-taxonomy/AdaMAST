@@ -4,7 +4,7 @@ On this page you turn the agent logs you already have into traces AdaMAST
 accepts — and check them locally, before a single model call is spent.
 
 A **trace** is one recorded agent run: the task, what the agent did, and how it
-ended. Generation and the core trace judge use the same loader. Give AdaMAST one
+ended. Generation and the judge use the same loader. Give AdaMAST one
 `.json` or `.jsonl` file, or a directory containing those files, and it
 normalizes every accepted record to one stable shape before any model call.
 

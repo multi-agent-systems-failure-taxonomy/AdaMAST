@@ -6,8 +6,7 @@ taxonomy — one command, no agent integration required.
 This is the simplest AdaMAST workflow: provide completed traces, select a
 model provider, and receive a standalone failure taxonomy with the full
 inter-annotator agreement layer (independent annotators must be able to agree
-on the codes before the result counts). It does not install AdaMAST into an
-agent harness or refine the result as new traces arrive.
+on the codes before the result counts).
 
 ## 🚀 Generate from the CLI
 
