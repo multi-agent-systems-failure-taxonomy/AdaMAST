@@ -18,7 +18,7 @@ AI agents — coding assistants, tool-using pipelines, multi-agent systems — d
 - 📄 **Works on the logs you already have** — common agent log formats are auto-detected
 - 🔍 **Every failure pattern comes with evidence** — verbatim quotes from real runs, not guesses
 - ✅ **Catalogs are quality-gated** — several independent automated reviews must agree before one is accepted
-- 🔌 **Optional live mode** — plug into Codex or Claude Code and the catalog is learned and applied while you work
+- 🔌 **Live mode** — plug into Codex or Claude Code and the catalog is learned and applied while you work
 
 **Paper:** [Fantastic Adaptive Taxonomies and How to Use Them](https://arxiv.org/abs/2607.16387) · **Docs:** [Website](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/)
 
@@ -26,19 +26,36 @@ AI agents — coding assistants, tool-using pipelines, multi-agent systems — d
 
 ## 🧪 How it works
 
-1. **Generate.** Several independent automated annotators each read your traces and propose failure patterns. The proposals are reconciled, and a catalog is accepted only when the independent annotations agree with each other — otherwise it is redrafted. You get `taxonomy.json`, an agreement `manifest.json`, and a browsable field guide. (The full protocol and its acceptance criteria are in the [paper](https://arxiv.org/abs/2607.16387).)
-2. **Judge.** Apply an accepted taxonomy to new runs: each trace gets the single best-matching failure code, with cited evidence.
-3. **Trust it.** Every code carries verbatim evidence from real traces, and the agreement manifest records how the independent annotations converged.
+```mermaid
+flowchart LR
+    A["📄 Your agent's<br/>trace files"] --> B["🤖 Several independent<br/>annotators propose<br/>failure patterns"]
+    B --> C{"Annotations<br/>agree?"}
+    C -->|"no — redraft"| B
+    C -->|yes| D["✅ Accepted catalog<br/>taxonomy.json + evidence<br/>+ agreement manifest"]
+    D --> E["⚖️ Judge new runs<br/>against the catalog"]
+```
 
-Learned codes sit on three stable axes:
+- **Propose.** Several independent automated annotators read your traces, and each proposes failure patterns on its own.
+- **Agree.** The proposals are reconciled. A catalog is accepted only when the independent annotations agree with each other — otherwise it is redrafted. (The full protocol and its acceptance criteria are in the [paper](https://arxiv.org/abs/2607.16387).)
+- **Apply.** Judge new runs against the accepted catalog: each trace gets its best-matching failure code, with verbatim evidence quoted from the run.
 
-| Axis | Scope | Example |
+Every entry in the catalog belongs to one of three categories:
+
+| Category | Scope | Example |
 |---|---|---|
 | ⚙️ System-level | Can arise in any agent system | Context exhaustion |
 | 🎭 Role-specific | Tied to a discovered component role | Checker rubber-stamps solver output |
 | 🧪 Domain-specific | Requires task knowledge | Algorithm mismatch |
 
-Until you generate one, the built-in 14-code adaptation of MAST (["Why Do Multi-Agent LLM Systems Fail?"](https://arxiv.org/abs/2503.13657), Cemri et al., 2025) serves as the general-purpose floor.
+## 💡 Use cases
+
+| Scenario | How |
+|---|---|
+| 🔬 **Error analysis** — learn what your agent actually gets wrong, with receipts | `adamast generate` on a batch of traces, then read the field guide |
+| 📈 **Regression tracking** — watch failure patterns across agent versions | `adamast judge` new runs against the same catalog and compare |
+| 🏅 **Best-of-N selection** — pick the cleanest of several candidate runs | Judge each candidate; prefer the one with the fewest, least severe codes |
+| 🧬 **Feedback for optimization loops** — tell a prompt or agent optimizer *why* runs failed, not just the score | Feed the judged codes back as the improvement signal |
+| 🔌 **Live runtime integration** — the catalog is learned and applied while you work in Codex or Claude Code | The one that needs setup — see [Runtime integration](#-runtime-integration) |
 
 ## 📦 Install
 
@@ -89,7 +106,7 @@ Deeper guides: [Trace formats](docs/TRACE_FORMATS.md) · [Generation](docs/BASEL
 
 ## 🔌 Runtime integration
 
-AdaMAST can also ride along **live** inside Codex or Claude Code: hooks checkpoint the agent's work at natural boundaries, record evidence, and learn a project-specific taxonomy automatically from completed conversations — no API key or config needed for the interactive path.
+AdaMAST can also ride along **live** inside Codex or Claude Code: hooks checkpoint the agent's work at natural boundaries, record evidence, and learn a project-specific taxonomy automatically from completed conversations — no API key or config needed for the interactive path. Until your project's own catalog is learned, conversations start from a built-in adaptation of the MAST taxonomy (["Why Do Multi-Agent LLM Systems Fail?"](https://arxiv.org/abs/2503.13657), Cemri et al., 2025).
 
 ```bash
 # once, for the host you use

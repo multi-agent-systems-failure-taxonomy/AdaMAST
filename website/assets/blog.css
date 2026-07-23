@@ -513,3 +513,7 @@ a {
     scroll-behavior: auto;
   }
 }
+
+.wordmark strong {
+  font-weight: 860;
+}

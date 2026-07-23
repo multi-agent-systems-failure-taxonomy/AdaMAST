@@ -136,7 +136,7 @@ h1 {
   margin: 0;
   font-family: "Inter", "Segoe UI", Arial, sans-serif;
   font-size: clamp(3.5rem, 8vw, 7.8rem);
-  font-weight: 830;
+  font-weight: 620;
   letter-spacing: -0.055em;
   line-height: 0.92;
 }
@@ -490,4 +490,22 @@ h1 {
 
 .site-footer a:hover {
   color: var(--ink);
+}
+
+h1 strong,
+.wordmark strong {
+  font-weight: 860;
+}
+
+.landing__logo {
+  width: min(100%, 320px);
+  height: auto;
+  justify-self: center;
+  mix-blend-mode: multiply;
+}
+
+@media (max-width: 760px) {
+  .landing__logo {
+    width: 180px;
+  }
 }
