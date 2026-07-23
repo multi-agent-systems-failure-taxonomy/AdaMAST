@@ -149,7 +149,8 @@ taxonomy library.
 
 ## 🪝 Default events
 
-The baseline install registers five Codex events; nothing to configure:
+The baseline install registers five Codex events; no configuration is
+required:
 
 | Event | What AdaMAST does |
 |---|---|

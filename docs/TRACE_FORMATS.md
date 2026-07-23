@@ -1,7 +1,7 @@
 # Prepare traces
 
 On this page you turn the agent logs you already have into traces AdaMAST
-accepts, and check them locally before a single model call is spent.
+accepts, and check them locally before any model calls are made.
 
 Generation and the judge use the same loader. Give AdaMAST one
 `.json` or `.jsonl` file, or a directory containing those files, and it

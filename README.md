@@ -1,7 +1,7 @@
 # AdaMAST
 
 <p align="center">
-  <b>Find out how your AI agents fail, straight from their own work.</b>
+  <b>Learn how your AI agents fail, from their own recorded work.</b>
 </p>
 
 <p align="center">
@@ -17,7 +17,7 @@ AI agents (coding assistants, tool-using pipelines, multi-agent systems) don't f
 **AdaMAST** reads the logs of your agent's past runs and automatically builds a **catalog of that system's failure patterns** (we call it a *taxonomy*), with every entry backed by real quotes from your own logs. You can then use the catalog to grade new runs, spot regressions, and feed improvement loops with *what went wrong and why* instead of just a score.
 
 - 📄 **Works on the logs you already have.** Common agent log formats are auto-detected
-- 🔍 **Every failure pattern comes with evidence.** Verbatim quotes from real runs, not guesses
+- 🔍 **Every failure pattern comes with evidence.** Verbatim quotes from real runs
 - ✅ **Catalogs are quality-gated.** Several independent automated reviews must agree before one is accepted
 - 🔌 **Live mode.** Plug into Codex or Claude Code and the catalog is learned and applied while you work
 
@@ -52,7 +52,7 @@ Every entry in the catalog belongs to one of three categories:
 
 | Scenario | How |
 |---|---|
-| 🔬 **Error analysis**: learn what your agent actually gets wrong, with receipts | `adamast generate` on a batch of traces, then read the field guide |
+| 🔬 **Error analysis**: learn what your agent actually gets wrong, with supporting evidence | `adamast generate` on a batch of traces, then read the field guide |
 | 📈 **Regression tracking**: watch failure patterns across agent versions | `adamast judge` new runs against the same catalog and compare |
 | 🏅 **Best-of-N selection**: pick the cleanest of several candidate runs | Judge each candidate; prefer the one with the fewest, least severe codes |
 | 🧬 **Feedback for optimization loops**: tell a prompt or agent optimizer *why* runs failed, not just the score | Feed the judged codes back as the improvement signal |
@@ -107,7 +107,7 @@ Deeper guides: [Trace formats](docs/TRACE_FORMATS.md) · [Generation](docs/GENER
 
 ## 🔌 Runtime integration
 
-AdaMAST can also ride along **live** inside Codex or Claude Code: hooks checkpoint the agent's work at natural boundaries, record evidence, and learn a project-specific taxonomy automatically from completed conversations. No API key or config is needed for the interactive path. Until your project's own catalog is learned, conversations start from a built-in adaptation of the MAST taxonomy (["Why Do Multi-Agent LLM Systems Fail?"](https://arxiv.org/abs/2503.13657), Cemri et al., 2025).
+AdaMAST can also run **live** inside Codex or Claude Code: hooks checkpoint the agent's work at natural boundaries, record evidence, and learn a project-specific taxonomy automatically from completed conversations. No API key or config is needed for the interactive path. Until your project's own catalog is learned, conversations start from a built-in adaptation of the MAST taxonomy (["Why Do Multi-Agent LLM Systems Fail?"](https://arxiv.org/abs/2503.13657), Cemri et al., 2025).
 
 ```bash
 # once, for the host you use
@@ -119,7 +119,7 @@ adamast doctor
 adamast dashboard
 ```
 
-The full story (how checkpoints work, the taxonomy picker, background learning, the live monitor, and every knob) lives in **[the runtime integration guide](RUNTIME_INTEGRATION.md)**.
+The full details (how checkpoints work, the taxonomy picker, background learning, the live monitor, and every knob) live in **[the runtime integration guide](RUNTIME_INTEGRATION.md)**.
 
 ## 📚 Learn more
 

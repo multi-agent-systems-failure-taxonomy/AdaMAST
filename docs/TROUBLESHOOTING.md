@@ -98,8 +98,8 @@ adamast claude list-hooks --project-dir .
 
 Blocking checkpoints fail open by design: if the hook process crashes or is
 killed at the harness's per-hook timeout, the agent continues and the
-checkpoint is silently skipped; an AdaMAST bug must never brick your
-session.
+checkpoint is silently skipped; an AdaMAST bug must never leave your
+session unable to finish.
 
 To confirm the checkpoint actually happened, check:
 

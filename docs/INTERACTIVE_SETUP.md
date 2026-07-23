@@ -1,6 +1,6 @@
 # Choose an interactive host
 
-Pick the coding assistant you already use, and this page hands you the one
+Pick the coding assistant you already use, and this page directs you to the
 guide to follow next.
 
 ## 🧭 Pick your host

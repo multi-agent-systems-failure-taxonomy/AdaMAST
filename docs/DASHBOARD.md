@@ -6,8 +6,9 @@ checkpoints recorded by Codex and Claude Code.
 
 ## 🚀 Open the monitor
 
-Nothing to run: either integration opens the monitor automatically on the
-project and conversation that started it when `dashboard` is enabled.
+No manual launch is needed: either integration opens the monitor
+automatically on the project and conversation that started it when
+`dashboard` is enabled.
 
 To open it manually, point the command at one program and its interactive
 store root:

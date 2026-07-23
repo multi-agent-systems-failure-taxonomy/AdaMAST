@@ -42,7 +42,8 @@ are accepted and normalized; see [Prepare traces](TRACE_FORMATS.md).
 ## ✍️ Generation
 
 Generation proposes a new taxonomy from a set of traces, on demand: point
-`adamast generate` at your files and the annotators do the rest.
+`adamast generate` at your files and the annotation workflow runs
+automatically.
 
 ## 🤝 Agreement
 

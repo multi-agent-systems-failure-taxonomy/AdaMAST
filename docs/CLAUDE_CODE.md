@@ -65,7 +65,7 @@ message.
     prompt without echoing its full text, and the next prompt reopens the
     selector.
 
-Your choice stays isolated and stays put:
+Your choice stays isolated and persistent:
 
 - **Per conversation.** Every new Claude conversation receives a durable
   conversation branch. Choosing a stored taxonomy uses it only as that
@@ -149,10 +149,10 @@ covered in [Live monitor](DASHBOARD.md).
 
 !!! note "Hooks are enabled automatically"
     The installer registers all eight built-in hooks for you; there is
-    nothing to enable by hand. A **user-level** install needs no approval at
-    all: hooks run in your next new conversation. For a **project-level**
+    nothing to enable by hand. A **user-level** install needs no approval:
+    hooks run in your next new conversation. For a **project-level**
     install, Claude Code itself asks once per project before running hooks
-    from that project's settings; accept the prompt and you are done.
+    from that project's settings; accepting that prompt completes the setup.
 
 **Built-in hooks** can be disabled or narrowed at install time:
 

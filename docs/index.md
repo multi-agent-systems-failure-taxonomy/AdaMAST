@@ -2,7 +2,7 @@
 
 On this page you will install AdaMAST and generate your first failure-mode
 taxonomy: a catalog of the ways your agent actually fails, learned from its
-own traces. Two commands and one provider credential are all it takes.
+own traces. The process requires two commands and one provider credential.
 
 AdaMAST builds failure-mode taxonomies from agent
 [traces](TRACE_FORMATS.md#what-counts-as-a-trace) (recorded task
@@ -14,7 +14,7 @@ taxonomy or judge a trace.
 
 ## 📦 Install AdaMAST
 
-You need Python 3.10 or newer, nothing else.
+Requires Python 3.10 or newer.
 
 1. Install from PyPI:
 

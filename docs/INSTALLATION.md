@@ -12,8 +12,8 @@ dependency variants for repeatable environments.
 - `pip`
 
 !!! note
-    Installing needs nothing else. Model-provider credentials only come
-    into play later, when you *run* generation or a model-backed judge;
+    Installation has no other requirements. Model-provider credentials are
+    needed only later, when you *run* generation or a model-backed judge;
     see [Providers and models](PROVIDERS.md).
 
 ## 📦 Standard installation
