@@ -79,4 +79,8 @@ Imported taxonomies become normal flat store records after acceptance. If you ne
 
 ## Lineage
 
-Generated and refined taxonomies get new taxonomy IDs. Refinement records lineage from the previous taxonomy to the accepted replacement so future runs can preserve the evolution history.
+Generated and refined taxonomies get new taxonomy IDs. Refinement records a
+parent-to-child edge from the exact version used by that conversation branch.
+One parent may have several children when conversations evolve independently;
+each branch manifest records its own head, so no child is treated as the global
+latest taxonomy after a split.

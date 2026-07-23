@@ -31,8 +31,9 @@ queued -> claimed -> awaiting_reconcile -> support_queued
    with a time-bound token. Codex installs `SessionStart` for startup, resume,
    and context compaction so long-running desktop tasks have a second supported
    dispatch path.
-3. The main host agent launches one taxonomy-generator subagent and continues
-   the user's task.
+3. The main host agent launches one taxonomy-generator subagent in the
+   background and continues the user's task immediately. It does not wait,
+   join, or poll for the worker.
 4. The subagent reads `prompt.txt` and `output.schema.json`, then returns one
    bounded receipt through `SubagentStop`.
 5. Foreground reconciliation validates the claim, snapshot hash, candidate
@@ -49,6 +50,13 @@ The selector choice remains the conversation's lineage seed after activation.
 For example, a conversation that selected MAST still records MAST as its root,
 but host context names the generated or refined taxonomy's display name and
 immutable ID as active. Checkpoints must use codes from that active taxonomy.
+
+Each job snapshot belongs to exactly one conversation branch. Only that
+conversation's traces are eligible. Refinement is pinned to the branch's exact
+current taxonomy ID; an accepted replacement gets a new ID and creates one
+parent-to-child edge for that branch. Other conversations seeded from the same
+parent can create different children without sharing traces or changing one
+another's active head.
 
 ## Worker boundary
 
@@ -82,7 +90,10 @@ the host cannot inject output into an idle conversation.
 ## Recovery
 
 - An expired claim returns to the queue for a later task.
-- A duplicate hook cannot queue a second active job for the same group.
+- A duplicate hook cannot queue a second active job for the same branch.
+- A different conversation or host cannot claim the branch's job.
+- If Claude Code background tasks are disabled, the job remains queued rather
+  than running in the foreground or blocking the conversation.
 - A stale refinement candidate is rejected when its parent taxonomy changed.
 - A malformed receipt is ignored and reported; it cannot update the store.
 - Legacy detached-worker jobs are retired before the native path queues a

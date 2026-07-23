@@ -62,7 +62,8 @@ causal reflection graph.
 
 A runtime **program** is one learning stream identified by its `trace_output`
 folder. It owns pending traces, the active taxonomy, generation/refinement
-counters, and local status. Reusing the path means reusing that state.
+counters, and local status. Codex and Claude Code allocate one program branch
+per conversation; custom harnesses opt into sharing only by reusing a path.
 
 ## Gate and checkpoint
 
@@ -89,10 +90,12 @@ BASELINE generation.
 
 ## Refinement and lineage
 
-Refinement reviews an active stored taxonomy after additional traces
-accumulate. An accepted change receives a new `taxonomy_id`; the predecessor
-and successor remain connected by lineage. A valid `no_change` review advances
-the cadence without replacing the taxonomy.
+Refinement reviews one branch's active stored taxonomy after that conversation
+accumulates additional traces. An accepted change receives a new `taxonomy_id`;
+the predecessor and child remain connected by lineage. Several branches may
+create different children from the same parent, so the current taxonomy is
+resolved from the branch head rather than a global latest pointer. A valid
+`no_change` review advances that branch's cadence without replacing it.
 
 ## Next step
 

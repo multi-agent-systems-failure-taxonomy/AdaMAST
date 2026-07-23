@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "model": "claude-opus-4-8",
+    "traces_analyzed": 71
+  },
+  "category_definitions": {
+    "A": "System-level failures (agent-independent).",
+    "B": "Role-specific quality failures.",
+    "C": "Domain-specific reasoning failures."
+  },
+  "annotation_layer": {
+    "description": "Compact taxonomy for annotation judges",
+    "category_a": [
+      {
+        "code": "A.1",
+        "name": "Execution_Timeout_Termination",
+        "definition": "The session is killed by an externally imposed limit before the task reaches a stopping point or artifacts are finalized.",
+        "severity": "major"
+      }
+    ],
+    "category_b": [
+      {
+        "code": "B.1",
+        "name": "Solver_Incorrect_Or_Incomplete_Patch_Logic",
+        "definition": "The agent applies a change that does not correctly address the root cause or covers only part of the required behavior.",
+        "severity": "critical",
+        "applies_to_role": "solver"
+      }
+    ],
+    "category_c": []
+  },
+  "full_layer": {
+    "domain_info": {
+      "domain": {
+        "name": "Software Engineering / Code Repair",
+        "content_type": "code patches and test results",
+        "task_complexity": "Repository-scale debugging with hidden behavioral constraints"
+      },
+      "subdomains": [
+        "Python",
+        "web frameworks",
+        "regression testing"
+      ]
+    }
+  }
+}

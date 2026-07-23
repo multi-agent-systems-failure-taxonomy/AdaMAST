@@ -1,0 +1,3 @@
+display_name: AdaMAST Failure Modes
+short_description: Diagnose agent work with AdaMAST checkpoints and final gates.
+default_prompt: Use AdaMAST to review the current task trajectory and complete the final submission gate before answering.

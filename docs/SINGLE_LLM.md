@@ -30,7 +30,7 @@ preserving the original task prompt and a tail of recent messages.
 Custom programs can call the runtime directly. A minimal adapter looks like this:
 
 ```python
-from adamast_runtime import GenerationTrace, end_session, load_adamast_config, record_trace, start_session
+from adamast import GenerationTrace, end_session, load_adamast_config, record_trace, start_session
 
 config = load_adamast_config("adamast.json")
 session_args = dict(

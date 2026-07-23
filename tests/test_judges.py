@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from adamast.judges import (
+from adamast.judges.contract import (
     JUDGE_SYSTEM_PROMPT,
     JudgeResponseError,
     TaxonomyJudge,
@@ -177,7 +177,7 @@ def test_legacy_atlas_layered_taxonomy_is_accepted_during_migration() -> None:
     assert judge.judge(_trace()).label == "Legacy code"
 
 
-@patch("adamast.judges.create_provider")
+@patch("adamast.judges.contract.create_provider")
 def test_create_judge_uses_shared_provider_configuration(
     provider_factory, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -203,7 +203,7 @@ def test_create_judge_uses_shared_provider_configuration(
     )
 
 
-@patch("adamast.judges.create_provider")
+@patch("adamast.judges.contract.create_provider")
 def test_judge_traces_loads_every_trace_from_a_file(
     provider_factory, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

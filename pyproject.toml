@@ -1,46 +1,60 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+# setuptools>=77 + a modern pip is required to read PEP 621 metadata. Old
+# Ubuntu pip (22.0.2 on Ubuntu 22.04) sometimes ignores the [project] table
+# entirely and silently builds a wheel named UNKNOWN-0.0.0; the floor here
+# is intentionally higher than strictly needed so build-isolation envs end
+# up fetching a setuptools recent enough to behave. See README installation
+# troubleshooting if you still hit the UNKNOWN-wheel symptom.
+requires = ["setuptools>=77", "wheel>=0.42"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "adamast"
 version = "0.2.0.dev0"
-description = "Adaptive failure-mode taxonomy generation and integration"
+description = "Adaptive failure-mode taxonomy runtime for Codex, Claude Code, and custom agent harnesses."
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = [
-  "openai>=2,<3",
+license = "Apache-2.0"
+authors = [{ name = "AdaMAST authors" }]
+keywords = ["agents", "failure-taxonomy", "codex", "claude-code", "llm"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
+dependencies = ["openai>=1.40"]
 
 [project.optional-dependencies]
-openai = [
-  "openai>=2,<3",
-]
-anthropic = [
-  "anthropic>=0.79,<1",
-]
-google = [
-  "google-genai>=1,<2",
-]
-bedrock = [
-  "boto3>=1.43,<2",
-]
-all = [
-  "openai>=2,<3",
-  "anthropic>=0.79,<1",
-  "google-genai>=1,<2",
-  "boto3>=1.43,<2",
-]
-dev = [
-  "pytest>=8,<9",
-  "ruff>=0.12,<1",
-]
-docs = [
-  "mkdocs-material>=9.5",
-]
+anthropic = ["anthropic>=0.40"]
+bedrock = ["boto3>=1.43"]
+test = ["pytest>=7", "pytest-cov>=5", "ruff>=0.12,<1"]
+docs = ["mkdocs-material>=9.5"]
 
 [project.scripts]
 adamast = "adamast.cli:main"
+# Legacy per-surface scripts, kept working; all point at the canonical
+# modules inside the single adamast package.
+adamast-find = "adamast.core.finding_cli:main"
+adamast-dashboard = "adamast.dashboard.server:main"
+adamast-import-traces = "adamast.learning.import_generation:main"
+adamast-register-taxonomy = "adamast.learning.register_taxonomy:main"
+adamast-doctor = "adamast.doctor:main"
+adamast-traces = "adamast.core.traces_cli:main"
+adamast-status = "adamast.dashboard.status:main"
+adamast-claude-install = "adamast.hosts.claude_code.install:main"
+adamast-claude-uninstall = "adamast.hosts.claude_code.uninstall:main"
+adamast-claude-add-hook = "adamast.hosts.claude_code.manage_hooks:add_main"
+adamast-claude-remove-hook = "adamast.hosts.claude_code.manage_hooks:remove_main"
+adamast-claude-list-hooks = "adamast.hosts.claude_code.manage_hooks:list_main"
+adamast-claude-checkpoint = "adamast.hosts.claude_code.checkpoint:main"
+adamast-codex-install = "adamast.hosts.codex.install:main"
+adamast-codex-uninstall = "adamast.hosts.codex.uninstall:main"
+adamast-codex-checkpoint = "adamast.hosts.codex.checkpoint:main"
+adamast-single-run = "adamast.hosts.single_llm.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST"
@@ -53,12 +67,47 @@ Paper = "https://arxiv.org/abs/2607.16387"
 include-package-data = true
 
 [tool.setuptools.packages.find]
+where = ["."]
 include = ["adamast*"]
+exclude = ["examples*", "tests*"]
 
 [tool.setuptools.package-data]
-adamast = ["assets/*.html"]
+"adamast.core" = ["mast.json", "assets/*.json"]
+"adamast.protocol" = ["assets/*.md"]
+"adamast.llm" = ["assets/*.md", "assets/*.json"]
+"adamast.learning" = ["assets/*.md"]
+"adamast.learning.vendor" = ["LICENSE", "VENDORED.md", "assets/*.md"]
+"adamast.learning.vendor.pipeline" = ["assets/*.md", "assets/*.json"]
+"adamast.dashboard" = ["assets/*.html"]
+"adamast.judges" = ["assets/*/*.md"]
+"adamast.judges.reflection_judge" = ["assets/*.md", "assets/*.json"]
+"adamast.hosts.claude_code" = ["assets/*.md", "assets/*.json"]
+"adamast.hosts.codex" = ["assets/*.md", "assets/*.yaml"]
+"adamast.hosts.single_llm" = ["assets/*.md"]
+
+[tool.setuptools.data-files]
+"share/adamast" = ["SKILL.md"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+exclude = ["adamast/learning/vendor"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+"adamast/__init__.py" = ["E402"]
 
 [tool.pytest.ini_options]
-addopts = "-q"
 testpaths = ["tests"]
-pythonpath = ["."]
+
+[tool.coverage.run]
+# The vendored research pipeline and the ported public draft/agreement
+# engines are exercised through mocks; neither has ever been part of the
+# coverage gate (vendor/ was excluded before the move, and the public
+# mirror ran its tests without coverage).
+omit = [
+  "adamast/learning/vendor/*",
+  "adamast/learning/pipeline/*",
+]

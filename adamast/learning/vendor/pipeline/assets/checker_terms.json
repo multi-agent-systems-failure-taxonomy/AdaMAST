@@ -1,0 +1,109 @@
+{
+  "b_code_a_type_keywords": [
+    "no output",
+    "empty output",
+    "unable to provide",
+    "placeholder",
+    "truncated",
+    "incomplete output",
+    "no response",
+    "missing output",
+    "format violation",
+    "malformed output",
+    "unable to produce",
+    "failed to generate",
+    "timed out",
+    "crashed"
+  ],
+  "a_failure_category_keywords": {
+    "output_issues": [
+      "output",
+      "empty",
+      "truncat",
+      "malform",
+      "no response",
+      "garble",
+      "missing output",
+      "partial output",
+      "incomplete output"
+    ],
+    "context_memory": [
+      "context",
+      "memory",
+      "overflow",
+      "forgot",
+      "contradict",
+      "lost track",
+      "window",
+      "capacity",
+      "re-deriv"
+    ],
+    "communication": [
+      "handoff",
+      "communication",
+      "passed",
+      "routing",
+      "downstream",
+      "upstream",
+      "inter-agent",
+      "misroute",
+      "relay"
+    ],
+    "behavioral": [
+      "loop",
+      "repetit",
+      "refusal",
+      "abandon",
+      "circular",
+      "degrad",
+      "stuck",
+      "regress",
+      "pathological"
+    ],
+    "execution": [
+      "timeout",
+      "crash",
+      "error",
+      "exception",
+      "rate limit",
+      "resource",
+      "runtime",
+      "api error",
+      "fail"
+    ],
+    "instruction": [
+      "instruction",
+      "compliance",
+      "system prompt",
+      "ignored constraint",
+      "wrong problem",
+      "format requirement",
+      "disobey",
+      "non-compliance"
+    ],
+    "tool_api": [
+      "tool",
+      "api",
+      "function call",
+      "tool call",
+      "wrong tool",
+      "wrong argument",
+      "tool error",
+      "tool response",
+      "tool fail",
+      "malformed argument",
+      "invoke",
+      "tool misuse"
+    ]
+  },
+  "placeholder_patterns": [
+    "trace_field_\\d",
+    "trace_field\\d",
+    "field_\\d+",
+    "trace\\.field",
+    "\\bTBD\\b",
+    "\\bTODO\\b",
+    "\\bplaceholder\\b",
+    "\\.{3,}"
+  ]
+}

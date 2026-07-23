@@ -1,0 +1,1174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>AdaMAST Monitor</title>
+  <style>
+    :root {
+      --ink: #0a0f16;
+      --ink-raised: #101824;
+      --panel: #151f2d;
+      --panel-soft: #1a2636;
+      --line: #2a394c;
+      --line-bright: #3b4d63;
+      --text: #eef3f8;
+      --muted: #93a4b8;
+      --quiet: #65788e;
+      --cyan: #6bc5e7;
+      --cyan-soft: #173746;
+      --mint: #72d2b3;
+      --amber: #f0ba68;
+      --red: #ff8a91;
+      --paper: #d9e5ef;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .28);
+      --radius: 10px;
+      --utility: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+      --body: "Segoe UI Variable", "Aptos", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(rgba(107, 197, 231, .025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(107, 197, 231, .025) 1px, transparent 1px),
+        var(--ink);
+      background-size: 32px 32px;
+      color: var(--text);
+      font-family: var(--body);
+      font-size: 15px;
+    }
+
+    button, select, input { font: inherit; }
+    button, select { color: inherit; }
+
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+
+    .shell { min-height: 100vh; }
+
+    .masthead {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: rgba(10, 15, 22, .94);
+      backdrop-filter: blur(16px);
+    }
+
+    .masthead-inner {
+      max-width: 1540px;
+      margin: 0 auto;
+      min-height: 74px;
+      padding: 12px 28px;
+      display: grid;
+      grid-template-columns: 245px minmax(220px, 1fr) minmax(280px, 1.3fr);
+      gap: 14px;
+      align-items: end;
+    }
+
+    .brand {
+      align-self: center;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line-bright);
+      border-radius: 50%;
+      color: var(--cyan);
+      font: 700 13px/1 var(--utility);
+      box-shadow: inset 0 0 0 5px var(--cyan-soft);
+    }
+
+    .brand-copy strong {
+      display: block;
+      font-size: 17px;
+      letter-spacing: -.02em;
+    }
+
+    .brand-copy span,
+    .field-label,
+    .eyebrow {
+      color: var(--muted);
+      font: 600 10px/1.35 var(--utility);
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+
+    .picker { min-width: 0; }
+    .field-label { display: block; margin: 0 0 6px 2px; }
+
+    select,
+    input[type="datetime-local"],
+    input[type="number"] {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--ink-raised);
+      padding: 7px 34px 7px 11px;
+    }
+
+    select:hover,
+    input:hover { border-color: var(--line-bright); }
+
+    main {
+      max-width: 1540px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .context-strip {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      padding: 10px 0 24px;
+    }
+
+    h1 {
+      margin: 7px 0 5px;
+      font-size: clamp(28px, 3.4vw, 48px);
+      line-height: 1;
+      letter-spacing: -.045em;
+      font-weight: 650;
+    }
+
+    .taxonomy-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--paper);
+      font: 600 11px/1.2 var(--utility);
+    }
+
+    .taxonomy-chip::before {
+      content: "";
+      width: 26px;
+      height: 1px;
+      background: var(--cyan);
+    }
+
+    .control-deck {
+      display: grid;
+      grid-template-columns: auto auto minmax(280px, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(16, 24, 36, .86);
+      box-shadow: var(--shadow);
+    }
+
+    .segmented {
+      display: inline-flex;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--ink);
+    }
+
+    .segmented button,
+    .timeline button {
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .segmented button[aria-pressed="true"] {
+      background: var(--cyan-soft);
+      color: var(--text);
+      box-shadow: inset 0 0 0 1px rgba(107, 197, 231, .28);
+    }
+
+    .timeline {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .timeline button {
+      border: 1px solid transparent;
+      font-family: var(--utility);
+      font-size: 11px;
+    }
+
+    .timeline button[aria-pressed="true"] {
+      color: var(--cyan);
+      border-color: var(--line-bright);
+      background: var(--panel-soft);
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .toggle input {
+      width: 32px;
+      height: 18px;
+      margin: 0;
+      appearance: none;
+      border: 1px solid var(--line-bright);
+      border-radius: 99px;
+      background: var(--ink);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .toggle input::after {
+      content: "";
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      left: 2px;
+      top: 2px;
+      border-radius: 50%;
+      background: var(--quiet);
+      transition: transform .18s ease, background .18s ease;
+    }
+
+    .toggle input:checked::after {
+      transform: translateX(14px);
+      background: var(--cyan);
+    }
+
+    .custom-range {
+      grid-column: 1 / -1;
+      display: none;
+      grid-template-columns: repeat(3, minmax(160px, 220px));
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .custom-range.visible { display: grid; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      margin: 20px 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--line);
+    }
+
+    .stat {
+      min-height: 88px;
+      padding: 15px 17px;
+      background: var(--ink-raised);
+    }
+
+    .stat-value {
+      display: block;
+      margin-bottom: 7px;
+      font: 600 28px/1 var(--utility);
+      color: var(--paper);
+    }
+
+    .stat-label { color: var(--muted); font-size: 12px; }
+
+    .axis-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin: 30px 0 12px;
+    }
+
+    .axis-label h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 610;
+      letter-spacing: -.015em;
+    }
+
+    .axis-note {
+      color: var(--quiet);
+      font: 500 11px/1.4 var(--utility);
+    }
+
+    .ledger { display: grid; gap: 12px; }
+
+    .group {
+      display: grid;
+      grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--ink-raised);
+    }
+
+    .group-heading {
+      min-width: 0;
+      padding: 17px;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(145deg, var(--panel-soft), var(--ink-raised));
+    }
+
+    .group-id {
+      color: var(--cyan);
+      font: 650 11px/1.2 var(--utility);
+      letter-spacing: .04em;
+    }
+
+    .group-heading h3 {
+      display: -webkit-box;
+      margin: 8px 0 6px;
+      overflow: hidden;
+      font-size: 14px;
+      line-height: 1.4;
+      font-weight: 620;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+    }
+
+    .group-heading p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .group-count {
+      display: inline-block;
+      margin-top: 13px;
+      color: var(--quiet);
+      font: 600 10px/1 var(--utility);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .entries { min-width: 0; }
+
+    .entry {
+      width: 100%;
+      min-height: 58px;
+      display: grid;
+      grid-template-columns: minmax(88px, 112px) minmax(0, 1fr) auto;
+      gap: 15px;
+      align-items: start;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      padding: 11px 15px;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .entry:last-child { border-bottom: 0; }
+    .entry:hover { background: rgba(107, 197, 231, .045); }
+
+    .entry-coordinate {
+      padding-top: 1px;
+      color: var(--quiet);
+      font: 550 10px/1.45 var(--utility);
+    }
+
+    .entry-coordinate strong {
+      display: block;
+      color: var(--paper);
+      font-weight: 600;
+    }
+
+    .entry-copy { min-width: 0; }
+
+    .entry-copy strong {
+      display: -webkit-box;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+      line-height: 1.4;
+      font-weight: 600;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+
+    .entry-copy span {
+      display: -webkit-box;
+      margin-top: 4px;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+
+    .gate-pill,
+    .code-pill,
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border: 1px solid var(--line-bright);
+      border-radius: 99px;
+      padding: 3px 8px;
+      color: var(--muted);
+      font: 600 9px/1 var(--utility);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .code-pill { color: var(--amber); border-color: rgba(240, 186, 104, .35); }
+    .status-pill.clean { color: var(--mint); border-color: rgba(114, 210, 179, .35); }
+
+    .entry .gate-pill {
+      align-self: start;
+      margin-top: 1px;
+    }
+
+    .empty {
+      padding: 48px 24px;
+      border: 1px dashed var(--line-bright);
+      border-radius: var(--radius);
+      text-align: center;
+      color: var(--muted);
+      background: rgba(16, 24, 36, .6);
+    }
+
+    .empty strong { display: block; color: var(--text); margin-bottom: 7px; }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: none;
+      background: rgba(3, 7, 11, .64);
+      backdrop-filter: blur(5px);
+    }
+
+    .drawer-backdrop.open { display: block; }
+
+    .drawer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: min(620px, 94vw);
+      height: 100%;
+      overflow-y: auto;
+      border-left: 1px solid var(--line-bright);
+      background: var(--ink-raised);
+      box-shadow: -28px 0 80px rgba(0, 0, 0, .4);
+    }
+
+    .drawer-head {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(16, 24, 36, .96);
+      backdrop-filter: blur(14px);
+    }
+
+    .drawer h2 {
+      margin: 7px 0 0;
+      font-size: 22px;
+      line-height: 1.25;
+      letter-spacing: -.025em;
+    }
+
+    .close {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .close:hover { border-color: var(--cyan); }
+
+    .drawer-body { padding: 24px; }
+
+    .coordinate-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--line);
+    }
+
+    .coordinate {
+      min-width: 0;
+      padding: 12px;
+      background: var(--panel);
+    }
+
+    .coordinate span { display: block; }
+    .coordinate .value {
+      margin-top: 5px;
+      overflow-wrap: anywhere;
+      color: var(--paper);
+      font: 550 11px/1.45 var(--utility);
+    }
+
+    .reasoning { margin-top: 25px; }
+
+    .reasoning-section {
+      padding: 0 0 22px 18px;
+      border-left: 1px solid var(--line-bright);
+      position: relative;
+    }
+
+    .reasoning-section::before {
+      content: "";
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      left: -4px;
+      top: 4px;
+      border-radius: 50%;
+      background: var(--cyan);
+    }
+
+    .reasoning-section:last-child { padding-bottom: 0; }
+
+    .reasoning-section h3 {
+      margin: 0 0 7px;
+      color: var(--cyan);
+      font: 650 10px/1.3 var(--utility);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .reasoning-section p {
+      margin: 0;
+      color: var(--paper);
+      line-height: 1.65;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .map-list { display: grid; gap: 8px; }
+
+    .map-item {
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel);
+    }
+
+    .map-item strong { color: var(--amber); font: 600 11px/1 var(--utility); }
+    .map-item p { margin-top: 7px; color: var(--muted); font-size: 13px; }
+
+    .faq {
+      margin-top: 44px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+
+    .faq h2 {
+      margin: 10px 0 16px;
+      font-size: 19px;
+      letter-spacing: -.02em;
+    }
+
+    .faq-item {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel);
+    }
+
+    .faq-item + .faq-item { margin-top: 8px; }
+
+    .faq-item summary {
+      padding: 12px 14px;
+      cursor: pointer;
+      color: var(--paper);
+      font: 600 12px/1.4 var(--utility);
+      list-style: none;
+    }
+
+    .faq-item summary::before {
+      content: "+";
+      margin-right: 10px;
+      color: var(--cyan);
+    }
+
+    .faq-item[open] summary::before { content: "−"; }
+
+    .faq-item summary::-webkit-details-marker { display: none; }
+
+    .faq-item summary:hover { color: var(--text); }
+
+    .faq-item .faq-answer {
+      margin: 0;
+      padding: 0 14px 14px 36px;
+      max-width: 860px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .faq-item .faq-answer p { margin: 0 0 8px; }
+    .faq-item .faq-answer p:last-child { margin-bottom: 0; }
+
+    @media (max-width: 1000px) {
+      .masthead-inner { grid-template-columns: 1fr 1fr; }
+      .brand { grid-column: 1 / -1; }
+      .control-deck { grid-template-columns: 1fr 1fr; }
+      .timeline { grid-column: 1 / -1; flex-wrap: wrap; }
+      .group { grid-template-columns: minmax(230px, 280px) minmax(0, 1fr); }
+    }
+
+    @media (max-width: 700px) {
+      .masthead { position: static; }
+      .masthead-inner, main { padding-left: 16px; padding-right: 16px; }
+      .masthead-inner { grid-template-columns: 1fr; }
+      .brand { grid-column: auto; }
+      .context-strip { grid-template-columns: 1fr; }
+      .control-deck { grid-template-columns: 1fr; }
+      .timeline { grid-column: auto; flex-wrap: wrap; row-gap: 6px; }
+      .custom-range.visible { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .group { grid-template-columns: 1fr; }
+      .group-heading { border-right: 0; border-bottom: 1px solid var(--line); }
+      .entry { grid-template-columns: 78px minmax(0, 1fr); }
+      .entry .gate-pill { display: none; }
+      .coordinate-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 460px) {
+      .stats { grid-template-columns: 1fr; }
+      .axis-label { align-items: flex-start; flex-direction: column; gap: 6px; }
+      .entry { grid-template-columns: 1fr; gap: 8px; }
+      .entry-coordinate { display: flex; gap: 8px; }
+      .entry-coordinate strong { display: inline; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="masthead">
+      <div class="masthead-inner">
+        <div class="brand" aria-label="AdaMAST Monitor">
+          <div class="brand-mark">A</div>
+          <div class="brand-copy">
+            <strong>AdaMAST Monitor</strong>
+            <span>Conversation flight recorder</span>
+          </div>
+        </div>
+        <label class="picker">
+          <span class="field-label">Project</span>
+          <select id="project-select" aria-label="Select project"></select>
+        </label>
+        <label class="picker">
+          <span class="field-label">Conversation</span>
+          <select id="conversation-select" aria-label="Select conversation"></select>
+        </label>
+      </div>
+    </header>
+
+    <main>
+      <section class="context-strip" aria-labelledby="page-title">
+        <div>
+          <div class="eyebrow" id="context-eyebrow">Selected conversation</div>
+          <h1 id="page-title">Checkpoint timeline</h1>
+        </div>
+        <div class="taxonomy-chip" id="taxonomy-chip">Taxonomy —</div>
+      </section>
+
+      <section class="control-deck" aria-label="Monitor controls">
+        <div class="segmented" aria-label="Viewing mode">
+          <button id="mode-failures" type="button" aria-pressed="true">Failure modes</button>
+          <button id="mode-checkpoints" type="button" aria-pressed="false">Checkpoints</button>
+        </div>
+        <label class="toggle">
+          <input id="show-clean" type="checkbox">
+          <span>Show clean in failure view</span>
+        </label>
+        <div class="timeline" aria-label="Timeline range">
+          <button type="button" data-window="all" aria-pressed="true">All history</button>
+          <button type="button" data-window="24h" aria-pressed="false">Past 24h</button>
+          <button type="button" data-window="7d" aria-pressed="false">Past 7d</button>
+          <button type="button" data-window="count" aria-pressed="false">Last N</button>
+          <button type="button" data-window="custom" aria-pressed="false">Custom</button>
+        </div>
+        <span class="axis-note" id="refresh-note">Updates every 2 seconds</span>
+        <div class="custom-range" id="custom-range">
+          <label>
+            <span class="field-label">From</span>
+            <input id="since-input" type="datetime-local">
+          </label>
+          <label>
+            <span class="field-label">Until</span>
+            <input id="until-input" type="datetime-local">
+          </label>
+          <label>
+            <span class="field-label">Checkpoint count</span>
+            <input id="limit-input" type="number" min="1" max="1000" value="50">
+          </label>
+        </div>
+      </section>
+
+      <section class="stats" aria-label="Checkpoint summary">
+        <div class="stat"><span class="stat-value" id="stat-total">—</span><span class="stat-label">checkpoints in view</span></div>
+        <div class="stat"><span class="stat-value" id="stat-failures">—</span><span class="stat-label">failure checkpoints</span></div>
+        <div class="stat"><span class="stat-value" id="stat-clean">—</span><span class="stat-label">clean checkpoints</span></div>
+        <div class="stat"><span class="stat-value" id="stat-modes">—</span><span class="stat-label">active failure modes</span></div>
+      </section>
+
+      <section aria-live="polite" aria-busy="true" id="monitor-region">
+        <div class="axis-label">
+          <h2 id="axis-title">Failure modes → checkpoints</h2>
+        </div>
+        <div class="ledger" id="ledger"></div>
+      </section>
+
+      <section class="faq" aria-labelledby="faq-title">
+        <div class="eyebrow">Reference</div>
+        <h2 id="faq-title">Frequently asked questions</h2>
+
+        <details class="faq-item">
+          <summary>What is a checkpoint?</summary>
+          <div class="faq-answer">
+            <p>A checkpoint (also called a gate — the two terms name the same event) is a point where the agent pauses its work, reviews what just happened against the active taxonomy of failure modes, and decides whether to repair something or continue. Each card in the ledger is one checkpoint.</p>
+            <p>A checkpoint where no failure mode is supported by the evidence is recorded as clean (“none apply”). Clean checkpoints are expected and count separately in the summary above.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>What triggers a checkpoint?</summary>
+          <div class="faq-answer">
+            <p>The host integration (Codex or Claude Code) installs checkpoints at configured boundaries: session start, user-prompt submission, mid-task progress boundaries, and final submission before the agent stops. Custom hooks can also bind a checkpoint to a specific event, tool, or recurring command.</p>
+            <p>A single turn or prompt may trigger several checkpoints; they stay separate records that share the same host turn ID. Checkpoints fail open — if one errors or times out, the agent continues normally and that checkpoint silently does not fire.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>What happens during a checkpoint?</summary>
+          <div class="faq-answer">
+            <p>The agent runs a four-step reflection: <strong>Observe</strong> concrete activity (or a missing expected step), <strong>Correlate</strong> only evidence-supported causes, <strong>Map</strong> that evidence to taxonomy codes, and <strong>Decide</strong> whether to repair or continue. Open any entry to see the full structure in the detail drawer.</p>
+            <p>The reflection is recorded compactly and privately — nothing is printed into the conversation. Most checkpoints are advisory; the final submission checkpoint can block completion until its required response passes or the retry policy is exhausted.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>How are failure modes assigned?</summary>
+          <div class="faq-answer">
+            <p>Codes come from the active taxonomy shown in the chip at the top of the page. During the Map step the agent cites a code only when the recorded evidence supports it, and each assignment stores that evidence alongside the code. One checkpoint can carry several codes, or none.</p>
+            <p>The monitor is read-only: it displays the decisions exactly as they were recorded at the checkpoint and never re-judges them.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Where does the taxonomy come from?</summary>
+          <div class="faq-answer">
+            <p>Each conversation starts from the taxonomy selected at session start — a stored project taxonomy, the built-in MAST adaptation, or none. One completed assistant episode records one trace; once enough traces accumulate (five eligible traces by default), generation proposes a project-specific taxonomy from them.</p>
+            <p>The chip at the top of the page names the exact taxonomy version this conversation's checkpoints used.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>How and when is the taxonomy refined?</summary>
+          <div class="faq-answer">
+            <p>Refinement is a periodic review of the active taxonomy against the traces that accumulated since it was adopted: the first review runs after ten completed traces, later reviews every twenty (both configurable). The learning job runs in the background and the current taxonomy stays active while it works.</p>
+            <p>Proposed changes are checked against exact trace evidence, and every replacement code must pass a separate support review before the result activates between episodes. An accepted change receives a new immutable taxonomy ID linked to its predecessor by lineage; a valid “no change” verdict simply advances the review cadence without replacing anything.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>What do the two viewing modes show?</summary>
+          <div class="faq-answer">
+            <p>Both modes show the same checkpoint records, transposed. <strong>Failure modes → checkpoints</strong> groups entries under every failure mode that fired, which highlights recurring problems. <strong>Checkpoints → failure modes</strong> lists each gate in order with the codes considered there, which follows the conversation chronologically.</p>
+          </div>
+        </details>
+
+      </section>
+    </main>
+  </div>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" role="presentation">
+    <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+      <div class="drawer-head">
+        <div>
+          <div class="eyebrow" id="drawer-eyebrow">Checkpoint detail</div>
+          <h2 id="drawer-title">—</h2>
+        </div>
+        <button class="close" id="drawer-close" type="button" aria-label="Close checkpoint detail">×</button>
+      </div>
+      <div class="drawer-body" id="drawer-body"></div>
+    </aside>
+  </div>
+
+  <script>
+    const state = {
+      data: null,
+      mode: localStorage.getItem("adamast-monitor-mode") || "failures",
+      window: "all",
+      project: new URLSearchParams(location.search).get("project") || "",
+      conversation: new URLSearchParams(location.search).get("conversation") || "",
+      showClean: false,
+      inFlight: false,
+      lastFocus: null,
+    };
+
+    const byId = (id) => document.getElementById(id);
+    const projectSelect = byId("project-select");
+    const conversationSelect = byId("conversation-select");
+    const ledger = byId("ledger");
+    const monitorRegion = byId("monitor-region");
+    const drawerBackdrop = byId("drawer-backdrop");
+    const drawerBody = byId("drawer-body");
+
+    function element(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined && text !== null) node.textContent = text;
+      return node;
+    }
+
+    function replaceOptions(select, items, selected, valueKey, label) {
+      const previous = select.value;
+      select.replaceChildren();
+      if (!items.length) {
+        const option = new Option("No recorded entries", "");
+        select.add(option);
+        select.disabled = true;
+        return;
+      }
+      select.disabled = false;
+      items.forEach((item) => select.add(new Option(label(item), item[valueKey])));
+      const wanted = selected || previous;
+      if ([...select.options].some((option) => option.value === wanted)) {
+        select.value = wanted;
+      }
+    }
+
+    function syncUrl() {
+      const params = new URLSearchParams(location.search);
+      state.project ? params.set("project", state.project) : params.delete("project");
+      state.conversation ? params.set("conversation", state.conversation) : params.delete("conversation");
+      history.replaceState(null, "", `${location.pathname}?${params.toString()}`);
+    }
+
+    function apiUrl() {
+      const params = new URLSearchParams();
+      if (state.project) params.set("project", state.project);
+      if (state.conversation) params.set("conversation", state.conversation);
+      const apiWindow = state.window === "custom" ? "all" : state.window;
+      params.set("window", apiWindow);
+      params.set("limit", byId("limit-input").value || "50");
+      if (state.window === "custom") {
+        const since = Date.parse(byId("since-input").value);
+        const until = Date.parse(byId("until-input").value);
+        if (!Number.isNaN(since)) params.set("since", String(since / 1000));
+        if (!Number.isNaN(until)) params.set("until", String(until / 1000));
+      }
+      return `/api/monitor?${params.toString()}`;
+    }
+
+    async function refresh() {
+      if (state.inFlight) return;
+      state.inFlight = true;
+      try {
+        const response = await fetch(apiUrl(), {cache: "no-store"});
+        const data = await response.json();
+        if (!response.ok || data.error) throw new Error(data.error || `HTTP ${response.status}`);
+        state.data = data;
+        state.project = data.selection.project_id || "";
+        state.conversation = data.selection.conversation_id || "";
+        render();
+      } catch (error) {
+        if (!state.data) showEmpty("Monitor unavailable", error.message);
+      } finally {
+        state.inFlight = false;
+      }
+    }
+
+    function render() {
+      const data = state.data;
+      replaceOptions(
+        projectSelect,
+        data.projects,
+        data.selection.project_id,
+        "project_id",
+        (project) => `${project.name} · ${project.conversation_count} conversation${project.conversation_count === 1 ? "" : "s"}`,
+      );
+      replaceOptions(
+        conversationSelect,
+        data.conversations,
+        data.selection.conversation_id,
+        "conversation_id",
+        (conversation) => `${conversation.status === "running" ? "● " : ""}${conversation.title} · ${conversation.host_label} · ${conversation.checkpoint_count}`,
+      );
+      syncUrl();
+
+      const conversation = data.conversations.find((item) => item.conversation_id === data.selection.conversation_id);
+      const project = data.projects.find((item) => item.project_id === data.selection.project_id);
+      byId("context-eyebrow").textContent = `${project?.name || "Project"} / ${data.selection.task_group || "default"} / ${conversation?.host_label || "Agent runtime"}`;
+      byId("page-title").textContent = conversation?.title || "Checkpoint timeline";
+      byId("taxonomy-chip").textContent = `Taxonomy ${data.taxonomy.taxonomy_id || "—"}`;
+      byId("stat-total").textContent = data.summary.checkpoints;
+      byId("stat-failures").textContent = data.summary.failure_checkpoints;
+      byId("stat-clean").textContent = data.summary.clean_checkpoints;
+      byId("stat-modes").textContent = data.summary.active_failure_modes;
+      byId("refresh-note").textContent = conversation?.status === "running"
+        ? "Live follow · 2 second refresh"
+        : "Recorded run · 2 second refresh";
+      setMode(state.mode);
+      monitorRegion.setAttribute("aria-busy", "false");
+    }
+
+    function setMode(mode) {
+      state.mode = mode === "checkpoints" ? "checkpoints" : "failures";
+      localStorage.setItem("adamast-monitor-mode", state.mode);
+      byId("mode-failures").setAttribute("aria-pressed", String(state.mode === "failures"));
+      byId("mode-checkpoints").setAttribute("aria-pressed", String(state.mode === "checkpoints"));
+      byId("axis-title").textContent = state.mode === "failures"
+        ? "Failure modes → checkpoints"
+        : "Checkpoints → failure modes";
+      if (state.data) renderLedger();
+    }
+
+    function renderLedger() {
+      ledger.replaceChildren();
+      if (!state.data.checkpoints.length) {
+        showEmpty("No checkpoints in this range", "Choose another timeline, project, or conversation.");
+        return;
+      }
+      if (state.mode === "failures") renderFailureGroups();
+      else renderCheckpointGroups();
+    }
+
+    function renderFailureGroups() {
+      const groups = state.data.failure_modes
+        .map((mode) => ({
+          ...mode,
+          checkpoints: state.data.checkpoints.filter((checkpoint) => checkpoint.fired_codes.includes(mode.code_id)),
+        }))
+        .filter((mode) => mode.checkpoints.length);
+      if (state.showClean) {
+        const clean = state.data.checkpoints.filter((checkpoint) => !checkpoint.fired_codes.length);
+        if (clean.length) groups.push({code_id: "NONE", name: "No failure detected", description: "The checkpoint completed with none apply.", checkpoints: clean});
+      }
+      if (!groups.length) {
+        showEmpty("No failure modes fired", "This range contains only clean checkpoints. Turn on “Show clean” to include them here.");
+        return;
+      }
+      groups.forEach((group) => {
+        const node = groupNode(group.code_id, group.name, group.description, group.checkpoints.length);
+        const entries = node.querySelector(".entries");
+        group.checkpoints.forEach((checkpoint) => entries.append(entryNode(checkpoint, group.code_id)));
+        ledger.append(node);
+      });
+    }
+
+    function renderCheckpointGroups() {
+      state.data.checkpoints.slice().reverse().forEach((checkpoint) => {
+        const modes = checkpoint.failure_modes;
+        const title = displayCheckpoint(checkpoint.checkpoint) || (modes.length ? modes.map((mode) => mode.name).join(", ") : "No failure detected");
+        const description = `${checkpoint.turn_label} · ${humanGate(checkpoint.gate)} · ${formatTime(checkpoint.timestamp)}`;
+        const node = groupNode(`#${String(checkpoint.seq).padStart(2, "0")}`, title, description, modes.length || 1);
+        const entries = node.querySelector(".entries");
+        if (modes.length) {
+          modes.forEach((mode) => entries.append(entryNode(checkpoint, mode.code_id, mode.name)));
+        } else {
+          entries.append(entryNode(checkpoint, "none apply", "No failure detected"));
+        }
+        ledger.append(node);
+      });
+    }
+
+    function groupNode(id, name, description, count) {
+      const group = element("article", "group");
+      const heading = element("header", "group-heading");
+      heading.append(element("div", "group-id", id));
+      heading.append(element("h3", "", name));
+      heading.append(element("p", "", description || "Recorded AdaMAST gate evidence."));
+      heading.append(element("span", "group-count", `${count} entr${count === 1 ? "y" : "ies"}`));
+      group.append(heading, element("div", "entries"));
+      return group;
+    }
+
+    function entryNode(checkpoint, codeId, codeName = "") {
+      const button = element("button", "entry");
+      button.type = "button";
+      const coordinate = element("span", "entry-coordinate");
+      coordinate.append(element("strong", "", checkpoint.turn_label));
+      coordinate.append(document.createTextNode(formatTime(checkpoint.timestamp)));
+      const copy = element("span", "entry-copy");
+      const primary = codeName || displayCheckpoint(checkpoint.checkpoint) || "Checkpoint recorded";
+      copy.append(element("strong", "", primary));
+      copy.append(element("span", "", checkpoint.evidence || checkpoint.next_action || "Open the recorded checkpoint details."));
+      button.append(coordinate, copy, element("span", "gate-pill", humanGate(checkpoint.gate)));
+      button.addEventListener("click", () => openDrawer(checkpoint, codeId));
+      return button;
+    }
+
+    function showEmpty(title, message) {
+      ledger.replaceChildren();
+      const empty = element("div", "empty");
+      empty.append(element("strong", "", title), document.createTextNode(message));
+      ledger.append(empty);
+    }
+
+    function openDrawer(checkpoint, focusedCode) {
+      state.lastFocus = document.activeElement;
+      byId("drawer-eyebrow").textContent = `${checkpoint.turn_label} / ${humanGate(checkpoint.gate)}`;
+      byId("drawer-title").textContent = displayCheckpoint(checkpoint.checkpoint) || "AdaMAST checkpoint";
+      drawerBody.replaceChildren();
+
+      const coordinates = element("div", "coordinate-grid");
+      [
+        ["Turn", checkpoint.turn_label],
+        ["Host", checkpoint.host_label || "Agent runtime"],
+        ["Gate", humanGate(checkpoint.gate)],
+        ["Status", checkpoint.gate_status],
+        ["Exact turn ID", checkpoint.turn_id || "Not recorded for this checkpoint"],
+        ["Checkpoint ID", checkpoint.checkpoint_id],
+        ["Taxonomy", checkpoint.taxonomy_id || "—"],
+      ].forEach(([label, value]) => {
+        const item = element("div", "coordinate");
+        item.append(element("span", "field-label", label), element("span", "value", value));
+        coordinates.append(item);
+      });
+      drawerBody.append(coordinates);
+
+      const reasoning = element("div", "reasoning");
+      reasoning.append(reasoningSection("Observe", checkpoint.observe || checkpoint.checkpoint));
+      reasoning.append(reasoningSection("Correlate / evidence", checkpoint.correlate || checkpoint.evidence));
+      reasoning.append(mapSection(checkpoint, focusedCode));
+      reasoning.append(reasoningSection("Decide / next action", checkpoint.decide || checkpoint.next_action));
+      drawerBody.append(reasoning);
+
+      drawerBackdrop.classList.add("open");
+      document.body.style.overflow = "hidden";
+      byId("drawer-close").focus();
+    }
+
+    function reasoningSection(label, value) {
+      const section = element("section", "reasoning-section");
+      section.append(element("h3", "", label), element("p", "", value || "Not recorded for this checkpoint."));
+      return section;
+    }
+
+    function mapSection(checkpoint, focusedCode) {
+      const section = element("section", "reasoning-section");
+      section.append(element("h3", "", "Map / relevant codes"));
+      const list = element("div", "map-list");
+      const assignments = checkpoint.map.length
+        ? checkpoint.map.slice().sort((a, b) => (a.code_id === focusedCode ? -1 : b.code_id === focusedCode ? 1 : 0))
+        : [{code_id: "none apply", evidence: "No active failure mode was supported by the evidence."}];
+      assignments.forEach((assignment) => {
+        const item = element("div", "map-item");
+        item.append(element("strong", "", assignment.name ? `${assignment.code_id} · ${assignment.name}` : assignment.code_id));
+        item.append(element("p", "", assignment.evidence));
+        list.append(item);
+      });
+      section.append(list);
+      return section;
+    }
+
+    function closeDrawer() {
+      drawerBackdrop.classList.remove("open");
+      document.body.style.overflow = "";
+      if (state.lastFocus) state.lastFocus.focus();
+    }
+
+    function humanGate(value) {
+      return String(value || "checkpoint").replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+    }
+
+    function displayCheckpoint(value) {
+      let text = String(value || "").trim().replace(/^`+|`+$/g, "").replaceAll("**", "");
+      if (!text) return "";
+      const machineStyle = text.includes("_") || /^[A-Z\d\s-]+$/.test(text);
+      text = text.replaceAll("_", " ").replace(/\s+/g, " ").trim();
+      if (machineStyle) {
+        text = text.toLocaleLowerCase();
+      }
+      text = text.charAt(0).toLocaleUpperCase() + text.slice(1);
+      return text;
+    }
+
+    function formatTime(timestamp) {
+      if (!timestamp) return "Time unavailable";
+      return new Intl.DateTimeFormat(undefined, {month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}).format(new Date(timestamp * 1000));
+    }
+
+    projectSelect.addEventListener("change", () => {
+      state.project = projectSelect.value;
+      state.conversation = "";
+      syncUrl();
+      refresh();
+    });
+    conversationSelect.addEventListener("change", () => {
+      state.conversation = conversationSelect.value;
+      syncUrl();
+      refresh();
+    });
+    byId("mode-failures").addEventListener("click", () => setMode("failures"));
+    byId("mode-checkpoints").addEventListener("click", () => setMode("checkpoints"));
+    byId("show-clean").addEventListener("change", (event) => {
+      state.showClean = event.target.checked;
+      renderLedger();
+    });
+    document.querySelectorAll("[data-window]").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.window = button.dataset.window;
+        document.querySelectorAll("[data-window]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+        byId("custom-range").classList.toggle("visible", ["custom", "count"].includes(state.window));
+        refresh();
+      });
+    });
+    ["since-input", "until-input", "limit-input"].forEach((id) => byId(id).addEventListener("change", refresh));
+    byId("drawer-close").addEventListener("click", closeDrawer);
+    drawerBackdrop.addEventListener("click", (event) => { if (event.target === drawerBackdrop) closeDrawer(); });
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape" && drawerBackdrop.classList.contains("open")) closeDrawer(); });
+
+    setMode(state.mode);
+    refresh();
+    setInterval(refresh, 2000);
+  </script>
+</body>
+</html>

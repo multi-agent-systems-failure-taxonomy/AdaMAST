@@ -18,7 +18,7 @@ decision your pipeline needs.
 | Selection-Summary | Reflection output | deterministic selection buckets | Compressing a causal analysis without another model call |
 
 The [core trace judge](JUDGING.md) is the public CLI/API path. The specialized
-controllers live under `judge_types/` and are used by the adaptive runtime and
+controllers live under `adamast/judges/` and are used by the adaptive runtime and
 research pipelines.
 
 ## Core trace judge
@@ -41,8 +41,8 @@ failure modes with evidence, confidence tier, and severity, or explicitly says
 that no mode applies.
 
 ```python
-from adamast_runtime.taxonomy_data import Taxonomy
-from judge_types import SelectionJudge
+from adamast.core.taxonomy_data import Taxonomy
+from adamast.judges import SelectionJudge
 
 taxonomy = Taxonomy.from_json("./taxonomy.json")
 judge = SelectionJudge(taxonomy, judge_model="gpt-5")
@@ -63,8 +63,8 @@ Only afterward does it map supported points to taxonomy codes. This ordering
 reduces the risk that the existing codebook determines what the judge notices.
 
 ```python
-from adamast_runtime.taxonomy_data import Taxonomy
-from judge_types.reflection_judge import AdaMASTReflectionJudge
+from adamast.core.taxonomy_data import Taxonomy
+from adamast.judges.reflection_judge import AdaMASTReflectionJudge
 
 taxonomy = Taxonomy.from_json("./taxonomy.json")
 judge = AdaMASTReflectionJudge(
@@ -95,7 +95,7 @@ and secondary codes, or mark the point unmapped and propose a missing failure
 mode.
 
 ```python
-from judge_types import MappingJudge
+from adamast.judges import MappingJudge
 
 judge = MappingJudge(taxonomy, judge_model="gpt-5")
 result = judge.run({
@@ -114,7 +114,7 @@ Coverage decides whether a trace or failure point is `covered`,
 new code with a proposed name and definition.
 
 ```python
-from judge_types import CoverageJudge
+from adamast.judges import CoverageJudge
 
 judge = CoverageJudge(taxonomy, judge_model="gpt-5")
 result = judge.run({"trace": "...", "failure_point": {"evidence": "..."}})
@@ -131,7 +131,7 @@ code-level observability, overlap, scope, and clarity issues plus an overall
 quality result.
 
 ```python
-from judge_types import QualityJudge
+from adamast.judges import QualityJudge
 
 judge = QualityJudge(taxonomy, judge_model="gpt-5")
 result = judge.run(support_traces=["trace one", "trace two"])
@@ -147,7 +147,7 @@ flag weak-evidence/high-confidence assignments, conflicting codes, and likely
 over-triggers.
 
 ```python
-from judge_types import CalibrationJudge
+from adamast.judges import CalibrationJudge
 
 judge = CalibrationJudge(taxonomy, judge_model="gpt-5")
 result = judge.run({
@@ -171,7 +171,7 @@ The Selection, Mapping, Coverage, Quality, and Calibration judges share
 `JudgeController`:
 
 ```python
-from judge_types import JudgeController
+from adamast.judges import JudgeController
 
 controller = JudgeController(
     "selection",
@@ -190,9 +190,9 @@ the runtime learning-call layer.
 ## Natural-language prompt assets
 
 The five simple judge instructions are Markdown assets under
-`judge_types/assets/<judge>/system.md` and `user.md`. A custom harness can either
+`adamast/judges/assets/<judge>/system.md` and `user.md`. A custom harness can either
 use the Python controller or load/render those assets directly. Reflection has
-separate staged prompt assets under `judge_types/reflection_judge/assets/`.
+separate staged prompt assets under `adamast/judges/reflection_judge/assets/`.
 
 Keep prompt changes versioned with evaluation results. Changing a judge prompt
 changes the measurement procedure even when the taxonomy is unchanged.

@@ -89,24 +89,22 @@ a {
   stroke-width: 2;
 }
 
-.build-status {
+.site-nav {
   display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
+  gap: 1.4rem;
+}
+
+.site-nav a {
   color: var(--graphite);
   font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
   font-size: 0.72rem;
   letter-spacing: 0.04em;
+  text-decoration: none;
   text-transform: uppercase;
 }
 
-.build-status__dot {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  background: var(--coral);
-  box-shadow: 0 0 0 5px rgba(217, 87, 78, 0.12);
-  animation: status-pulse 2.8s ease-in-out infinite;
+.site-nav a:hover {
+  color: var(--ink);
 }
 
 .landing {
@@ -172,6 +170,22 @@ h1 {
   gap: 1.8rem;
   color: var(--ink);
   background: transparent;
+}
+
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.docs-link--ghost {
+  color: var(--ink);
+  background: transparent;
+}
+
+.docs-link--ghost:hover {
+  color: #ffffff;
+  background: var(--ink);
 }
 
 .docs-link:focus-visible,
@@ -271,20 +285,14 @@ h1 {
   border-left: 1px solid var(--line);
 }
 
-@keyframes status-pulse {
-  50% {
-    box-shadow: 0 0 0 8px rgba(217, 87, 78, 0.02);
-  }
-}
-
 @media (max-width: 760px) {
   .site-header,
   .landing {
     width: min(100% - 2rem, 1160px);
   }
 
-  .build-status {
-    font-size: 0;
+  .site-nav {
+    gap: 1rem;
   }
 
   .landing {

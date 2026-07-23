@@ -1,0 +1,409 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adamast.local/schemas/adamast_config.schema.json",
+  "title": "AdaMAST adamast.json configuration",
+  "description": "Dependency-free JSON configuration file used by AdaMAST CLIs. Explicit CLI arguments override config-file values.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "description": "Configuration schema version. AdaMAST currently supports only version 1.",
+      "type": "integer",
+      "const": 1,
+      "default": 1
+    },
+    "trace_output": {
+      "description": "Mandatory program/task-specific folder for fallback trace storage.",
+      "type": "string",
+      "minLength": 1
+    },
+    "store_dir": {
+      "description": "Directory containing one taxonomy JSON file per taxonomy_id.",
+      "type": "string",
+      "minLength": 1
+    },
+    "trace_root": {
+      "description": "Root directory for persistent taxonomy trace collections.",
+      "type": "string",
+      "minLength": 1
+    },
+    "repo_path": {
+      "description": "Repository path used for display metadata and repo discovery.",
+      "type": "string",
+      "minLength": 1
+    },
+    "project_dir": {
+      "description": "Harness project directory, used by adapter installation commands.",
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_export": {
+      "description": "Optional external evidence export path. A .json value is an exact file; any other value is treated as a directory sink.",
+      "type": "string",
+      "minLength": 1
+    },
+    "max_retries": {
+      "description": "Legacy shared retry knob. Maps to repair_rounds when repair_rounds is not set explicitly.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "format_retries": {
+      "description": "Budget for reflection parse/shape/consistency failures per checkpoint cycle before the gate releases.",
+      "type": "integer",
+      "minimum": 1,
+      "default": 2
+    },
+    "repair_rounds": {
+      "description": "Budget for substantive REPAIR_REQUIRED repair cycles per session gate. Overrides max_retries.",
+      "type": "integer",
+      "minimum": 1,
+      "default": 3
+    },
+    "generation_threshold": {
+      "description": "Number of warm-up traces required before initial taxonomy generation.",
+      "type": "integer",
+      "minimum": 1,
+      "default": 5
+    },
+    "k_init": {
+      "description": "Program-specific trace count before the first refinement round for a taxonomy.",
+      "type": "integer",
+      "minimum": 1,
+      "default": 10
+    },
+    "k": {
+      "description": "Program-specific trace count between later refinement rounds.",
+      "type": "integer",
+      "minimum": 1,
+      "default": 20
+    },
+    "failure_throttle_calls": {
+      "description": "Call-count throttle window for repeated hook failure prompts.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "failure_recency_seconds": {
+      "description": "Time-based throttle window for repeated hook failure prompts.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "generation_stops": {
+      "description": "If true, block the current task while initial taxonomy generation is running.",
+      "type": "boolean",
+      "default": false
+    },
+    "skip_judge": {
+      "description": "If true, skip the post-generation taxonomy acceptance judge.",
+      "type": "boolean",
+      "default": false
+    },
+    "refinement_stops": {
+      "description": "If true, block the current task while refinement is running.",
+      "type": "boolean",
+      "default": false
+    },
+    "advanced_refinement": {
+      "description": "If true, run the optional support-judge recheck/repair loop after proposing a refined taxonomy.",
+      "type": "boolean",
+      "default": false
+    },
+    "dashboard": {
+      "description": "If true, enable dashboard launch/attachment for supported runtime paths.",
+      "type": "boolean",
+      "default": true
+    },
+    "freeze": {
+      "description": "If true, inference-only mode records traces/evidence but skips generation and refinement.",
+      "type": "boolean",
+      "default": false
+    },
+    "redact_traces": {
+      "description": "If true (default), first-party adapters redact credential-looking substrings from traces before persistence.",
+      "type": "boolean",
+      "default": true
+    },
+    "adamast_model": {
+      "description": "Model used by AdaMAST generation, judging, and refinement. Separate from the user's task model.",
+      "type": "string"
+    },
+    "inherit": {
+      "description": "Taxonomy inheritance selector: taxonomy_id, omitted/null for interactive/default behavior, or string 'none' to normalize to none.",
+      "type": ["string", "null"]
+    },
+    "repo": {
+      "description": "Display-only repository label stored with generated taxonomies.",
+      "type": "string"
+    },
+    "openai_base_url": {
+      "description": "Optional OpenAI-compatible API base URL for AdaMAST model calls.",
+      "type": "string"
+    },
+    "openai_api_key_env": {
+      "description": "Environment variable name containing the API key. Do not store plaintext credentials in adamast.json.",
+      "type": "string"
+    },
+    "model": {
+      "description": "User task-model setting consumed by adapters that run the task agent.",
+      "type": "string"
+    },
+    "gate_exhaustion_policy": {
+      "description": "Single-LLM behavior when the final gate still blocks after retries.",
+      "enum": ["raise", "release"],
+      "default": "raise"
+    },
+    "recent_activity_messages": {
+      "description": "Single-LLM maximum number of recent messages included in checkpoint/final-gate reflection prompts.",
+      "type": "integer",
+      "minimum": 1,
+      "default": 8
+    },
+    "recent_activity_chars": {
+      "description": "Single-LLM maximum characters included in recent_activity.",
+      "type": "integer",
+      "minimum": 1,
+      "default": 12000
+    },
+    "built_in_hooks": {
+      "description": "Legacy top-level Claude Code built-in hook configuration. Prefer claude_code.built_in_hooks.",
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": {"$ref": "#/$defs/builtInHookValue"}
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["event"],
+            "properties": {
+              "event": {"type": "string"},
+              "enabled": {"type": "boolean"},
+              "matchers": {"$ref": "#/$defs/matchers"}
+            },
+            "additionalProperties": false
+          }
+        }
+      ]
+    },
+    "custom_hooks": {
+      "description": "Legacy top-level Claude Code custom hooks. Prefer claude_code.custom_hooks.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "event"],
+        "properties": {
+          "name": {"type": "string"},
+          "event": {"type": "string"},
+          "mode": {"enum": ["blocking", "advisory"]},
+          "matcher": {"type": ["string", "null"]},
+          "command_pattern": {"type": ["string", "null"]},
+          "checkpoint_key": {"enum": ["tool_use_id", "command", "fixed"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "codex_hooks": {
+      "description": "Legacy top-level Codex hook configuration. Prefer codex.hooks.",
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": {"$ref": "#/$defs/builtInHookValue"}
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["event"],
+            "properties": {
+              "event": {"type": "string"},
+              "enabled": {"type": "boolean"},
+              "matchers": {"$ref": "#/$defs/matchers"}
+            },
+            "additionalProperties": false
+          }
+        }
+      ]
+    },
+    "claude_code": {
+      "description": "Claude Code adapter-specific settings.",
+      "type": "object",
+      "properties": {
+        "project_scope": {
+          "description": "Use trace_output directly or derive one program per project.",
+          "enum": ["explicit", "auto"],
+          "default": "explicit"
+        },
+        "project_id": {
+          "description": "Optional stable project identity override for auto scope.",
+          "type": ["string", "null"],
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+        },
+        "task_group": {
+          "description": "Project-local taxonomy and trace group.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "default": "default"
+        },
+        "session_selector": {
+          "description": "Whether a new Claude Code conversation asks the user to select its taxonomy.",
+          "enum": ["off", "prompt"],
+          "default": "off"
+        },
+        "learning_backend": {
+          "description": "Taxonomy learning transport. claude_subagent reuses local Claude Code authentication.",
+          "enum": ["provider", "claude_subagent"],
+          "default": "provider"
+        },
+        "worker_model": {
+          "description": "Optional model override for the isolated Claude taxonomy worker.",
+          "type": ["string", "null"]
+        },
+        "claude_cli_path": {
+          "description": "Optional explicit Claude Code CLI executable path.",
+          "type": ["string", "null"]
+        },
+        "worker_timeout_seconds": {
+          "description": "Maximum runtime for one isolated Claude taxonomy worker.",
+          "type": "integer",
+          "minimum": 1,
+          "default": 1800
+        },
+        "built_in_hooks": {
+          "description": "Claude Code built-in hook configuration.",
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": {"$ref": "#/$defs/builtInHookValue"}
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["event"],
+                "properties": {
+                  "event": {"type": "string"},
+                  "enabled": {"type": "boolean"},
+                  "matchers": {"$ref": "#/$defs/matchers"}
+                },
+                "additionalProperties": false
+              }
+            }
+          ]
+        },
+        "custom_hooks": {
+          "description": "Claude Code custom hooks bound to AdaMAST reflection/advisory behavior.",
+          "type": "array",
+          "items": {"$ref": "#/$defs/claudeCustomHook"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "codex": {
+      "description": "Codex adapter-specific settings.",
+      "type": "object",
+      "properties": {
+        "project_scope": {
+          "description": "Use trace_output directly or derive one program per project.",
+          "enum": ["explicit", "auto"],
+          "default": "explicit"
+        },
+        "project_id": {
+          "description": "Optional stable project identity override for auto scope.",
+          "type": ["string", "null"],
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+        },
+        "task_group": {
+          "description": "Project-local taxonomy and trace group.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "default": "default"
+        },
+        "session_selector": {
+          "description": "Whether a new Codex conversation explicitly asks the user to select its taxonomy.",
+          "enum": ["off", "prompt"],
+          "default": "off"
+        },
+        "learning_backend": {
+          "description": "Taxonomy learning transport for Codex conversations. codex_subagent reuses local Codex authentication and requires no external API key.",
+          "enum": ["provider", "codex_subagent"],
+          "default": "provider"
+        },
+        "worker_model": {
+          "description": "Optional model override for the isolated Codex taxonomy worker.",
+          "type": ["string", "null"]
+        },
+        "codex_cli_path": {
+          "description": "Optional explicit Codex CLI executable path; normally discovered from CODEX_CLI_PATH.",
+          "type": ["string", "null"]
+        },
+        "worker_timeout_seconds": {
+          "description": "Maximum runtime for one isolated Codex taxonomy worker.",
+          "type": "integer",
+          "minimum": 1,
+          "default": 1800
+        },
+        "hooks": {
+          "description": "Codex hook configuration.",
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": {"$ref": "#/$defs/builtInHookValue"}
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["event"],
+                "properties": {
+                  "event": {"type": "string"},
+                  "enabled": {"type": "boolean"},
+                  "matchers": {"$ref": "#/$defs/matchers"}
+                },
+                "additionalProperties": false
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "matchers": {
+      "anyOf": [
+        {"type": "string"},
+        {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      ]
+    },
+    "claudeCustomHook": {
+      "type": "object",
+      "required": ["name", "event"],
+      "properties": {
+        "name": {"type": "string"},
+        "event": {"type": "string"},
+        "mode": {"enum": ["blocking", "advisory"]},
+        "matcher": {"type": ["string", "null"]},
+        "command_pattern": {"type": ["string", "null"]},
+        "checkpoint_key": {"enum": ["tool_use_id", "command", "fixed"]}
+      },
+      "additionalProperties": false
+    },
+    "builtInHookValue": {
+      "anyOf": [
+        {"type": "boolean"},
+        {"$ref": "#/$defs/matchers"},
+        {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "matchers": {"$ref": "#/$defs/matchers"}
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

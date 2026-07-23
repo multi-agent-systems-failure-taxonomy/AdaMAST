@@ -1,0 +1,18 @@
+{
+  "anthropic_context_tokens": 200000,
+  "prefix_profiles": [
+    {
+      "prefixes": ["gpt-5", "o3", "o4"],
+      "context_tokens": 400000
+    },
+    {
+      "prefixes": ["gpt-4.1", "gpt-4o"],
+      "context_tokens": 128000
+    },
+    {
+      "prefixes": ["gemini"],
+      "context_tokens": 1000000
+    }
+  ],
+  "region_prefixes": ["us.", "eu.", "apac.", "ap-", "global."]
+}

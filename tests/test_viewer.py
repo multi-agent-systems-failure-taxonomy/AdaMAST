@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from adamast.viewer import render_taxonomy_html
+from adamast.dashboard.viewer import render_taxonomy_html
 
 
 def test_renders_one_read_only_taxonomy(tmp_path: Path) -> None:

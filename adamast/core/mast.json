@@ -1,0 +1,91 @@
+{
+  "taxonomy_id": "mast",
+  "repo": "(built-in)",
+  "domain": "general",
+  "codes": [
+    {
+      "id": "MAST-1",
+      "name": "Disobedient to task specification",
+      "description": "The work deviates from what the task actually asks for, addressing an adjacent or self-noticed problem rather than the specific behavior the task specifies.",
+      "category": "Specification"
+    },
+    {
+      "id": "MAST-2",
+      "name": "Disobedient to role specification",
+      "description": "The work drifts outside the assigned role, expanding into refactoring, optimization, or unrelated improvements instead of staying scoped to the minimum change the task requires.",
+      "category": "Specification"
+    },
+    {
+      "id": "MAST-3",
+      "name": "Step repetition",
+      "description": "Identical or near-identical actions are repeated, such as re-running the same search, re-reading the same source, or re-attempting an already-failed approach, without any new information to justify the repetition.",
+      "category": "Specification"
+    },
+    {
+      "id": "MAST-4",
+      "name": "Loss of conversation history",
+      "description": "Facts established earlier in the trajectory, such as where the relevant material lives or what the correct behavior should be, are forgotten and not carried forward.",
+      "category": "Specification"
+    },
+    {
+      "id": "MAST-5",
+      "name": "Unaware of termination conditions",
+      "description": "There is no explicit criterion for when the task is complete, so work proceeds or stops without a clear signal that it is actually done.",
+      "category": "Specification"
+    },
+    {
+      "id": "MAST-6",
+      "name": "Conversation reset",
+      "description": "After an error or tool failure, the thread of what was being worked on is lost rather than reoriented from where it left off.",
+      "category": "Coordination"
+    },
+    {
+      "id": "MAST-7",
+      "name": "Failure to ask for clarification",
+      "description": "An ambiguous specification is pushed through by guessing, instead of surfacing the ambiguity and committing to an explicit, revisable interpretation.",
+      "category": "Coordination"
+    },
+    {
+      "id": "MAST-8",
+      "name": "Task derailment",
+      "description": "Attention follows a tangent, such as an unrelated problem, a quality improvement, or an architectural concern, at the expense of completing the original task.",
+      "category": "Coordination"
+    },
+    {
+      "id": "MAST-9",
+      "name": "Information withholding",
+      "description": "Decisions are made on facts that were discovered but never recorded in the trajectory, leaving the supporting reasoning invisible to later steps and to verification.",
+      "category": "Coordination"
+    },
+    {
+      "id": "MAST-10",
+      "name": "Ignored other agent's input",
+      "description": "Output from tools or other agents, such as results, retrieved content, or error messages, is dismissed when it contradicts the current plan rather than updating the plan to fit the evidence.",
+      "category": "Coordination"
+    },
+    {
+      "id": "MAST-11",
+      "name": "Premature termination",
+      "description": "The task is concluded before confirming that the work actually addresses the symptoms the task describes.",
+      "category": "Verification"
+    },
+    {
+      "id": "MAST-12",
+      "name": "No or incomplete verification",
+      "description": "The work is assumed correct because it superficially succeeds, for example it runs, compiles, or looks plausible, without seeking concrete evidence that it is right.",
+      "category": "Verification"
+    },
+    {
+      "id": "MAST-13",
+      "name": "Weak verification",
+      "description": "Trivial evidence is accepted as proof, such as an artifact now existing or an import working, when that check would not actually catch a wrong result or exercise the path the task describes.",
+      "category": "Verification"
+    },
+    {
+      "id": "MAST-14",
+      "name": "Incorrect verification",
+      "description": "The wrong thing is verified: the wrong checks are run, the wrong artifact is inspected, or the output of a check is misread.",
+      "category": "Verification"
+    }
+  ]
+}

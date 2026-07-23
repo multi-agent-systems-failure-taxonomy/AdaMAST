@@ -18,21 +18,27 @@ adamast-doctor --claude-code
 
 This merges AdaMAST into `~/.claude/settings.json` and writes
 `~/.claude/adamast.json`; unrelated settings and plugins are preserved.
-Claude Code resolves a Claude-owned project/task-group program. Codex uses a
-separate program even when its base `trace_output`, project root, and logical
-task-group name match. This prevents traces, active learned taxonomies, and
-native learning jobs from crossing between hosts.
+Claude Code resolves a Claude-owned program branch for every conversation.
+Codex uses a separate branch even when its base `trace_output`, project root,
+and logical task-group name match. This prevents traces, active learned
+taxonomies, and native learning jobs from crossing between conversations or
+hosts.
 
 Restart an already-running Claude Code process after installing or updating the
 hooks, then begin a new conversation so the new registration is loaded.
 
 No external model API key, standalone `claude -p` process, or second login is
 required for `claude_subagent`. A hook first asks the active Claude Code session
-to launch a native generator Agent. After exact evidence checks, a separately
-claimed support-review Agent evaluates every replacement code. Each subtask
+to launch a native generator Agent in the background and continue the user's
+task immediately. After exact evidence checks, a separately claimed background
+support-review Agent evaluates every replacement code. Each subtask
 reads only its phase-specific frozen prompt and schema and returns a signed
 receipt through `SubagentStop`. Foreground reconciliation activates between
 episodes only after both phases pass.
+
+If `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`, AdaMAST leaves learning jobs queued
+for a later background-capable session instead of running them in the
+foreground.
 
 One completed assistant episode is one trace. Generation starts after five
 eligible traces by default, first refinement review after `k_init` (ten), and
@@ -105,9 +111,10 @@ second message. If no choice is made before `worker_timeout_seconds`, AdaMAST
 blocks that prompt without echoing its full text and the next prompt reopens the
 selector.
 
-When a project already has a Claude-owned learned taxonomy, choosing MAST
-creates a durable isolated `fresh-*` task group for that Claude conversation
-and leaves the existing Claude taxonomy unchanged.
+Every new Claude conversation receives a durable isolated branch. Choosing a
+stored taxonomy uses it only as that branch's immutable seed; choosing MAST
+starts the branch from zero. Later traces and refinements never enter another
+conversation's branch.
 
 The taxonomy choice remains pinned to Claude's session ID. Resuming the
 conversation from another shell or changing its current working directory does
@@ -203,4 +210,4 @@ This removes AdaMAST hook config from the project. It does not delete learned ta
 
 ## Source layout
 
-The adapter source is organized under `adamast_integration/claude_code/`.
+The adapter source is organized under `adamast/hosts/claude_code/`.

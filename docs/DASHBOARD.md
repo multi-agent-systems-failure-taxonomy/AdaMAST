@@ -28,8 +28,10 @@ The monitor follows the same hierarchy as interactive AdaMAST state:
    named conversations.
 3. **Timeline** limits the view to all history, the past 24 hours, the past
    seven days, the last N checkpoints, or a custom date range.
-4. **Task group** is available under Advanced filters. It remains an explicit
-   internal boundary without complicating the primary project/conversation path.
+
+Task groups remain an internal storage boundary. The monitor page shows every
+group in the selected project; the `group` query parameter on `/api/monitor`
+still narrows API responses for direct callers.
 
 The URL carries the selected project and conversation. A monitor opened by
 Codex or Claude Code therefore starts on the conversation that spawned it,

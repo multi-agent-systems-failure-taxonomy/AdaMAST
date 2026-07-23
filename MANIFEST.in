@@ -1,0 +1,24 @@
+include README.md
+include CHANGELOG.md
+include SKILL.md
+include LICENSE
+recursive-include docs *.md
+recursive-include docs *.png
+recursive-include adamast/core *.json
+recursive-include adamast/protocol/assets *.md
+recursive-include adamast/llm/assets *.md
+recursive-include adamast/llm/assets *.json
+recursive-include adamast/learning/assets *.md
+recursive-include adamast/learning/vendor LICENSE VENDORED.md
+recursive-include adamast/learning/vendor/assets *.md
+recursive-include adamast/learning/vendor/pipeline/assets *.md
+recursive-include adamast/learning/vendor/pipeline/assets *.json
+recursive-include adamast/dashboard/assets *.html
+recursive-include adamast/judges/assets *.md
+recursive-include adamast/judges/reflection_judge/assets *.md
+recursive-include adamast/judges/reflection_judge/assets *.json
+recursive-include adamast/hosts/claude_code/assets *.md
+recursive-include adamast/hosts/claude_code/assets *.json
+recursive-include adamast/hosts/codex/assets *.md
+recursive-include adamast/hosts/codex/assets *.yaml
+recursive-include adamast/hosts/single_llm/assets *.md

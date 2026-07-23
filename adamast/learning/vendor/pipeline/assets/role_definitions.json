@@ -1,0 +1,22 @@
+{
+  "solver": {
+    "definition": "Agent that generates solutions, answers, code, or content in response to a problem or task.",
+    "key_behavior": "Produces output that attempts to solve/answer the given problem.",
+    "purpose": "Generate solutions, code, or outputs"
+  },
+  "checker": {
+    "definition": "Agent that verifies, validates, or evaluates solutions produced by other agents.",
+    "key_behavior": "Assesses correctness and provides accept/reject judgment.",
+    "purpose": "Verify, review, or test solutions"
+  },
+  "refiner": {
+    "definition": "Agent that improves solutions based on feedback, critique, or failed verification.",
+    "key_behavior": "Takes existing output + feedback and produces improved version.",
+    "purpose": "Improve solutions based on feedback"
+  },
+  "coordinator": {
+    "definition": "Agent that orchestrates workflow, routes tasks, or makes selection decisions between multiple outputs.",
+    "key_behavior": "Controls flow, chooses between options, decides when to terminate.",
+    "purpose": "Orchestrate workflow and make decisions"
+  }
+}

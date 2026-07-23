@@ -37,6 +37,11 @@ the project using the runtime:
 taxonomy, pending traces, and counters are shared. Use a different path when
 two task streams must learn independently.
 
+Codex and Claude Code perform this separation automatically: every new
+interactive conversation is routed to a conversation-owned program branch
+beneath the project root. Custom harnesses must choose their own
+`trace_output` boundary.
+
 `adamast_model` is the model used for generation, judging, and refinement. It
 is separate from the model used by the task-solving agent.
 
@@ -74,7 +79,7 @@ host-specific hooks, selector behavior, event contracts, and uninstall steps.
 ## Minimal runtime lifecycle
 
 ```python
-from adamast_runtime import (
+from adamast import (
     GenerationTrace,
     end_session,
     pre_submission,

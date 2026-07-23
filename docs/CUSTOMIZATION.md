@@ -14,21 +14,21 @@ Use this rule of thumb:
 
 | Goal | Edit |
 |---|---|
-| Change checkpoint reflection wording | `adamast_runtime/assets/checkpoint_reflection.md` |
-| Change final-gate protocol | `adamast_runtime/assets/pre_submission_protocol.md` and, for Claude Code, `adamast_integration/claude_code/assets/final_gate_tail.md` |
-| Change Claude Code standing instruction | `adamast_integration/claude_code/assets/standing_prompt.md` |
-| Change single-LLM standing instruction | `adamast_integration/single_llm/assets/standing_prompt.md` |
-| Change simple judge prompts | `judge_types/assets/` |
-| Change Reflection Judge staged prompts | `judge_types/reflection_judge/assets/` |
-| Change refinement prompt wording | `adamast_runtime/assets/standard_refinement_prompt.md`, `reflection_refiner_system.md`, `reflection_refiner_user.md`, `refinement_support_judge.md`, and `refinement_repair.md` |
+| Change checkpoint reflection wording | `adamast/protocol/assets/checkpoint_reflection.md` |
+| Change final-gate protocol | `adamast/protocol/assets/pre_submission_protocol.md` and, for Claude Code, `adamast/hosts/claude_code/assets/final_gate_tail.md` |
+| Change Claude Code standing instruction | `adamast/hosts/claude_code/assets/standing_prompt.md` |
+| Change single-LLM standing instruction | `adamast/hosts/single_llm/assets/standing_prompt.md` |
+| Change simple judge prompts | `adamast/judges/assets/` |
+| Change Reflection Judge staged prompts | `adamast/judges/reflection_judge/assets/` |
+| Change refinement prompt wording | `adamast/assets/standard_refinement_prompt.md`, `reflection_refiner_system.md`, `reflection_refiner_user.md`, `refinement_support_judge.md`, and `refinement_repair.md` |
 | Change taxonomy-generation prompt wording | `vendor/adamast/pipeline/assets/` |
 | Change classifier prompt wording | `vendor/adamast/assets/classifier_system.md` and `vendor/adamast/assets/classifier_user.md` |
-| Change recognized model context profiles | `adamast_runtime/assets/model_profiles.json` |
-| Change Claude Code event lists | `adamast_integration/claude_code/assets/hook_events.json` |
-| Change Reflection Judge schema enums | `judge_types/reflection_judge/assets/schema_enums.json` |
+| Change recognized model context profiles | `adamast/assets/model_profiles.json` |
+| Change Claude Code event lists | `adamast/hosts/claude_code/assets/hook_events.json` |
+| Change Reflection Judge schema enums | `adamast/judges/reflection_judge/assets/schema_enums.json` |
 | Change generation seed role definitions | `vendor/adamast/pipeline/assets/role_definitions.json` |
 | Change checker keyword lists | `vendor/adamast/pipeline/assets/checker_terms.json` |
-| Change config-file validation | `adamast_runtime/assets/adamast_config.schema.json` plus Python config loaders |
+| Change config-file validation | `adamast/assets/adamast_config.schema.json` plus Python config loaders |
 
 ## Config file first
 
@@ -158,13 +158,13 @@ These Python modules are deliberately behavioral:
 
 | Area | Why it should stay Python |
 |---|---|
-| `adamast_runtime/lifecycle.py` | owns session boundaries and generation/refinement trigger timing |
-| `adamast_runtime/program.py` | owns lock-coordinated program state and pending traces |
-| `adamast_runtime/traces.py` | owns canonical trace persistence and integration into taxonomy trace folders |
-| `adamast_runtime/reflection.py` | parses the reflection contract from model text |
-| `adamast_runtime/protocol.py` | validates final-gate shape and retry envelope |
-| `judge_types/*/schema.py`, validators, and controllers | enforce output structure after model calls |
-| `adamast_integration/*/runtime.py` | adapts host events to runtime calls |
+| `adamast/lifecycle.py` | owns session boundaries and generation/refinement trigger timing |
+| `adamast/program.py` | owns lock-coordinated program state and pending traces |
+| `adamast/traces.py` | owns canonical trace persistence and integration into taxonomy trace folders |
+| `adamast/reflection.py` | parses the reflection contract from model text |
+| `adamast/protocol.py` | validates final-gate shape and retry envelope |
+| `adamast/judges/*/schema.py`, validators, and controllers | enforce output structure after model calls |
+| `adamast.hosts/*/runtime.py` | adapts host events to runtime calls |
 
 If you change these, run the full test suite.
 
@@ -173,7 +173,7 @@ If you change these, run the full test suite.
 Run at least:
 
 ```bash
-python -m compileall adamast_runtime adamast_integration finding judge_types vendor
+python -m compileall adamast adamast.hosts finding adamast.judges vendor
 python -m pytest -q
 git diff --check
 ```

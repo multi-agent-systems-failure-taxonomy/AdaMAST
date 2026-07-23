@@ -27,8 +27,8 @@ On Windows, Python's user-level `Scripts` directory may not be on `PATH`.
 Run the module entry points directly until that directory is added:
 
 ```powershell
-python -m adamast_runtime.doctor --codex
-python -m adamast_integration.codex.install --user-level
+python -m adamast.doctor --codex
+python -m adamast.hosts.codex.install --user-level
 ```
 
 An npm Codex installation may also resolve bare `codex` to `codex.ps1`, which

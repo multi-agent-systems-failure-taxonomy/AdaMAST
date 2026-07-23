@@ -1,0 +1,19 @@
+{
+  "taxonomy_id": "tax-flask-routing-004",
+  "repo": "pallets/flask",
+  "domain": "web-framework",
+  "codes": [
+    {
+      "id": "1",
+      "name": "Route registered after first request",
+      "description": "A fix adds an @app.route inside a function that only runs after the app has started serving, so the rule is never added to the URL map. The route 404s in production while import-time tests that register everything pass.",
+      "category": "Routing"
+    },
+    {
+      "id": "2",
+      "name": "Trailing-slash redirect breaks POST",
+      "description": "A rule defined with a trailing slash triggers a 308 redirect for the slash-less POST, and many clients drop the body on redirect, so the handler receives an empty form.",
+      "category": "Routing"
+    }
+  ]
+}

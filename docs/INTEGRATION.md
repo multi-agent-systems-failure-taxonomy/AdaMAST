@@ -6,8 +6,8 @@ trace capture, generation, refinement, and lineage.
 
 If you only want a ready-made integration, start with:
 
-- Claude Code: `adamast_integration/claude_code/`
-- Single LLM call: `adamast_integration/single_llm/`
+- Claude Code: `adamast/hosts/claude_code/`
+- Single LLM call: `adamast/hosts/single_llm/`
 
 ## The boundary
 
@@ -38,7 +38,7 @@ when two task streams should learn independently.
 ## Minimal lifecycle
 
 ```python
-from adamast_runtime import (
+from adamast import (
     GenerationTrace,
     end_session,
     pre_submission,
@@ -152,7 +152,7 @@ Supported operational CLIs:
 - `adamast-doctor --config adamast.json`
 - `adamast-traces status|export|prune --config adamast.json`
 
-Custom harnesses can load the same file with `adamast_runtime.load_adamast_config`.
+Custom harnesses can load the same file with `adamast.load_adamast_config`.
 
 Use `adamast-doctor` in installation flows to verify the resolved values:
 
@@ -204,7 +204,7 @@ responsibility.
 AdaMAST ships a small helper for common credential shapes:
 
 ```python
-from adamast_runtime import GenerationTrace, redact_trace, record_trace
+from adamast import GenerationTrace, redact_trace, record_trace
 
 trace = GenerationTrace(
     problem_id="task-1",

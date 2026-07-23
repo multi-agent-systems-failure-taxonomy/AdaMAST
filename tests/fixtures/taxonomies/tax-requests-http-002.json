@@ -1,0 +1,19 @@
+{
+  "taxonomy_id": "tax-requests-http-002",
+  "repo": "psf/requests",
+  "domain": "http-client",
+  "codes": [
+    {
+      "id": "1",
+      "name": "Redirect drops Authorization header silently",
+      "description": "A fix that follows a cross-host redirect re-sends credentials it should have stripped, or strips credentials it should have kept on a same-host redirect. The happy-path test hits a non-redirecting endpoint and never exercises the branch.",
+      "category": "Security"
+    },
+    {
+      "id": "2",
+      "name": "Connection pool exhausted by un-closed response",
+      "description": "Streaming responses (stream=True) are read partially and never closed, so the underlying connection is never returned to the pool. Under concurrency this manifests as hangs, not errors, defeating timeout-free tests.",
+      "category": "Resource"
+    }
+  ]
+}

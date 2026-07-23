@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{title}</title>
+  <style>
+    :root {{
+      color-scheme: light;
+      --ink: #17212e;
+      --muted: #647184;
+      --line: #d7dee8;
+      --canvas: #eef2f6;
+      --surface: #ffffff;
+      --navy: #192d4d;
+      --navy-2: #233b61;
+      --blue: #2563c7;
+      --blue-soft: #e9f0fb;
+      --green: #147758;
+      --green-soft: #e1f3eb;
+      --amber: #9a5c00;
+      --amber-soft: #fff2d8;
+      --rose: #a23d5d;
+      --rose-soft: #fbe8ee;
+    }}
+    * {{ box-sizing: border-box; }}
+    html {{ min-width: 320px; background: var(--canvas); }}
+    body {{
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font: 14px/1.5 "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
+    }}
+    button, input {{ font: inherit; }}
+    a {{ color: inherit; }}
+    .app-shell {{ width: min(1380px, calc(100% - 32px)); margin: 24px auto 40px; }}
+    .adamast-header {{
+      overflow: hidden;
+      color: #f7f9fc;
+      background: var(--navy);
+      border: 1px solid #11223c;
+      border-radius: 8px 8px 0 0;
+    }}
+    .brand-line {{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 42px;
+      padding: 0 24px;
+      color: #b9c9e5;
+      background: #142641;
+      border-bottom: 1px solid #30496d;
+      font: 700 12px/1.2 Consolas, "Cascadia Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }}
+    .brand {{ color: #ffffff; }}
+    .header-divider {{ width: 1px; height: 14px; background: #536b8d; }}
+    .header-copy {{
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 25px 24px 23px;
+    }}
+    .header-copy h1 {{ margin: 0; font-size: 30px; line-height: 1.15; letter-spacing: 0; }}
+    .header-copy p {{ margin: 8px 0 0; color: #c6d2e4; font-size: 15px; }}
+    .status {{
+      display: inline-flex;
+      flex: 0 0 auto;
+      align-items: center;
+      gap: 8px;
+      min-height: 32px;
+      padding: 0 11px;
+      border: 1px solid #5b7191;
+      border-radius: 6px;
+      color: #edf3fc;
+      background: var(--navy-2);
+      font-size: 12px;
+      font-weight: 700;
+    }}
+    .status-dot {{ width: 8px; height: 8px; border-radius: 50%; background: #f2b84b; box-shadow: 0 0 0 3px #415979; }}
+    .scope-row {{
+      display: grid;
+      grid-template-columns: minmax(170px, .7fr) minmax(300px, 2fr) minmax(120px, .45fr);
+      border-top: 1px solid #385173;
+      background: #233a5e;
+    }}
+    .scope-row > div {{ min-width: 0; padding: 13px 20px; border-right: 1px solid #3c5375; }}
+    .scope-row > div:last-child {{ border-right: 0; }}
+    .scope-row span, .facts span, .search-wrap > span, .code-toolbar label span {{
+      display: block;
+      margin-bottom: 4px;
+      color: #9fb0ca;
+      font: 700 11px/1.2 Consolas, "Cascadia Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }}
+    .scope-row strong {{ display: block; overflow: hidden; color: #fff; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }}
+    .workspace {{
+      display: grid;
+      grid-template-columns: 350px minmax(0, 1fr);
+      min-height: 650px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-top: 0;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 12px 32px rgba(31, 48, 73, .08);
+    }}
+    .library-pane {{ min-width: 0; padding: 22px 18px 26px; background: #f8fafc; border-right: 1px solid var(--line); border-radius: 0 0 0 8px; }}
+    .pane-heading {{ display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 4px 16px; }}
+    .pane-heading h2, .code-toolbar h3 {{ margin: 2px 0 0; font-size: 18px; line-height: 1.2; letter-spacing: 0; }}
+    .section-label {{ color: var(--blue); font: 700 11px/1.2 Consolas, "Cascadia Mono", monospace; text-transform: uppercase; letter-spacing: 0; }}
+    .result-count {{ display: grid; width: 30px; height: 30px; place-items: center; border-radius: 6px; color: var(--blue); background: var(--blue-soft); font-weight: 800; }}
+    .search-wrap {{ display: block; margin-bottom: 14px; }}
+    .search-wrap > span, .code-toolbar label span {{ color: var(--muted); }}
+    input[type="search"] {{
+      width: 100%;
+      height: 40px;
+      padding: 0 12px;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid #b8c3d1;
+      border-radius: 6px;
+      outline: none;
+    }}
+    input[type="search"]:focus {{ border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37, 99, 199, .13); }}
+    .library-list {{ display: grid; gap: 6px; }}
+    .library-item {{
+      display: block;
+      min-width: 0;
+      padding: 12px;
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      text-decoration: none;
+    }}
+    .library-item:hover {{ background: #eef3f8; border-color: #d8e0e9; }}
+    .library-item.is-selected {{ background: #fff; border-color: #8caee1; box-shadow: inset 3px 0 0 var(--blue); }}
+    .item-top {{ display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }}
+    .item-top strong {{ min-width: 0; overflow-wrap: anywhere; font-size: 14px; }}
+    .item-badge {{ flex: 0 0 auto; max-width: 105px; overflow: hidden; padding: 2px 6px; color: var(--green); background: var(--green-soft); border-radius: 4px; font-size: 10px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }}
+    .item-domain {{ display: block; margin-top: 5px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }}
+    .item-id, .stable-id {{ display: block; margin-top: 5px; color: #7a8798; font: 11px/1.35 Consolas, "Cascadia Mono", monospace; overflow-wrap: anywhere; }}
+    .detail-pane {{ min-width: 0; padding: 30px 34px 42px; }}
+    .detail-header {{ display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }}
+    .detail-title {{ min-width: 0; }}
+    .detail-title h2 {{ margin: 6px 0 0; font-size: 28px; line-height: 1.2; letter-spacing: 0; overflow-wrap: anywhere; }}
+    .primary-action, .secondary-action {{
+      display: inline-flex;
+      flex: 0 1 300px;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      max-width: 300px;
+      padding: 9px 15px;
+      color: #fff;
+      background: var(--blue);
+      border: 1px solid #1d53aa;
+      border-radius: 6px;
+      font-weight: 750;
+      line-height: 1.25;
+      text-align: center;
+      text-decoration: none;
+    }}
+    .primary-action:hover {{ background: #1f56ae; }}
+    .secondary-action {{ margin-top: 18px; color: var(--blue); background: #fff; border-color: #8da9d2; }}
+    .detail-summary {{ max-width: 850px; margin: 18px 0; color: #526173; font-size: 15px; }}
+    .mode-notice {{ padding: 11px 13px; color: #704500; background: var(--amber-soft); border-left: 3px solid var(--amber); }}
+    .mode-notice.recommended {{ color: #0d5c43; background: var(--green-soft); border-left-color: var(--green); }}
+    .facts {{ display: grid; grid-template-columns: 1.5fr 1fr .5fr .6fr; margin: 22px 0 28px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }}
+    .facts > div {{ min-width: 0; padding: 14px 16px; border-right: 1px solid var(--line); }}
+    .facts > div:first-child {{ padding-left: 0; }}
+    .facts > div:last-child {{ border-right: 0; }}
+    .facts span {{ color: var(--muted); }}
+    .facts strong {{ display: block; overflow-wrap: anywhere; }}
+    .code-toolbar {{ display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 10px; }}
+    .code-toolbar label {{ width: min(340px, 45%); }}
+    .code-list {{ border-top: 1px solid var(--line); }}
+    .code-row {{ display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 18px; padding: 18px 4px; border-bottom: 1px solid var(--line); }}
+    .code-id {{ align-self: start; padding: 5px 7px; color: var(--blue); background: var(--blue-soft); border-radius: 4px; font: 800 12px/1.25 Consolas, "Cascadia Mono", monospace; text-align: center; overflow-wrap: anywhere; }}
+    .code-heading {{ display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }}
+    .code-heading h4 {{ margin: 0; font-size: 15px; line-height: 1.35; letter-spacing: 0; }}
+    .code-heading > span {{ flex: 0 0 auto; padding: 3px 7px; color: var(--rose); background: var(--rose-soft); border-radius: 4px; font-size: 10px; font-weight: 800; }}
+    .code-copy > p {{ margin: 7px 0 0; color: #566579; }}
+    .extra {{ display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 10px; margin-top: 8px; color: var(--muted); font-size: 12px; }}
+    .extra span {{ overflow-wrap: anywhere; }}
+    .evidence {{ margin-top: 10px; color: var(--muted); font-size: 12px; }}
+    .evidence summary {{ width: max-content; max-width: 100%; color: var(--blue); cursor: pointer; font-weight: 750; }}
+    .evidence ul {{ margin: 8px 0 0; padding-left: 20px; }}
+    .evidence code {{ overflow-wrap: anywhere; }}
+    .evidence blockquote {{
+      margin: 8px 0 0;
+      padding: 6px 12px;
+      color: var(--ink);
+      background: var(--blue-soft);
+      border-left: 3px solid var(--blue);
+      border-radius: 0 6px 6px 0;
+      overflow-wrap: anywhere;
+    }}
+    .evidence blockquote cite {{ display: block; margin-top: 4px; color: var(--muted); font-style: normal; }}
+    .empty, .no-codes {{ padding: 20px; color: var(--muted); background: #f7f9fb; border-left: 3px solid #98a7b9; }}
+    .empty {{ padding: 12px; margin-bottom: 10px; }}
+    .no-codes strong {{ display: block; margin-bottom: 4px; color: var(--ink); }}
+    .result-page {{ width: min(620px, calc(100% - 32px)); margin: 72px auto; padding: 36px; background: #fff; border: 1px solid var(--line); border-top: 5px solid var(--green); border-radius: 8px; box-shadow: 0 12px 32px rgba(31, 48, 73, .1); }}
+    .result-page h1 {{ margin: 12px 0 8px; font-size: 28px; line-height: 1.2; letter-spacing: 0; overflow-wrap: anywhere; }}
+    .result-page p {{ color: var(--muted); }}
+    .result-state {{ display: inline-flex; padding: 4px 8px; color: var(--green); background: var(--green-soft); border-radius: 4px; font-size: 11px; font-weight: 800; text-transform: uppercase; }}
+    .result-state.error {{ color: var(--rose); background: var(--rose-soft); }}
+    @media (max-width: 900px) {{
+      .app-shell {{ width: min(100% - 20px, 760px); margin-top: 10px; }}
+      .header-copy {{ align-items: flex-start; flex-direction: column; }}
+      .scope-row {{ grid-template-columns: 1fr; }}
+      .scope-row > div {{ border-right: 0; border-bottom: 1px solid #3c5375; }}
+      .scope-row > div:last-child {{ border-bottom: 0; }}
+      .workspace {{ grid-template-columns: 1fr; }}
+      .library-pane {{ border-right: 0; border-bottom: 1px solid var(--line); border-radius: 0; }}
+      .library-list {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+      .detail-pane {{ padding: 26px 22px 34px; }}
+      .facts {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+      .facts > div, .facts > div:first-child {{ padding-left: 12px; border-bottom: 1px solid var(--line); }}
+      .facts > div:nth-child(2) {{ border-right: 0; }}
+      .facts > div:nth-last-child(-n+2) {{ border-bottom: 0; }}
+    }}
+    @media (max-width: 600px) {{
+      .brand-line, .header-copy {{ padding-left: 16px; padding-right: 16px; }}
+      .header-copy h1 {{ font-size: 24px; }}
+      .library-list {{ grid-template-columns: 1fr; }}
+      .detail-header, .code-toolbar {{ align-items: stretch; flex-direction: column; }}
+      .primary-action, .code-toolbar label {{ width: 100%; max-width: none; }}
+      .detail-title h2 {{ font-size: 23px; }}
+      .facts {{ grid-template-columns: 1fr; }}
+      .facts > div {{ border-right: 0; border-bottom: 1px solid var(--line); }}
+      .facts > div:nth-last-child(-n+2) {{ border-bottom: 1px solid var(--line); }}
+      .facts > div:last-child {{ border-bottom: 0; }}
+      .code-row {{ grid-template-columns: 1fr; gap: 10px; }}
+      .code-id {{ width: max-content; max-width: 100%; }}
+      .code-heading {{ flex-direction: column; gap: 7px; }}
+      .extra {{ grid-template-columns: 1fr; gap: 2px; }}
+      .result-page {{ margin-top: 24px; padding: 26px 22px; }}
+    }}
+  </style>
+  <script>
+    function filterCatalog(value) {{
+      const query = value.trim().toLowerCase();
+      let visible = 0;
+      document.querySelectorAll('.library-item').forEach((item) => {{
+        const show = !query || item.dataset.search.includes(query);
+        item.hidden = !show;
+        if (show) visible += 1;
+      }});
+      const empty = document.getElementById('empty-state');
+      const count = document.getElementById('result-count');
+      if (empty) empty.hidden = visible !== 0;
+      if (count) count.textContent = String(visible);
+    }}
+    function filterCodes(value) {{
+      const query = value.trim().toLowerCase();
+      document.querySelectorAll('.code-row').forEach((row) => {{
+        row.hidden = Boolean(query) && !row.dataset.codeSearch.includes(query);
+      }});
+    }}
+  </script>
+</head>
+<body>
+{body}
+</body>
+</html>

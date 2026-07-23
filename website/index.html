@@ -5,15 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta
       name="description"
-      content="The new AdaMAST website is under construction. Documentation remains available."
+      content="AdaMAST converts an agent system's execution traces into a compact, validated taxonomy of named failure codes, reused as feedback by search, runtime monitoring, and trajectory selection."
     >
     <meta name="theme-color" content="#f5f7fb">
     <link
       rel="canonical"
       href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/"
     >
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="AdaMAST — Adaptive failure taxonomies for LLM agents">
+    <meta property="og:description" content="Convert an agent system's traces into a compact taxonomy of named failure codes on three fixed axes, induced automatically and validated before anything trusts them.">
+    <meta property="og:url" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/">
+    <meta property="og:image" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blog/fig-overview.png">
     <link rel="stylesheet" href="assets/landing.css">
-    <title>AdaMAST — Work in progress</title>
+    <title>AdaMAST — Adaptive failure taxonomies for LLM agents</title>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -34,10 +39,11 @@
         <span>AdaMAST</span>
       </a>
 
-      <span class="build-status">
-        <span class="build-status__dot" aria-hidden="true"></span>
-        Site in progress
-      </span>
+      <nav class="site-nav" aria-label="Site">
+        <a href="blog/">Blog</a>
+        <a href="docs/">Docs</a>
+        <a href="https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST">GitHub</a>
+      </nav>
     </header>
 
     <main id="main-content" class="landing">
@@ -50,15 +56,29 @@
 
       <section class="landing__content" aria-labelledby="page-title">
         <p class="eyebrow">Adaptive failure taxonomies</p>
-        <h1 id="page-title">Work in progress.</h1>
+        <h1 id="page-title">AdaMAST</h1>
         <p class="lede">
-          We are preparing the new AdaMAST website. The technical documentation
-          remains available while this page takes shape.
+          Agents already generate the evidence of their own failures on every
+          run. AdaMAST converts those traces into a compact taxonomy of named
+          failure codes, induced automatically, validated before anything
+          trusts them, and reused as feedback by search, runtime monitoring,
+          and trajectory selection.
         </p>
-        <a class="docs-link" href="docs/">
-          Read the documentation
-          <span aria-hidden="true">→</span>
-        </a>
+        <div class="cta-row">
+          <a class="docs-link" href="blog/">
+            Read the blog
+            <span aria-hidden="true">→</span>
+          </a>
+          <a class="docs-link docs-link--ghost" href="docs/">
+            Documentation
+          </a>
+          <a
+            class="docs-link docs-link--ghost"
+            href="https://escholarship.org/uc/item/5vz5p9qd?#main"
+          >
+            Paper
+          </a>
+        </div>
       </section>
 
       <p class="runtime-sequence" aria-label="AdaMAST reflection sequence">

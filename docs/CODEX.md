@@ -22,7 +22,8 @@ The defaults are automatic Git-project scoping, task group `default`, the
 conversation selector, generation after five traces, and native
 `codex_subagent` learning in the active task. Open `/hooks` inside Codex and
 trust the installed AdaMAST hooks. Native learning uses the task's existing Codex
-session, so no separately runnable CLI or second login is required.
+session, so no separately runnable CLI or second login is required. Taxonomy
+subagents run in the background; the main task does not wait for them.
 
 If Codex Desktop was already running when you installed or updated AdaMAST,
 fully quit and reopen it before starting the first AdaMAST conversation. Opening
@@ -100,9 +101,9 @@ A new conversation opens the localhost AdaMAST catalog from its first real
 `UserPromptSubmit`. Deferring the launch prevents Codex background tasks and
 spawned agent sessions from opening selectors during their own startup. The
 prompt hook remains paused while the user chooses. The catalog recommends MAST
-for an unbound project and includes compatible stored taxonomies plus `No
-taxonomy`. Its `/choose` handler validates the session's allowed options, updates
-Codex state, and binds a stored taxonomy to the project/task group. The same
+and includes compatible stored taxonomies plus `No taxonomy`. Its `/choose`
+handler validates the session's allowed options, updates Codex state, and seeds
+that conversation's isolated program branch. The same
 original prompt then continues as the first episode task without requiring a
 second submission. `No taxonomy` disables AdaMAST gates and trace capture only
 for that conversation. A selection timeout stops the original turn and lets the
@@ -112,11 +113,11 @@ Catalog and chat surfaces use `display_name` when present and otherwise fall
 back to the taxonomy domain. The generated `taxonomy_id` remains visible as
 secondary metadata and continues to be the immutable storage and lineage key.
 
-When a project already has a learned taxonomy, the numbered choices are the
-learned shared default, `MAST`, and `No taxonomy`. Choosing `MAST` means
-"start fresh": AdaMAST creates a durable `fresh-<conversation>` task group,
-starts that conversation from MAST, and learns a separate taxonomy from zero.
-The existing project taxonomy remains the default for every other conversation.
+Each new conversation chooses independently among compatible stored taxonomies,
+`MAST`, and `No taxonomy`. A stored taxonomy is an immutable lineage seed, not
+a shared mutable default. Choosing MAST starts that branch from the built-in
+taxonomy and learns from zero. Either way, only the branch's own traces can
+generate or refine its taxonomy head.
 
 Set `selector_surface` to `"inline"` when opening a local browser is undesirable.
 Both surfaces resolve the choice during `UserPromptSubmit`; the browser remains
@@ -257,4 +258,4 @@ guidance skill. It does not delete learned taxonomies or trace folders.
 
 ## Source layout
 
-The adapter source is organized under `adamast_integration/codex/`.
+The adapter source is organized under `adamast/hosts/codex/`.

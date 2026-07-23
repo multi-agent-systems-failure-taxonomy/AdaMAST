@@ -8,16 +8,20 @@ activation contract.
 
 | Path | Owns | Does not own |
 |---|---|---|
-| `adamast_runtime/` | Sessions, gates, trace persistence, generation/refinement lifecycle, validation, activation, evidence, dashboard data | Host hook formats |
-| `adamast_integration/interactive/` | Conversation selector, browser transport, project/task-group routes, durable native jobs, receipt protocol | Codex or Claude transcript parsing |
-| `adamast_integration/codex/` | Codex hook installation, event translation, transcript normalization, compact Stop checkpoint | Taxonomy acceptance |
-| `adamast_integration/claude_code/` | Claude hook installation, blocking gates, transcript handling, custom hooks | Taxonomy acceptance |
-| `finding/` | Built-in MAST, taxonomy registry, display metadata, local selector and dashboard views | Learning policy |
-| `judge_types/` | Selection, mapping, coverage, quality, calibration, and reflection judges | Host orchestration |
-| `AdaMAST_as_a_Judge/` | Judge-focused evaluation checks | Production runtime behavior |
-| `vendor/adamast/` | Vendored research taxonomy-generation pipeline | Interactive hooks |
+| `adamast/core/` | Taxonomy data model, evidence, trace persistence, reflection parsing, taxonomy store/MAST/resolution, session lifecycle | Host hook formats |
+| `adamast/protocol/` | The compact-checkpoint transport (parser, citation matching, repair heuristic) and the pre-submission gate | Host event handling |
+| `adamast/judges/` | Selection, mapping, coverage, quality, calibration, and reflection judges plus the provider-neutral JUDGES contract | Host orchestration |
+| `adamast/llm/` | Model routing, learning calls, provider transports | Judge policy |
+| `adamast/learning/` | Generation/refinement lifecycle, learning jobs and worker contract, vendored and ported generation pipelines | Interactive hooks |
+| `adamast/hosts/interactive/` | Conversation selector, browser transport, project/task-group routes | Codex or Claude transcript parsing |
+| `adamast/hosts/codex/` | Codex hook installation, event translation, transcript normalization, compact Stop checkpoint | Taxonomy acceptance |
+| `adamast/hosts/claude_code/` | Claude hook installation, blocking gates, transcript handling, custom hooks | Taxonomy acceptance |
+| `adamast/dashboard/` | Local dashboard, status, taxonomy viewer, selector web views | Learning policy |
 | [`examples/`](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/tree/main/examples) | Runnable demonstrations | Production state |
 | `runs/` | Evaluation artifacts and reproduction notes | Package code |
+
+Everything importable lives in the single `adamast` package; judge-focused
+evaluation checks live in `tests/test_judge_surface.py`.
 
 ## Runtime flow
 
@@ -25,11 +29,11 @@ activation contract.
 Host event
   -> host adapter resolves project and conversation
   -> interactive selector and route resolve the program
-  -> adamast_runtime opens or closes an episode
+  -> adamast opens or closes an episode
   -> gate evidence and one canonical trace are persisted
   -> interactive polling checks generation/refinement thresholds
   -> a native host subagent proposes a candidate
-  -> adamast_runtime validates and atomically activates it
+  -> adamast validates and atomically activates it
 ```
 
 The main agent always owns the user's task. The taxonomy worker receives an
@@ -45,16 +49,15 @@ program state under:
 ```text
 ~/.adamast/interactive/
   projects/<project-key>/
-    groups/<host>-<task-group>/
+    groups/<host>-branch-<conversation-hash>/
       program/
 ```
 
 The project key includes a canonical-path hash, so unrelated repositories with
-the same folder name remain isolated. Automatic routing also namespaces the
-physical group as `codex-<task-group>` or `claude-code-<task-group>`. A logical
-task group is an explicit subdivision of one host's project state. Choosing
-MAST when that host already has a learned taxonomy creates a
-conversation-specific `fresh-*` group without replacing its shared default.
+the same folder name remain isolated. Automatic routing includes the host and
+stable conversation ID in the branch identity. A stored taxonomy or MAST is a
+seed, not a shared mutable default; every selected conversation receives its
+own trace queue, counters, learning job, and taxonomy head.
 
 Host ownership is enforced again at program claim, selector choice, taxonomy
 activation, and native-job claim. Provider-neutral imported taxonomies can seed
@@ -72,10 +75,12 @@ writes the binding before it can create a new pending selector.
 
 - Host adapters preserve their documented import and CLI paths.
 - Taxonomy activation occurs only in the foreground coordinator.
-- One project/task group has at most one active learning job.
+- One conversation branch has at most one active learning job.
 - The active taxonomy remains stable while learning runs.
 - Invalid or stale candidates leave the current taxonomy unchanged.
 - Generated taxonomy IDs are immutable; `display_name` is the user-facing name.
+- One taxonomy version may have several child versions, one per refining
+  conversation branch; there is no global "latest" child after a split.
 
 Continue with [Native taxonomy learning](NATIVE_LEARNING.md) for the job state
 machine or [Pipeline integration](INTEGRATION.md) for the runtime API.

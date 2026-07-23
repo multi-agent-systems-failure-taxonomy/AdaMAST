@@ -1,0 +1,28 @@
+{
+  "custom_hook_modes": ["blocking", "advisory"],
+  "custom_hook_checkpoint_keys": ["tool_use_id", "command", "fixed"],
+  "built_in_hook_events": [
+    "SessionStart",
+    "UserPromptSubmit",
+    "SessionEnd",
+    "Stop",
+    "TaskCompleted",
+    "SubagentStop",
+    "PostToolUse",
+    "PostToolUseFailure"
+  ],
+  "built_in_matcher_events": ["PostToolUse", "PostToolUseFailure"],
+  "claude_code_events": [
+    "SessionStart",
+    "SessionEnd",
+    "Stop",
+    "TaskCompleted",
+    "SubagentStop",
+    "PreToolUse",
+    "PostToolUse",
+    "PostToolUseFailure",
+    "PreCompact",
+    "Notification",
+    "UserPromptSubmit"
+  ]
+}

@@ -1,7 +1,7 @@
 # AdaMAST documentation
 
-This folder is the source for the public AdaMAST documentation. The web guide
-is ordered from standalone taxonomy generation to adaptive host integration.
+This folder is the detailed reference for AdaMAST. The web documentation is
+ordered from standalone taxonomy generation to adaptive host integration.
 
 ## Start here
 
@@ -23,8 +23,8 @@ is ordered from standalone taxonomy generation to adaptive host integration.
 | Integration | Page |
 |---|---|
 | Direct single-LLM calls, scripts, notebooks, benchmarks | [SINGLE_LLM.md](SINGLE_LLM.md) |
-| Harness-author contract, privacy, and redaction | [INTEGRATION.md](INTEGRATION.md) |
 | Runtime API reference | [API_OR_RUNTIME.md](API_OR_RUNTIME.md) |
+| Harness-author contract, privacy, and redaction | [INTEGRATION.md](INTEGRATION.md) |
 | Codex | [CODEX.md](CODEX.md) |
 | Claude Code | [CLAUDE_CODE.md](CLAUDE_CODE.md) |
 
@@ -43,10 +43,22 @@ is ordered from standalone taxonomy generation to adaptive host integration.
 
 The documentation website at
 [multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/)
-is built from these Markdown pages with MkDocs Material. The project root at
-`/AdaMAST/` is a separate placeholder sourced from [`website/`](../website/).
-[`scripts/build_site.py`](../scripts/build_site.py) assembles the complete Pages
-tree, and the public [`docs` workflow](../.github/workflows/docs.yml) deploys it.
+is built from these Markdown pages with MkDocs Material (see
+[mkdocs.yml](../mkdocs.yml)). The project root at `/AdaMAST/` is a separate
+placeholder sourced from [website/](../website/); the complete Pages tree is
+assembled by [scripts/build_site.py](../scripts/build_site.py). In this private
+repository, GitHub Actions builds the site strictly and stores it as a workflow
+artifact, but does not deploy it to GitHub Pages. Public deployment belongs to
+the public repository after the reviewed changes are transferred. The docs
+home is [index.md](index.md); this README stays the index for GitHub's file
+view.
 
-The browser documentation home is [index.md](index.md); this README remains the
-index for GitHub's file view.
+## Lower-level package maps
+
+These pages are useful when changing internals:
+
+- [adamast/hosts/interactive/README.md](../adamast/hosts/interactive/README.md)
+- [adamast/hosts/claude_code/README.md](../adamast/hosts/claude_code/README.md)
+- [adamast/hosts/codex/README.md](../adamast/hosts/codex/README.md)
+- [adamast/judges/reflection_judge/README.md](../adamast/judges/reflection_judge/README.md)
+- [tests/README.md](../tests/README.md)

@@ -1,0 +1,1170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AdaMAST runtime dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --ink: #101828;
+      --soft-ink: #344054;
+      --muted: #667085;
+      --faint: #98a2b3;
+      --line: #d9e2ec;
+      --line-strong: #b8c4d4;
+      --navy: #13233f;
+      --blue: #2f68e9;
+      --blue-soft: #eaf1ff;
+      --green: #0e9f6e;
+      --green-soft: #e8f7f0;
+      --amber: #c77b16;
+      --amber-soft: #fff3dc;
+      --red: #c0372b;
+      --red-soft: #fff0ee;
+      --shadow: 0 24px 70px rgba(16, 24, 40, .11);
+      --shadow-soft: 0 12px 34px rgba(16, 24, 40, .07);
+      --radius-lg: 28px;
+      --radius-md: 18px;
+      --radius-sm: 12px;
+      --mono: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+      --sans: "Inter", "Segoe UI", Aptos, system-ui, sans-serif;
+      --display: "Aptos Display", "Segoe UI Variable Display", "Arial Narrow", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--bg); color: var(--ink); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at 18% -12%, rgba(47, 104, 233, .16), transparent 34rem),
+        linear-gradient(120deg, rgba(19, 35, 63, .06) 0 1px, transparent 1px 100%),
+        var(--bg);
+      background-size: auto, 42px 42px, auto;
+    }
+    button, input { font: inherit; }
+    button:focus-visible, input:focus-visible, summary:focus-visible {
+      outline: 3px solid rgba(47, 104, 233, .32);
+      outline-offset: 3px;
+    }
+    [hidden] { display: none !important; }
+
+    .shell {
+      width: min(1380px, calc(100% - 36px));
+      margin: 28px auto 56px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+      background:
+        linear-gradient(135deg, rgba(19, 35, 63, .98), rgba(25, 45, 80, .94)),
+        var(--navy);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -8% -52% 42%;
+      height: 260px;
+      background:
+        linear-gradient(90deg, transparent, rgba(255, 255, 255, .18), transparent),
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 255, 255, .22) 0 1px,
+          transparent 1px 22px
+        );
+      transform: rotate(-9deg);
+      opacity: .7;
+      pointer-events: none;
+    }
+    .hero-main {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      padding: 30px 32px 28px;
+    }
+    .eyebrow, .utility, .pill, .code-id, .event-seq {
+      font-family: var(--mono);
+      letter-spacing: .075em;
+      text-transform: uppercase;
+    }
+    .eyebrow {
+      color: #b8c8ff;
+      font-size: .72rem;
+      margin-bottom: 10px;
+    }
+    h1 {
+      margin: 0;
+      max-width: 860px;
+      font-family: var(--display);
+      font-size: clamp(2.3rem, 5.6vw, 5rem);
+      line-height: .92;
+      letter-spacing: -.055em;
+      text-wrap: balance;
+    }
+    .hero-note {
+      margin: 14px 0 0;
+      max-width: 780px;
+      color: #d7e1ff;
+      line-height: 1.55;
+    }
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 13px;
+      border: 1px solid rgba(255, 255, 255, .22);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .08);
+      color: #ecf2ff;
+      font-size: .72rem;
+      white-space: nowrap;
+    }
+    .live-pill::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: #7ce3b1;
+      box-shadow: 0 0 0 6px rgba(124, 227, 177, .16);
+    }
+
+    .meta-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-top: 1px solid rgba(255, 255, 255, .12);
+      background: rgba(255, 255, 255, .07);
+      backdrop-filter: blur(12px);
+    }
+    .meta-item {
+      padding: 17px 22px;
+      border-right: 1px solid rgba(255, 255, 255, .12);
+      min-width: 0;
+    }
+    .meta-item:last-child { border-right: 0; }
+    .meta-label {
+      color: #a8b8df;
+      font-size: .68rem;
+      margin-bottom: 7px;
+    }
+    .meta-value {
+      font-family: var(--mono);
+      font-size: .82rem;
+      overflow-wrap: anywhere;
+      color: #ffffff;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin: 18px 0;
+    }
+    .stat-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, .86);
+      box-shadow: var(--shadow-soft);
+      padding: 16px;
+      min-width: 0;
+    }
+    .stat-value {
+      font-family: var(--display);
+      font-size: clamp(1.6rem, 3vw, 2.35rem);
+      line-height: 1;
+      letter-spacing: -.04em;
+      color: var(--navy);
+    }
+    .stat-label {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: .76rem;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) minmax(220px, 340px) auto auto auto auto;
+      gap: 10px;
+      align-items: center;
+      margin: 22px 0 18px;
+    }
+    .search {
+      min-width: 0;
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .92);
+      color: var(--ink);
+      padding: 12px 16px;
+      box-shadow: 0 1px 0 rgba(16, 24, 40, .02);
+    }
+    .tool-button {
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--soft-ink);
+      padding: 11px 15px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .tool-button:hover,
+    .tool-button[aria-pressed="true"] {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: #1744b8;
+    }
+    .count {
+      color: var(--muted);
+      font-size: .82rem;
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, .9);
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--surface), var(--surface-2));
+    }
+    .panel-title {
+      margin: 0;
+      font-family: var(--display);
+      font-size: 1.12rem;
+      letter-spacing: -.02em;
+    }
+    .panel-subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: .8rem;
+      line-height: 1.4;
+    }
+    .timeline {
+      display: grid;
+      gap: 0;
+      padding: 6px 0;
+      max-height: 720px;
+      overflow: auto;
+    }
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 10px;
+      padding: 13px 18px;
+      border-bottom: 1px solid #edf1f6;
+    }
+    .timeline-item:last-child { border-bottom: 0; }
+    .event-seq {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: #1744b8;
+      font-size: .68rem;
+      letter-spacing: .02em;
+    }
+    .timeline-item.clean .event-seq {
+      background: var(--green-soft);
+      color: #057a55;
+    }
+    .timeline-main {
+      min-width: 0;
+      line-height: 1.42;
+    }
+    .timeline-kicker {
+      margin-bottom: 4px;
+      color: var(--muted);
+      font: .68rem/1.35 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .timeline-title {
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+    .timeline-detail {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: .82rem;
+      overflow-wrap: anywhere;
+    }
+
+    .codes {
+      display: grid;
+      gap: 12px;
+    }
+    .code-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, .92);
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+    .code-card.active {
+      border-color: rgba(47, 104, 233, .42);
+      box-shadow: 0 18px 42px rgba(47, 104, 233, .11);
+    }
+    .code-card.quiet {
+      opacity: .78;
+    }
+    .code-card.quiet:hover,
+    .code-card.quiet:focus-within {
+      opacity: 1;
+    }
+    details { padding: 0; }
+    summary {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      list-style: none;
+      cursor: pointer;
+      padding: 18px 56px 18px 18px;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after {
+      content: "+";
+      position: absolute;
+      right: 22px;
+      top: 50%;
+      transform: translateY(-50%);
+      font: 300 1.45rem/1 var(--mono);
+      color: var(--blue);
+    }
+    details[open] summary::after { content: "−"; }
+    .code-id {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 72px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: #1744b8;
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .03em;
+    }
+    .code-card.quiet .code-id {
+      background: #eef2f7;
+      color: #53647a;
+    }
+    .code-name {
+      font-family: var(--display);
+      font-size: clamp(1.05rem, 2vw, 1.45rem);
+      font-weight: 780;
+      line-height: 1.13;
+      letter-spacing: -.025em;
+    }
+    .code-summary-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 7px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: var(--muted);
+      font-size: .66rem;
+      letter-spacing: .035em;
+    }
+    .pill.hot {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+    .pill.ok {
+      background: var(--green-soft);
+      color: #057a55;
+    }
+    .code-body {
+      padding: 0 20px 20px;
+    }
+    .description {
+      margin: 0 0 16px 86px;
+      max-width: 880px;
+      color: var(--soft-ink);
+      line-height: 1.62;
+    }
+
+    .evidence-strip {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 16px;
+      align-items: stretch;
+      margin: 0 0 16px 86px;
+    }
+    .firing-total {
+      border-radius: var(--radius-md);
+      background: var(--navy);
+      color: white;
+      padding: 16px;
+    }
+    .firing-number {
+      font-family: var(--display);
+      font-size: 2.4rem;
+      font-weight: 820;
+      line-height: .9;
+      letter-spacing: -.04em;
+    }
+    .firing-label {
+      margin-top: 8px;
+      color: #cfd9f1;
+      font-size: .68rem;
+    }
+    .task-strip {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--surface-2);
+      padding: 14px;
+      min-width: 0;
+    }
+    .task-label {
+      color: var(--muted);
+      font-size: .68rem;
+      margin-bottom: 9px;
+    }
+    .task-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .task-chip {
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+      max-width: 100%;
+      padding: 6px 9px;
+      border: 1px solid #d8e3f8;
+      border-radius: 999px;
+      background: white;
+      font: .74rem/1.2 var(--mono);
+      overflow-wrap: anywhere;
+    }
+    .task-chip strong { color: var(--blue); }
+
+    .runtime-evidence {
+      margin: 0 0 16px 86px;
+      border: 1px solid #f0d5a5;
+      border-radius: var(--radius-md);
+      background: var(--amber-soft);
+      overflow: hidden;
+    }
+    .runtime-evidence-title {
+      padding: 13px 15px;
+      color: #83510f;
+      border-bottom: 1px solid #f0d5a5;
+      font-size: .7rem;
+    }
+    .runtime-event {
+      padding: 14px 15px;
+      border-bottom: 1px solid #f0d5a5;
+      line-height: 1.5;
+    }
+    .runtime-event:last-child { border-bottom: 0; }
+    .runtime-event-meta {
+      color: #83510f;
+      font: .7rem/1.35 var(--mono);
+      margin-bottom: 7px;
+      overflow-wrap: anywhere;
+    }
+    .quote {
+      display: block;
+      margin: 0 0 9px;
+      color: #4f3209;
+    }
+    .event-more {
+      margin-top: 8px;
+      color: var(--soft-ink);
+    }
+    .event-more summary {
+      display: block;
+      padding: 0;
+      color: #83510f;
+      font-size: .82rem;
+    }
+    .event-more summary::after { display: none; }
+    .event-more div {
+      margin-top: 7px;
+      padding-left: 10px;
+      border-left: 2px solid #e8bd71;
+    }
+
+    .fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      margin: 0 0 0 86px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: var(--line);
+    }
+    .field {
+      min-width: 0;
+      background: white;
+      padding: 12px 14px;
+    }
+    .field-name {
+      color: var(--muted);
+      font-size: .68rem;
+      margin-bottom: 4px;
+    }
+    .field-value {
+      font-family: var(--mono);
+      font-size: .8rem;
+      overflow-wrap: anywhere;
+    }
+
+    .clean-panel {
+      margin: 0 0 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, .9);
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+    .clean-panel summary {
+      display: block;
+      padding: 17px 20px;
+      font-family: var(--display);
+      font-size: 1rem;
+    }
+    .clean-panel summary::after {
+      right: 20px;
+    }
+    .clean-list {
+      display: grid;
+      gap: 10px;
+      padding: 0 18px 18px;
+    }
+    .clean-item {
+      border: 1px solid #d8eadf;
+      border-radius: var(--radius-md);
+      background: var(--green-soft);
+      padding: 12px 14px;
+      line-height: 1.45;
+    }
+    .clean-meta {
+      color: #057a55;
+      font: .7rem/1.35 var(--mono);
+      margin-bottom: 7px;
+    }
+    .clean-tag {
+      display: inline-flex;
+      margin: 0 8px 8px 0;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: white;
+      color: #057a55;
+      font: .68rem/1.3 var(--mono);
+      text-transform: uppercase;
+    }
+
+    .empty, .error {
+      padding: 42px 26px;
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, .72);
+      text-align: center;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .error {
+      color: var(--red);
+      border-color: #efb3ad;
+      background: var(--red-soft);
+    }
+
+    @media (max-width: 1040px) {
+      .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .toolbar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto; }
+      .count { grid-column: 1 / -1; text-align: left; }
+      .board { grid-template-columns: 1fr; }
+      .timeline { max-height: 360px; }
+    }
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 20px, 1380px); margin-top: 10px; }
+      .hero-main { grid-template-columns: 1fr; padding: 24px 20px; }
+      .meta-grid { grid-template-columns: 1fr 1fr; }
+      .meta-item:nth-child(2) { border-right: 0; }
+      .meta-item:nth-child(-n+2) { border-bottom: 1px solid rgba(255, 255, 255, .12); }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .toolbar { grid-template-columns: 1fr; }
+      summary {
+        grid-template-columns: 1fr;
+        padding-right: 48px;
+      }
+      .code-summary-meta { justify-content: flex-start; }
+      .description,
+      .evidence-strip,
+      .runtime-evidence,
+      .fields {
+        margin-left: 0;
+      }
+      .evidence-strip,
+      .fields {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 480px) {
+      .stats { grid-template-columns: 1fr; }
+      .meta-grid { grid-template-columns: 1fr; }
+      .meta-item {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, .12);
+      }
+      .meta-item:last-child { border-bottom: 0; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .code-card, .timeline-item, .stat-card {
+        animation: arrive .28s ease both;
+      }
+      @keyframes arrive {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <section class="hero-main">
+        <div>
+          <div class="eyebrow">AdaMAST / runtime failure modes</div>
+          <h1 id="taxonomy-title">Loading taxonomy…</h1>
+          <p class="hero-note">
+            Track which failure modes fired, which task UIDs they came from,
+            and whether the latest checkpoints were clean.
+          </p>
+        </div>
+        <div class="live-pill utility" id="live-status">connecting</div>
+      </section>
+
+      <section class="meta-grid" aria-label="Taxonomy metadata">
+        <div class="meta-item">
+          <div class="meta-label utility">Repository</div>
+          <div class="meta-value" id="repo">—</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label utility">Domain</div>
+          <div class="meta-value" id="domain">—</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label utility">Program</div>
+          <div class="meta-value" id="program">—</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label utility">Last refresh</div>
+          <div class="meta-value" id="checked">—</div>
+        </div>
+      </section>
+    </header>
+
+    <section class="stats" aria-label="Runtime summary">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-active">0</div>
+        <div class="stat-label">active failure modes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-firings">0</div>
+        <div class="stat-label">total firings</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-tasks">0</div>
+        <div class="stat-label">task UIDs affected</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-clean">0</div>
+        <div class="stat-label">clean checkpoints</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-codes">0</div>
+        <div class="stat-label">codes in taxonomy</div>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="Dashboard controls">
+      <input class="search" id="search" type="search"
+             placeholder="Filter failure modes by id, name, or description"
+             aria-label="Filter taxonomy codes">
+      <input class="search task-search" id="task-search" type="search"
+             placeholder="Filter by task UID, e.g. UID0118"
+             aria-label="Filter dashboard by task UID">
+      <button class="tool-button" id="active-only" type="button" aria-pressed="false">
+        Active only
+      </button>
+      <button class="tool-button" id="expand" type="button">Expand all</button>
+      <button class="tool-button" id="collapse" type="button">Collapse all</button>
+      <div class="count" id="count">0 codes</div>
+    </section>
+
+    <section class="board" aria-label="Runtime evidence board">
+      <aside class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Recent runtime events</h2>
+            <p class="panel-subtitle">
+              Fired modes and clean checkpoints, ordered by checkpoint sequence.
+            </p>
+          </div>
+        </div>
+        <div class="timeline" id="timeline" aria-live="polite"></div>
+      </aside>
+
+      <section>
+        <section id="clean-checkpoints" hidden></section>
+        <section class="codes" id="codes" aria-live="polite"></section>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const els = {
+      title: document.querySelector("#taxonomy-title"),
+      status: document.querySelector("#live-status"),
+      repo: document.querySelector("#repo"),
+      domain: document.querySelector("#domain"),
+      program: document.querySelector("#program"),
+      checked: document.querySelector("#checked"),
+      search: document.querySelector("#search"),
+      taskSearch: document.querySelector("#task-search"),
+      activeOnly: document.querySelector("#active-only"),
+      count: document.querySelector("#count"),
+      clean: document.querySelector("#clean-checkpoints"),
+      codes: document.querySelector("#codes"),
+      timeline: document.querySelector("#timeline"),
+      stats: {
+        active: document.querySelector("#stat-active"),
+        firings: document.querySelector("#stat-firings"),
+        tasks: document.querySelector("#stat-tasks"),
+        clean: document.querySelector("#stat-clean"),
+        codes: document.querySelector("#stat-codes")
+      }
+    };
+    let state = null;
+    let signature = "";
+    let activeOnly = false;
+
+    function text(value) {
+      return value === null || value === undefined ? "" : String(value);
+    }
+
+    function render(data) {
+      state = data;
+      els.title.textContent = data.taxonomy_id;
+      els.repo.textContent = data.repo || "not recorded";
+      els.domain.textContent = data.domain || "not recorded";
+      els.program.textContent = data.program_id;
+      els.checked.textContent = new Date().toLocaleTimeString();
+      els.status.textContent = data.is_latest_successor ? "latest successor" : "live";
+      renderStats(data);
+      applyFilter();
+    }
+
+    function renderStats(data) {
+      const codes = data.codes || [];
+      const active = codes.filter(code => Number(code.fire_count || 0) > 0);
+      const taskIds = new Set();
+      let firings = 0;
+      for (const code of active) {
+        firings += Number(code.fire_count || 0);
+        for (const item of code.task_firings || []) {
+          taskIds.add(item.label || item.task_id);
+        }
+      }
+      els.stats.active.textContent = active.length;
+      els.stats.firings.textContent = firings;
+      els.stats.tasks.textContent = taskIds.size;
+      els.stats.clean.textContent = (data.clean_checkpoints || []).length;
+      els.stats.codes.textContent = codes.length;
+    }
+
+    function checkpointLabel(item) {
+      const parts = [];
+      if (item.seq) parts.push(`#${item.seq}`);
+      if (item.gate) parts.push(item.gate);
+      if (item.task_label || item.task_id) parts.push(item.task_label || item.task_id);
+      if (item.checkpoint_id) parts.push(item.checkpoint_id);
+      return parts.join(" / ");
+    }
+
+    function matchesTask(item, query) {
+      if (!query) return true;
+      return [item.task_id, item.task_label, item.label]
+        .some(value => text(value).toLowerCase().includes(query));
+    }
+
+    function codeForTask(code, taskQuery) {
+      if (!taskQuery) return code;
+      const taskFirings = (code.task_firings || [])
+        .filter(item => matchesTask(item, taskQuery));
+      const runtimeEvidence = (code.runtime_evidence || [])
+        .filter(item => matchesTask(item, taskQuery));
+      if (!taskFirings.length && !runtimeEvidence.length) return null;
+      return {
+        ...code,
+        fire_count: taskFirings.length
+          ? taskFirings.reduce((total, item) => total + Number(item.count || 0), 0)
+          : runtimeEvidence.length,
+        task_firings: taskFirings,
+        runtime_evidence: runtimeEvidence
+      };
+    }
+
+    function applyFilter() {
+      if (!state) return;
+      const query = els.search.value.trim().toLowerCase();
+      const taskQuery = els.taskSearch.value.trim().toLowerCase();
+      const clean = (state.clean_checkpoints || [])
+        .filter(item => matchesTask(item, taskQuery));
+      renderCleanCheckpoints(clean);
+
+      const visible = state.codes
+        .map(code => codeForTask(code, taskQuery))
+        .filter(Boolean)
+        .filter(code => !activeOnly || Number(code.fire_count || 0) > 0)
+        .filter(code =>
+          [code.code_id, code.name, code.description]
+            .some(value => text(value).toLowerCase().includes(query))
+        )
+        .sort((left, right) => {
+          const activeDelta = Number(right.fire_count || 0) - Number(left.fire_count || 0);
+          return activeDelta || text(left.code_id).localeCompare(text(right.code_id));
+        });
+
+      els.count.textContent = `${visible.length} of ${state.codes.length} codes shown`;
+      els.codes.replaceChildren(...visible.map(codeCard));
+      if (!visible.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = taskQuery
+          ? "No fired modes or evidence match this task UID filter."
+          : "No failure modes match the current filters.";
+        els.codes.append(empty);
+      }
+      renderTimeline(visible, clean);
+    }
+
+    function renderTimeline(codes, clean) {
+      const events = [];
+      for (const code of codes) {
+        for (const item of code.runtime_evidence || []) {
+          events.push({
+            type: "fired",
+            seq: item.seq,
+            gate: item.gate,
+            task: item.task_label || item.task_id,
+            checkpoint: item.checkpoint_id,
+            title: `${code.code_id} · ${code.name || "Unnamed failure mode"}`,
+            detail: item.evidence || "Evidence not recorded."
+          });
+        }
+      }
+      for (const item of clean) {
+        events.push({
+          type: "clean",
+          seq: item.seq,
+          gate: item.gate,
+          task: item.task_label || item.task_id,
+          checkpoint: item.checkpoint_id,
+          title: "Clean checkpoint",
+          detail: item.considered && item.considered.length
+            ? `Considered ${item.considered.join(", ")}`
+            : "No code fired."
+        });
+      }
+      events.sort((left, right) => Number(right.seq || 0) - Number(left.seq || 0));
+      const recent = events.slice(0, 18);
+      els.timeline.replaceChildren(...recent.map(timelineItem));
+      if (!recent.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No runtime events have been recorded for this view yet.";
+        els.timeline.append(empty);
+      }
+    }
+
+    function timelineItem(item) {
+      const row = document.createElement("div");
+      row.className = `timeline-item ${item.type === "clean" ? "clean" : "fired"}`;
+      const seq = document.createElement("div");
+      seq.className = "event-seq";
+      seq.textContent = item.seq ? `#${item.seq}` : "new";
+      const main = document.createElement("div");
+      main.className = "timeline-main";
+      const kicker = document.createElement("div");
+      kicker.className = "timeline-kicker";
+      kicker.textContent = [item.gate, item.task, item.checkpoint].filter(Boolean).join(" / ");
+      const title = document.createElement("div");
+      title.className = "timeline-title";
+      title.textContent = item.title;
+      const detail = document.createElement("div");
+      detail.className = "timeline-detail";
+      detail.textContent = item.detail;
+      main.append(kicker, title, detail);
+      row.append(seq, main);
+      return row;
+    }
+
+    function renderCleanCheckpoints(items) {
+      if (!items.length) {
+        els.clean.hidden = true;
+        els.clean.replaceChildren();
+        return;
+      }
+      els.clean.hidden = false;
+      const panel = document.createElement("details");
+      panel.className = "clean-panel";
+      const summary = document.createElement("summary");
+      summary.textContent = `Clean checkpoints — no failure mode fired (${items.length})`;
+      panel.append(summary);
+      const list = document.createElement("div");
+      list.className = "clean-list";
+      for (const item of items.slice().reverse()) {
+        const row = document.createElement("div");
+        row.className = "clean-item";
+        const meta = document.createElement("div");
+        meta.className = "clean-meta";
+        meta.textContent = checkpointLabel(item);
+        const tag = document.createElement("span");
+        tag.className = "clean-tag";
+        tag.textContent = item.none_apply ? "none apply" : "no firing";
+        const considered = document.createElement("span");
+        considered.textContent = item.considered && item.considered.length
+          ? `Considered: ${item.considered.join(", ")}`
+          : "Considered codes not recorded";
+        const observe = document.createElement("div");
+        observe.textContent = `Observe: ${item.observe || "not recorded"}`;
+        const correlate = document.createElement("div");
+        correlate.textContent = `Reasoning: ${item.correlate || "not recorded"}`;
+        const decide = document.createElement("div");
+        decide.textContent = `Decision: ${item.decide || "not recorded"}`;
+        row.append(meta, tag, considered, observe, correlate, decide);
+        list.append(row);
+      }
+      panel.append(list);
+      els.clean.replaceChildren(panel);
+    }
+
+    function codeCard(code) {
+      const fired = Number(code.fire_count || 0);
+      const article = document.createElement("article");
+      article.className = `code-card ${fired > 0 ? "active" : "quiet"}`;
+
+      const details = document.createElement("details");
+      details.open = fired > 0;
+      const summary = document.createElement("summary");
+      const id = document.createElement("span");
+      id.className = "code-id";
+      id.textContent = code.code_id;
+      const name = document.createElement("div");
+      name.className = "code-name";
+      name.textContent = code.name || "Unnamed failure mode";
+      const meta = document.createElement("div");
+      meta.className = "code-summary-meta";
+      meta.append(pill(fired > 0 ? `${fired} fired` : "no firings", fired > 0 ? "hot" : "ok"));
+      meta.append(pill(`${(code.task_firings || []).length} task(s)`));
+      summary.append(id, name, meta);
+      details.append(summary);
+
+      const body = document.createElement("div");
+      body.className = "code-body";
+      const description = document.createElement("p");
+      description.className = "description";
+      description.textContent = code.description || "No description recorded.";
+      body.append(description);
+
+      if (fired > 0 || code.task_firings.length) {
+        body.append(evidenceStrip(code, fired));
+      }
+      if (code.runtime_evidence.length) {
+        body.append(runtimeEvidence(code));
+      }
+      if (code.fields.length) {
+        body.append(fieldGrid(code.fields));
+      }
+      details.append(body);
+      article.append(details);
+      return article;
+    }
+
+    function pill(label, tone = "") {
+      const node = document.createElement("span");
+      node.className = `pill ${tone}`.trim();
+      node.textContent = label;
+      return node;
+    }
+
+    function evidenceStrip(code, fired) {
+      const evidence = document.createElement("div");
+      evidence.className = "evidence-strip";
+      const total = document.createElement("div");
+      total.className = "firing-total";
+      const number = document.createElement("div");
+      number.className = "firing-number";
+      number.textContent = fired || "—";
+      const firingLabel = document.createElement("div");
+      firingLabel.className = "firing-label utility";
+      firingLabel.textContent = "Total firings";
+      total.append(number, firingLabel);
+
+      const tasks = document.createElement("div");
+      tasks.className = "task-strip";
+      const taskLabel = document.createElement("div");
+      taskLabel.className = "task-label utility";
+      taskLabel.textContent = `${code.task_firings.length} task(s)`;
+      const chips = document.createElement("div");
+      chips.className = "task-chips";
+      for (const firing of code.task_firings) {
+        const chip = document.createElement("span");
+        chip.className = "task-chip";
+        const taskId = document.createElement("span");
+        taskId.textContent = firing.label || firing.task_id;
+        const count = document.createElement("strong");
+        count.textContent = `×${firing.count}`;
+        chip.append(taskId, count);
+        chips.append(chip);
+      }
+      tasks.append(taskLabel, chips);
+      evidence.append(total, tasks);
+      return evidence;
+    }
+
+    function runtimeEvidence(code) {
+      const runtime = document.createElement("div");
+      runtime.className = "runtime-evidence";
+      const runtimeTitle = document.createElement("div");
+      runtimeTitle.className = "runtime-evidence-title utility";
+      runtimeTitle.textContent = "Runtime evidence";
+      runtime.append(runtimeTitle);
+      for (const item of code.runtime_evidence.slice().reverse()) {
+        const event = document.createElement("div");
+        event.className = "runtime-event";
+        const meta = document.createElement("div");
+        meta.className = "runtime-event-meta";
+        meta.textContent = [
+          item.seq ? `#${item.seq}` : "",
+          item.gate,
+          item.task_label || item.task_id,
+          item.checkpoint_id
+        ].filter(Boolean).join(" / ");
+        const quote = document.createElement("span");
+        quote.className = "quote";
+        quote.textContent = `Evidence: ${item.evidence || "not recorded"}`;
+        const more = document.createElement("details");
+        more.className = "event-more";
+        const moreSummary = document.createElement("summary");
+        moreSummary.textContent = "Show reasoning and decision";
+        const correlate = document.createElement("div");
+        correlate.textContent = `Reasoning: ${item.correlate || "not recorded"}`;
+        const decide = document.createElement("div");
+        decide.textContent = `Decision: ${item.decide || "not recorded"}`;
+        more.append(moreSummary, correlate, decide);
+        event.append(meta, quote, more);
+        runtime.append(event);
+      }
+      return runtime;
+    }
+
+    function fieldGrid(fields) {
+      const grid = document.createElement("div");
+      grid.className = "fields";
+      for (const item of fields) {
+        const field = document.createElement("div");
+        field.className = "field";
+        const label = document.createElement("div");
+        label.className = "field-name utility";
+        label.textContent = item.name;
+        const value = document.createElement("div");
+        value.className = "field-value";
+        value.textContent = typeof item.value === "object"
+          ? JSON.stringify(item.value) : text(item.value);
+        field.append(label, value);
+        grid.append(field);
+      }
+      return grid;
+    }
+
+    function showError(message) {
+      els.status.textContent = "disconnected";
+      const box = document.createElement("div");
+      box.className = "error";
+      box.textContent = `Dashboard could not refresh: ${message}`;
+      els.codes.replaceChildren(box);
+    }
+
+    async function refresh() {
+      try {
+        const response = await fetch("/api/taxonomy", {cache: "no-store"});
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+        const next = JSON.stringify(data);
+        if (next !== signature) {
+          signature = next;
+          render(data);
+        } else {
+          els.checked.textContent = new Date().toLocaleTimeString();
+          els.status.textContent = data.is_latest_successor ? "latest successor" : "live";
+        }
+      } catch (error) {
+        showError(error.message);
+      }
+    }
+
+    els.search.addEventListener("input", applyFilter);
+    els.taskSearch.addEventListener("input", applyFilter);
+    els.activeOnly.addEventListener("click", () => {
+      activeOnly = !activeOnly;
+      els.activeOnly.setAttribute("aria-pressed", String(activeOnly));
+      applyFilter();
+    });
+    document.querySelector("#expand").addEventListener("click", () => {
+      document.querySelectorAll("details").forEach(item => item.open = true);
+    });
+    document.querySelector("#collapse").addEventListener("click", () => {
+      document.querySelectorAll("details").forEach(item => item.open = false);
+    });
+    refresh();
+    setInterval(refresh, 1500);
+  </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "taxonomy_id": "tax-placeholder-bbb-006",
+  "repo": "acme/billing-api",
+  "domain": "placeholder-domain-b",
+  "codes": [
+    {
+      "id": "1",
+      "name": "Placeholder failure mode B1",
+      "description": "Placeholder explanation for the only failure mode in this placeholder taxonomy.",
+      "category": "Placeholder"
+    }
+  ]
+}

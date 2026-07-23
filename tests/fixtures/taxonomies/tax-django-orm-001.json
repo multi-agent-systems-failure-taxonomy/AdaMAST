@@ -1,0 +1,26 @@
+{
+  "taxonomy_id": "tax-django-orm-001",
+  "repo": "django/django",
+  "domain": "web-backend",
+  "codes": [
+    {
+      "id": "1",
+      "name": "N+1 query under lazy relation access",
+      "description": "A fix iterates a queryset and touches a related object inside the loop without select_related/prefetch_related, turning one query into one-per-row. Tests that assert row content still pass, so the regression is invisible without query-count assertions.",
+      "category": "Performance"
+    },
+    {
+      "id": "2",
+      "name": "Migration state diverges from model state",
+      "description": "A model field is edited but no migration is generated, or the migration is hand-edited to disagree with the model. makemigrations --check would catch it; a patch that only runs the unit suite will not.",
+      "category": "Schema",
+      "example": "AddField left out of 0042_auto.py after adding `slug = SlugField()`."
+    },
+    {
+      "id": "3",
+      "name": "Transaction boundary swallowed by atomic()",
+      "description": "Wrapping a block in transaction.atomic() while catching IntegrityError inside the same block leaves the connection in a broken-transaction state; subsequent queries raise 'current transaction is aborted'.",
+      "category": "Transaction"
+    }
+  ]
+}

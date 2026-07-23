@@ -1,207 +1,89 @@
-from __future__ import annotations
+"""Generation-trace storage and retention tests."""
 
 import json
+import os
+import tempfile
+import time
+import unittest
 from pathlib import Path
 
-import pytest
-
-from adamast.traces import (
-    TraceFormatError,
-    load_trace_bundle,
-    load_traces,
-    write_normalized_jsonl,
+from adamast.core.traces import (
+    GenerationTrace,
+    RetentionPolicy,
+    TraceReadError,
+    TraceStore,
 )
 
+FIXTURE = Path(__file__).parent / "fixtures" / "adamast_generation_trace.json"
 
-def test_normalizes_stable_message_record(tmp_path: Path) -> None:
-    source = tmp_path / "traces.json"
-    source.write_text(
-        json.dumps(
-            {
-                "trace_id": "trace-7",
-                "task": "Use the tool",
-                "messages": [
-                    {"role": "user", "content": "Begin"},
-                    {
-                        "role": "assistant",
-                        "content": "Checking",
-                        "tool_calls": [
-                            {
-                                "function": {
-                                    "name": "lookup",
-                                    "arguments": "{\"id\": 7}",
-                                }
-                            }
-                        ],
-                    },
-                ],
-                "outcome": {"status": "failure"},
-                "metadata": {"split": "validation"},
-            }
-        ),
-        encoding="utf-8",
+
+def real_trace() -> GenerationTrace:
+    return GenerationTrace.from_dict(
+        json.loads(FIXTURE.read_text(encoding="utf-8"))
     )
 
-    bundle = load_trace_bundle(source)
 
-    assert bundle.report()["trace_count"] == 1
-    assert bundle.report()["formats"] == {"messages": 1}
-    trace = bundle.traces[0]
-    assert trace["problem_id"] == "trace-7"
-    assert "[USER]\nBegin" in trace["raw_trajectory"]
-    assert "[ASSISTANT TOOL CALL] lookup" in trace["raw_trajectory"]
-    assert trace["metadata"]["outcome"]["status"] == "failure"
-    assert trace["metadata"]["split"] == "validation"
+class GenerationTraceTests(unittest.TestCase):
+    def test_real_fixture_is_exact_generation_shape(self):
+        trace = real_trace()
+        self.assertEqual(
+            set(trace.to_dict()),
+            {"problem_id", "task", "raw_trajectory", "metadata"},
+        )
+        self.assertIsInstance(trace.raw_trajectory, str)
 
-
-def test_explicit_empty_raw_trajectory_is_valid_failure_evidence(
-    tmp_path: Path,
-) -> None:
-    source = tmp_path / "empty.jsonl"
-    source.write_text(
-        '{"trace_id":"empty-1","task":"Produce output","raw_trajectory":""}\n',
-        encoding="utf-8",
-    )
-
-    bundle = load_trace_bundle(source)
-
-    assert bundle.traces[0]["raw_trajectory"] == ""
-    assert bundle.report()["empty_trajectories"] == 1
+    def test_extra_runtime_fields_are_rejected(self):
+        record = real_trace().to_dict()
+        record["gate_status"] = "READY_TO_SUBMIT"
+        with self.assertRaises(ValueError):
+            GenerationTrace.from_dict(record)
 
 
-def test_rejects_record_without_trajectory_field(tmp_path: Path) -> None:
-    source = tmp_path / "bad.json"
-    source.write_text('{"trace_id":"bad-1","task":"Missing output"}', encoding="utf-8")
+class TraceStoreTests(unittest.TestCase):
+    def test_invalid_trace_is_reported_instead_of_silently_dropped(self):
+        with tempfile.TemporaryDirectory() as td:
+            store = TraceStore(td)
+            store.root.mkdir(parents=True, exist_ok=True)
+            broken = store.root / "trace-broken.json"
+            broken.write_text("{not-json", encoding="utf-8")
 
-    with pytest.raises(TraceFormatError, match="needs raw_trajectory"):
-        load_traces(source)
+            with self.assertRaisesRegex(TraceReadError, "trace-broken.json"):
+                list(store.iter_traces())
 
+    def test_append_creates_independent_json_records(self):
+        with tempfile.TemporaryDirectory() as td:
+            store = TraceStore(td)
+            self.assertEqual(store.append_many([real_trace(), real_trace()]), 2)
+            self.assertEqual(len(list(Path(td).glob("trace-*.json"))), 2)
+            self.assertEqual(list(store.iter_traces()), [real_trace(), real_trace()])
 
-def test_rejects_invalid_jsonl_with_line_number(tmp_path: Path) -> None:
-    source = tmp_path / "bad.jsonl"
-    source.write_text('{"trace_id":"ok","raw_trajectory":"x"}\n{bad}\n', encoding="utf-8")
+    def test_integration_copies_verifies_then_removes_source(self):
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as dest:
+            pending = TraceStore(source)
+            approved = TraceStore(dest)
+            pending.append_many([real_trace()])
+            self.assertEqual(pending.integrate_into(approved), 1)
+            self.assertEqual(pending.count(), 0)
+            self.assertEqual(approved.count(), 1)
 
-    with pytest.raises(TraceFormatError, match=r"bad\.jsonl:2"):
-        load_traces(source)
+    def test_limits_warn_but_do_not_expire_data(self):
+        with tempfile.TemporaryDirectory() as td:
+            store = TraceStore(
+                td,
+                policy=RetentionPolicy(max_total_records=1, max_age_days=1),
+            )
+            store.append_many([real_trace(), real_trace()])
+            for path in Path(td).glob("trace-*.json"):
+                old = time.time() - 2 * 86_400
+                os.utime(path, (old, old))
 
-
-def test_collapses_codex_session_jsonl(tmp_path: Path) -> None:
-    source = tmp_path / "session.jsonl"
-    entries = [
-        {
-            "type": "session_meta",
-            "payload": {"instructions": "Repair the service", "model_provider": "openai"},
-        },
-        {
-            "type": "response_item",
-            "payload": {
-                "type": "message",
-                "role": "assistant",
-                "content": [{"text": "I inspected the logs."}],
-            },
-        },
-    ]
-    source.write_text(
-        "\n".join(json.dumps(item) for item in entries) + "\n",
-        encoding="utf-8",
-    )
-
-    traces = load_traces(source)
-
-    assert len(traces) == 1
-    assert traces[0]["_format"] == "codex_session"
-    assert traces[0]["metadata"]["source_format"] == "codex-session"
-    assert "[ASSISTANT]\nI inspected the logs." in traces[0]["raw_trajectory"]
-
-
-def test_collapses_event_log_jsonl(tmp_path: Path) -> None:
-    source = tmp_path / "events.jsonl"
-    events = [
-        {
-            "event": "run_start",
-            "problem_id": "event-3",
-            "task": "Answer the request",
-        },
-        {
-            "event": "response_received",
-            "agent": "solver",
-            "data": {"content": "A partial answer"},
-        },
-        {
-            "event": "run_end",
-            "data": {"final_answer": "A final answer"},
-        },
-    ]
-    source.write_text(
-        "\n".join(json.dumps(item) for item in events) + "\n",
-        encoding="utf-8",
-    )
-
-    traces = load_traces(source)
-
-    assert len(traces) == 1
-    assert traces[0]["problem_id"] == "event-3"
-    assert traces[0]["metadata"]["source_format"] == "event-log"
-    assert "[solver RESPONSE]\nA partial answer" in traces[0]["raw_trajectory"]
+            report = store.retention_report()
+            self.assertTrue(report.record_limit_exceeded)
+            self.assertTrue(report.age_limit_exceeded)
+            self.assertTrue(report.needs_attention)
+            self.assertFalse(report.automatic_deletion)
+            self.assertEqual(store.count(), 2)
 
 
-def test_imports_tau_bench_record(tmp_path: Path) -> None:
-    source = tmp_path / "airline.json"
-    source.write_text(
-        json.dumps(
-            {
-                "task_id": 19,
-                "trial": 2,
-                "reward": 0.0,
-                "info": {"task": {"instruction": "Change the reservation"}},
-                "traj": [
-                    {"role": "user", "content": "Move my flight"},
-                    {"role": "assistant", "content": "I cannot find it"},
-                ],
-            }
-        ),
-        encoding="utf-8",
-    )
-
-    trace = load_traces(source)[0]
-
-    assert trace["_format"] == "tau_bench"
-    assert trace["problem_id"] == "tau_bench_airline_19_trial2"
-    assert trace["metadata"]["source_format"] == "tau-bench"
-    assert "FAILURE (reward=0.0)" in trace["raw_trajectory"]
-
-
-def test_imports_mad_envelope(tmp_path: Path) -> None:
-    source = tmp_path / "mad.json"
-    source.write_text(
-        json.dumps(
-            {
-                "mas_name": "MetaGPT",
-                "llm_name": "model-x",
-                "benchmark_name": "coding",
-                "trace_id": "44",
-                "trace": {"trajectory": "[2026-01-01] FROM: Coder TO: Reviewer"},
-            }
-        ),
-        encoding="utf-8",
-    )
-
-    trace = load_traces(source)[0]
-
-    assert trace["_format"] == "mad"
-    assert trace["problem_id"] == "MetaGPT_coding_44"
-    assert trace["metadata"]["source_format"] == "mad"
-
-
-def test_normalized_writer_round_trips(tmp_path: Path) -> None:
-    traces = [
-        {
-            "problem_id": "one",
-            "task": "A task",
-            "raw_trajectory": "A trajectory",
-            "metadata": {"source_format": "adamast"},
-        }
-    ]
-    target = write_normalized_jsonl(traces, tmp_path / "normalized.jsonl")
-
-    assert load_traces(target) == traces
+if __name__ == "__main__":
+    unittest.main()

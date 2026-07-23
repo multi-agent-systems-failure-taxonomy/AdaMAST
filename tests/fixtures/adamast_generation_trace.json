@@ -1,0 +1,9 @@
+{
+  "problem_id": "phase3-toykit-1",
+  "task": "fix the failing tests",
+  "raw_trajectory": "user: fix the failing tests\n\ntool: pytest reported seven failures and one import error, including a missing parse_config symbol and incorrect account-withdrawal behavior.\n\nassistant: inspect the failing modules, repair the concrete defects, and rerun the affected tests.",
+  "metadata": {
+    "_format": "adamast-unified",
+    "source": "real phase3 toykit trajectory"
+  }
+}

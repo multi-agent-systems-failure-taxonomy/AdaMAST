@@ -8,18 +8,11 @@ on:
       - "website/**"
       - "scripts/build_site.py"
       - "mkdocs.yml"
-      - "pyproject.toml"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
   build:
@@ -32,19 +25,7 @@ jobs:
           cache: pip
       - run: python -m pip install --upgrade pip ".[docs]"
       - run: python scripts/build_site.py
-      - uses: actions/upload-pages-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
+          name: private-docs-site
           path: site
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/configure-pages@v6
-        with:
-          enablement: true
-      - id: deployment
-        uses: actions/deploy-pages@v5

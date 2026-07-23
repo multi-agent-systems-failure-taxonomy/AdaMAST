@@ -1,249 +1,191 @@
-"""Command-line interface for AdaMAST: ``adamast`` / ``python -m adamast``."""
+"""Single ``adamast`` entry point dispatching to the per-surface CLIs.
+
+Every historical ``adamast-*`` console script keeps working; this command
+is a thin, lazily-importing router over the same ``main(argv)`` functions,
+so ``adamast doctor --json`` and ``adamast-doctor --json`` are identical.
+It also matches the public package's interface, which ships one ``adamast``
+command.
+"""
 
 from __future__ import annotations
 
-import argparse
-import json
-import os
-from pathlib import Path
 import sys
+from importlib import import_module, metadata
 
-from .api import generate_taxonomy
-from .judges import DEFAULT_MAX_TRACE_CHARS, create_judge
-from .providers import DEFAULT_MAX_OUTPUT_TOKENS, SUPPORTED_PROVIDERS
-from .traces import (
-    TraceFormatError,
-    load_trace_bundle,
-    write_normalized_jsonl,
-)
-from .viewer import render_taxonomy_html
+# command -> (module path, attribute, one-line description)
+_COMMANDS: dict[str, tuple[str, str, str]] = {
+    "doctor": (
+        "adamast.doctor",
+        "main",
+        "check installation, storage, model, and host integrations",
+    ),
+    "dashboard": (
+        "adamast.dashboard.server",
+        "main",
+        "live local view of recorded checkpoints and fired codes",
+    ),
+    "status": (
+        "adamast.dashboard.status",
+        "main",
+        "summarize one trace-output program directory",
+    ),
+    "traces": (
+        "adamast.core.traces_cli",
+        "main",
+        "inspect, export, and conservatively prune trace files",
+    ),
+    "find": (
+        "adamast.core.finding_cli",
+        "main",
+        "list and resolve stored taxonomies",
+    ),
+    "register-taxonomy": (
+        "adamast.learning.register_taxonomy",
+        "main",
+        "register a taxonomy file into the local store",
+    ),
+    "import-traces": (
+        "adamast.learning.import_generation",
+        "main",
+        "generate a taxonomy from existing trace files",
+    ),
+    "single-run": (
+        "adamast.hosts.single_llm.cli",
+        "main",
+        "run one no-harness single-model task under AdaMAST",
+    ),
+}
 
-
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="adamast")
-    commands = parser.add_subparsers(dest="command", required=True)
-
-    generate = commands.add_parser(
-        "generate", help="generate an agreement-gated taxonomy from traces"
-    )
-    generate.add_argument("--traces", type=Path, required=True)
-    generate.add_argument("--output", type=Path, required=True)
-    generate.add_argument(
-        "--provider",
-        choices=SUPPORTED_PROVIDERS,
-        default=os.getenv("ADAMAST_PROVIDER"),
-        help="model API transport; generation prompts are unchanged",
-    )
-    generate.add_argument(
-        "--model",
-        help="provider model ID; provider-specific environment variables are supported",
-    )
-    generate.add_argument(
-        "--max-output-tokens",
-        type=int,
-        default=DEFAULT_MAX_OUTPUT_TOKENS,
-        help="maximum output tokens for each model call",
-    )
-    generate.add_argument(
-        "--aws-region",
-        default=os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION"),
-        help="Bedrock region; otherwise use the AWS configuration chain",
-    )
-    generate.add_argument(
-        "--aws-profile",
-        default=os.getenv("AWS_PROFILE"),
-        help="optional AWS profile for Bedrock",
-    )
-    generate.add_argument("--max-rounds", type=int, default=5)
-    generate.add_argument("--kappa-target", type=float, default=0.75)
-    generate.add_argument("--coverage-floor", type=float, default=0.70)
-    generate.add_argument("--no-early-stop", action="store_true")
-    generate.add_argument(
-        "--view",
-        action="store_true",
-        help="create and open the read-only taxonomy field guide",
-    )
-
-    judge = commands.add_parser(
-        "judge", help="apply an existing taxonomy to one or more traces"
-    )
-    judge.add_argument("--taxonomy", type=Path, required=True)
-    judge.add_argument(
-        "--traces",
-        "--trace",
-        dest="traces",
-        type=Path,
-        required=True,
-        help="trace file or directory in any accepted AdaMAST format",
-    )
-    judge.add_argument("--output", type=Path)
-    judge.add_argument(
-        "--provider",
-        choices=SUPPORTED_PROVIDERS,
-        default=os.getenv("ADAMAST_PROVIDER"),
-        help="model API transport; judge prompts are unchanged",
-    )
-    judge.add_argument(
-        "--model",
-        help="provider model ID; provider-specific environment variables are supported",
-    )
-    judge.add_argument(
-        "--max-trace-chars",
-        type=int,
-        default=DEFAULT_MAX_TRACE_CHARS,
-        help="maximum prompt characters allocated to each normalized trace",
-    )
-    judge.add_argument(
-        "--max-output-tokens",
-        type=int,
-        default=DEFAULT_MAX_OUTPUT_TOKENS,
-        help="maximum output tokens for each judge call",
-    )
-    judge.add_argument(
-        "--aws-region",
-        default=os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION"),
-        help="Bedrock region; otherwise use the AWS configuration chain",
-    )
-    judge.add_argument(
-        "--aws-profile",
-        default=os.getenv("AWS_PROFILE"),
-        help="optional AWS profile for Bedrock",
-    )
-    judge.add_argument(
-        "--allow-review-required",
-        action="store_true",
-        help="allow a taxonomy that did not pass the BASELINE agreement gate",
-    )
-
-    validate = commands.add_parser(
-        "validate", help="validate accepted trace formats"
-    )
-    validate.add_argument("source", type=Path)
-
-    normalize = commands.add_parser(
-        "normalize", help="write canonical AdaMAST JSONL"
-    )
-    normalize.add_argument("source", type=Path)
-    normalize.add_argument("--output", type=Path, required=True)
-
-    view = commands.add_parser(
-        "view", help="open one taxonomy as a read-only browser field guide"
-    )
-    view.add_argument("taxonomy", type=Path)
-    view.add_argument("--manifest", type=Path)
-    view.add_argument("--output", type=Path)
-    view.add_argument("--no-open", action="store_true")
-    return parser
+_HOST_COMMANDS: dict[str, dict[str, tuple[str, str, str]]] = {
+    "claude": {
+        "install": (
+            "adamast.hosts.claude_code.install",
+            "main",
+            "install the Claude Code hooks",
+        ),
+        "uninstall": (
+            "adamast.hosts.claude_code.uninstall",
+            "main",
+            "remove the Claude Code hooks",
+        ),
+        "checkpoint": (
+            "adamast.hosts.claude_code.checkpoint",
+            "main",
+            "record a compact checkpoint outside chat",
+        ),
+        "add-hook": (
+            "adamast.hosts.claude_code.manage_hooks",
+            "add_main",
+            "add a custom hook",
+        ),
+        "remove-hook": (
+            "adamast.hosts.claude_code.manage_hooks",
+            "remove_main",
+            "remove a custom hook",
+        ),
+        "list-hooks": (
+            "adamast.hosts.claude_code.manage_hooks",
+            "list_main",
+            "list installed hooks",
+        ),
+    },
+    "codex": {
+        "install": (
+            "adamast.hosts.codex.install",
+            "main",
+            "install the Codex hooks",
+        ),
+        "uninstall": (
+            "adamast.hosts.codex.uninstall",
+            "main",
+            "remove the Codex hooks",
+        ),
+        "checkpoint": (
+            "adamast.hosts.codex.checkpoint",
+            "main",
+            "record a compact checkpoint outside chat",
+        ),
+    },
+}
 
 
-def _force_utf8_output() -> None:
-    """Keep console output from crashing on non-ASCII characters.
+def _version() -> str:
+    try:
+        return metadata.version("adamast")
+    except metadata.PackageNotFoundError:  # pragma: no cover
+        return "unknown"
 
-    Windows defaults redirected streams to a legacy code page such as cp1252,
-    which cannot encode every character the pipeline prints (progress rules,
-    model-written taxonomy text). UTF-8 can encode all of them.
-    """
 
-    for stream in (sys.stdout, sys.stderr):
-        reconfigure = getattr(stream, "reconfigure", None)
-        if reconfigure is None:
-            continue
-        try:
-            reconfigure(encoding="utf-8")
-        except (ValueError, OSError):
-            pass
+def _overview() -> str:
+    lines = [
+        "usage: adamast <command> [args]",
+        "",
+        "AdaMAST: adaptive failure-mode taxonomies for agents.",
+        "",
+        "setup and everyday commands:",
+    ]
+    for name, (_, _, blurb) in _COMMANDS.items():
+        lines.append(f"  adamast {name:<22} {blurb}")
+    for host, commands in _HOST_COMMANDS.items():
+        lines.append("")
+        lines.append(f"{host} host commands:")
+        for name, (_, _, blurb) in commands.items():
+            lines.append(f"  adamast {host} {name:<15} {blurb}")
+    lines += [
+        "",
+        "Run `adamast <command> --help` for that command's options.",
+        "The historical `adamast-<command>` scripts remain available.",
+    ]
+    return "\n".join(lines)
+
+
+def _dispatch(module_path: str, attribute: str, prog: str, rest: list[str]) -> int:
+    target = getattr(import_module(module_path), attribute)
+    previous = sys.argv
+    # Keep argparse usage/error text on the umbrella spelling.
+    sys.argv = [prog, *rest]
+    try:
+        return int(target(rest) or 0)
+    finally:
+        sys.argv = previous
 
 
 def main(argv: list[str] | None = None) -> int:
-    _force_utf8_output()
-    parser = build_parser()
-    args = parser.parse_args(argv)
-    try:
-        if args.command == "validate":
-            bundle = load_trace_bundle(args.source)
-            print(json.dumps(bundle.report(), indent=2, ensure_ascii=False))
-            return 0
-        if args.command == "normalize":
-            bundle = load_trace_bundle(args.source)
-            output = write_normalized_jsonl(bundle.traces, args.output)
-            print(f"Normalized {len(bundle.traces)} traces: {output}")
-            print(json.dumps(bundle.report(), indent=2, ensure_ascii=False))
-            return 0
-        if args.command == "view":
-            path = render_taxonomy_html(
-                args.taxonomy,
-                manifest=args.manifest,
-                output=args.output,
-                open_browser=not args.no_open,
+    args = list(sys.argv[1:] if argv is None else argv)
+    if not args or args[0] in ("-h", "--help", "help"):
+        print(_overview())
+        return 0
+    if args[0] in ("-V", "--version", "version"):
+        print(f"adamast {_version()}")
+        return 0
+
+    head, rest = args[0], args[1:]
+    if head in _HOST_COMMANDS:
+        host_commands = _HOST_COMMANDS[head]
+        if not rest or rest[0] in ("-h", "--help", "help"):
+            print(f"usage: adamast {head} <command> [args]\n")
+            for name, (_, _, blurb) in host_commands.items():
+                print(f"  adamast {head} {name:<15} {blurb}")
+            return 0 if rest else 2
+        sub, sub_rest = rest[0], rest[1:]
+        if sub not in host_commands:
+            known = ", ".join(host_commands)
+            print(
+                f"adamast {head}: unknown command {sub!r} (known: {known})",
+                file=sys.stderr,
             )
-            print(f"AdaMAST taxonomy view: {path}")
-            return 0
-        if args.command == "judge":
-            return _run_judge(args)
-        return _run_generate(args)
-    except (TraceFormatError, ValueError, RuntimeError) as exc:
-        print(f"error: {exc}", file=sys.stderr)
-        return 2
+            return 2
+        module_path, attribute, _ = host_commands[sub]
+        return _dispatch(module_path, attribute, f"adamast {head} {sub}", sub_rest)
+
+    if head in _COMMANDS:
+        module_path, attribute, _ = _COMMANDS[head]
+        return _dispatch(module_path, attribute, f"adamast {head}", rest)
+
+    known = ", ".join([*_COMMANDS, *_HOST_COMMANDS])
+    print(f"adamast: unknown command {head!r} (known: {known})", file=sys.stderr)
+    return 2
 
 
-def _run_generate(args: argparse.Namespace) -> int:
-    output = Path(args.output)
-    taxonomy = generate_taxonomy(
-        args.traces,
-        output,
-        provider=args.provider,
-        model=args.model,
-        max_rounds=args.max_rounds,
-        kappa_target=args.kappa_target,
-        coverage_floor=args.coverage_floor,
-        no_early_stop=args.no_early_stop,
-        max_output_tokens=args.max_output_tokens,
-        aws_region=(args.aws_region or "").strip() or None,
-        aws_profile=(args.aws_profile or "").strip() or None,
-        open_viewer=args.view,
-    )
-    status = taxonomy["status"]
-    output = output.expanduser().resolve()
-    print(f"Status: {status}")
-    print(f"Taxonomy: {output / 'taxonomy.json'}")
-    print(f"Agreement manifest: {output / 'manifest.json'}")
-    print(f"Browser view: {output / 'taxonomy.html'}")
-    return 0 if status == "accepted" else 3
-
-
-def _run_judge(args: argparse.Namespace) -> int:
-    traces = load_trace_bundle(args.traces).traces
-    judge = create_judge(
-        args.taxonomy,
-        provider=args.provider,
-        model=args.model,
-        max_trace_chars=args.max_trace_chars,
-        max_output_tokens=args.max_output_tokens,
-        aws_region=(args.aws_region or "").strip() or None,
-        aws_profile=(args.aws_profile or "").strip() or None,
-        allow_review_required=args.allow_review_required,
-    )
-    diagnoses = judge.judge_many(traces)
-    payload = {
-        "schema_version": 1,
-        "taxonomy": str(args.taxonomy.expanduser().resolve()),
-        "judge": {
-            "provider": judge.provider.name,
-            "model": judge.provider.model,
-        },
-        "trace_count": len(diagnoses),
-        "diagnoses": [diagnosis.to_dict() for diagnosis in diagnoses],
-    }
-    rendered = json.dumps(payload, indent=2, ensure_ascii=False)
-    if args.output:
-        output = args.output.expanduser().resolve()
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(rendered + "\n", encoding="utf-8")
-        print(f"Judgments: {output}")
-    else:
-        print(rendered)
-    return 0
-
-
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(main())

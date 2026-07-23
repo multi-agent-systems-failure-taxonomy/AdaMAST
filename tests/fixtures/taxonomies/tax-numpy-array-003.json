@@ -1,0 +1,32 @@
+{
+  "taxonomy_id": "tax-numpy-array-003",
+  "repo": "numpy/numpy",
+  "domain": "numerical-computing",
+  "codes": [
+    {
+      "id": "1",
+      "name": "View vs copy aliasing mutation",
+      "description": "A fix mutates an array obtained via slicing (a view) assuming it is an independent copy, silently corrupting the parent array. Equality assertions on the slice pass while the parent is wrong.",
+      "category": "Aliasing",
+      "example": "b = a[::2]; b += 1  # also mutates a"
+    },
+    {
+      "id": "2",
+      "name": "Broadcasting hides a shape bug",
+      "description": "Operands of shapes (n,1) and (1,m) broadcast to (n,m) without error, so a transposition mistake produces a wrong-but-plausible result instead of a ValueError.",
+      "category": "Shape"
+    },
+    {
+      "id": "3",
+      "name": "dtype downcast loses precision",
+      "description": "An operation that should stay float64 is written so an int array dominates the result dtype, truncating fractional values. Small-integer test fixtures never reveal the loss.",
+      "category": "Precision"
+    },
+    {
+      "id": "4",
+      "name": "NaN-poisoned reduction",
+      "description": "Using np.sum/np.max instead of the nan-aware variant lets a single NaN propagate through a reduction, turning an entire aggregate into NaN.",
+      "category": "Numerics"
+    }
+  ]
+}

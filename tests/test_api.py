@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from adamast.api import (
+from adamast.learning.api import (
     build_public_taxonomy,
     generate_taxonomy,
     prepare_taxonomy_for_agreement,
@@ -66,9 +66,9 @@ def test_builds_integration_neutral_taxonomy() -> None:
     ]
 
 
-@patch("adamast.api.create_provider")
-@patch("adamast.api.TaxonomyRefinerPipeline")
-@patch("adamast.api.LLMNomos")
+@patch("adamast.learning.api.create_provider")
+@patch("adamast.learning.api.TaxonomyRefinerPipeline")
+@patch("adamast.learning.api.LLMNomos")
 def test_generate_persists_gate_and_browser_artifacts(
     draft_class, agreement_class, provider_factory, tmp_path: Path, monkeypatch
 ) -> None:
@@ -111,9 +111,9 @@ def test_generate_persists_gate_and_browser_artifacts(
     assert agreement_class.call_args.kwargs["client"] is agreement_provider
 
 
-@patch("adamast.api.create_provider")
-@patch("adamast.api.TaxonomyRefinerPipeline")
-@patch("adamast.api.LLMNomos")
+@patch("adamast.learning.api.create_provider")
+@patch("adamast.learning.api.TaxonomyRefinerPipeline")
+@patch("adamast.learning.api.LLMNomos")
 def test_generate_never_marks_failed_gate_accepted(
     draft_class, agreement_class, provider_factory, tmp_path: Path, monkeypatch
 ) -> None:
