@@ -57,9 +57,10 @@ print(len(taxonomy["codes"]))
 
 The function returns the same dictionary written to `taxonomy.json`.
 
-Advanced entry points `build_public_taxonomy` and
-`prepare_taxonomy_for_agreement` split the same pipeline into its draft and
-agreement stages; most workflows only need `generate_taxonomy`.
+Advanced entry points exist for custom pipelines:
+`prepare_taxonomy_for_agreement` adapts a layered draft for the agreement
+program, and `build_public_taxonomy` assembles the final `taxonomy.json`
+from its results. Most workflows only need `generate_taxonomy`.
 
 ## 🔬 What generation does
 

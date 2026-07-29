@@ -8,8 +8,8 @@ find the right place in the tree for it.
 Python 3.10 or newer is required.
 
 ```bash
-git clone https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST-private.git
-cd AdaMAST-private
+git clone https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST.git
+cd AdaMAST
 python -m pip install -e ".[test]"
 ```
 
@@ -34,7 +34,6 @@ All code lives in the single `adamast` package (see the repository map in
 | Shared selectors, routes, jobs, and receipts | [adamast/hosts/interactive/README.md](adamast/hosts/interactive/README.md) |
 | Claude Code adapter | [adamast/hosts/claude_code/README.md](adamast/hosts/claude_code/README.md) |
 | Codex adapter | [adamast/hosts/codex/README.md](adamast/hosts/codex/README.md) |
-| Evaluation runs and taxonomies (private) | [runs/README.md](runs/README.md) |
 | Test suite map | [tests/README.md](tests/README.md) |
 
 User-facing behavior (prompts, hooks, judge specs) lives in Markdown/JSON
@@ -52,9 +51,8 @@ the shared learning-job engine in `adamast/learning/`.
 Markdown pages in [docs/](docs/) are the documentation source of truth.
 [website/](website/) contains the temporary project-root landing page.
 [scripts/build_site.py](scripts/build_site.py) combines them into one Pages
-artifact: the landing page at `/` and MkDocs under `/docs/`. The private
-workflow validates and stores that artifact; the public repository owns
-deployment.
+artifact: the landing page at `/` and MkDocs under `/docs/`, which the
+`docs` workflow builds and deploys on every docs change.
 
 Preview locally:
 
@@ -69,5 +67,4 @@ python -m http.server 8000 --directory site
 minimal configs and link there rather than duplicating field tables.
 
 Release versioning, artifact checks, tags, and the PyPI trusted-publisher
-path are maintainer tasks; they are documented in `RELEASING.md` in the
-[private development repository](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST-private).
+path are maintainer tasks and are handled outside this repository.

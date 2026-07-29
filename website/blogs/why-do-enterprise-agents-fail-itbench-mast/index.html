@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="🤖">
+    <meta name="description" content="We use MAST to turn IT-Bench SRE execution traces into structured failure signatures that show not just whether an enterprise agent failed, but how and why it failed — and how to fix it.">
     <meta name="theme-color" content="#f5f7fb">
     <link rel="canonical" href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/why-do-enterprise-agents-fail-itbench-mast/">
     <meta property="og:type" content="article">
     <meta property="og:title" content="Why Do Enterprise Agents Fail? Insights from IT-Bench using MAST">
-    <meta property="og:description" content="🤖">
+    <meta property="og:description" content="We use MAST to turn IT-Bench SRE execution traces into structured failure signatures that show not just whether an enterprise agent failed, but how and why it failed — and how to fix it.">
     <meta property="og:url" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/why-do-enterprise-agents-fail-itbench-mast/">
     <meta property="og:image" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/why-do-enterprise-agents-fail-itbench-mast/image.png">
     <meta name="twitter:card" content="summary_large_image">
@@ -46,7 +46,6 @@
         <p class="post__date">December 2025</p>
         <hr class="post__rule">
 <aside class="callout">
-<p>🤖</p>
 <p><strong>Agentic LLMs are increasingly adopted in real world IT tasks,</strong> for tasks like triaging incidents, querying logs/metrics and generating Kubernetes actions. However, evaluating these agentic systems is hard. Existing benchmarks, such as IT-Bench, typically provide just a single number (e.g., success rate) which is insufficient to understand where these systems fail and how to fix them. In this post, we aim to alleviate this challenge by using <strong>MAST</strong> (Multi-Agent System Failure Taxonomy) to turn <strong>ITBench</strong> execution traces from SRE scenarios into structured failure signatures that not only show whether a run fails, but can also explain <em>how</em> and <em>why</em> the run failed, thus providing insights into how to fix it. </p>
 <ul>
 <li><strong>Beyond Accuracy:</strong> Success rates on <a href="https://arxiv.org/pdf/2502.05352">ITBench</a> (SRE, Security, FinOps tasks) only tell you <em>if</em> an agent failed. <a href="https://arxiv.org/abs/2503.13657">MAST</a> reveals <em>how it failed</em>.</li>
@@ -195,7 +194,7 @@
 </ol>
 <hr />
 <h2>Build Better Agents with MAST</h2>
-<p>In this blogpost, we mostly talk about how one can analyze the failure modes of complex agentic systems in real tasks with MAST, but one can also use it to make the agentic framework better! In our previous <a href="http://adrs-ucb.notion.site/mast">blogpost about using evolutionary algorithms</a>, we show how how to use MAST feedback to autonomously improve an agentic system to solve coding problems! But one can also surely try to improve a multi-agent system manually using the feedback of MAST, as we demonstrate an example in another <a href="https://mast-ucb.notion.site/improve-agents-with-mast">blogpost where we tune a system of agents</a> to solve mathematical reasoning problems. </p>
+<p>In this blogpost, we mostly talk about how one can analyze the failure modes of complex agentic systems in real tasks with MAST, but one can also use it to make the agentic framework better! In our previous <a href="../improving-multi-agent-system-design-using-mast/">blogpost about using evolutionary algorithms</a>, we show how to use MAST feedback to autonomously improve an agentic system to solve coding problems! But one can also surely try to improve a multi-agent system manually using the feedback of MAST, as we demonstrate an example in another <a href="../how-to-use-mast-to-improve-your-agents/">blogpost where we tune a system of agents</a> to solve mathematical reasoning problems. </p>
 <h2>Quick Start with MAST</h2>
 <p>To use MAST for your agentic traces, simply get started with the following commands!</p>
 <pre><code class="language-python">!pip install agentdash

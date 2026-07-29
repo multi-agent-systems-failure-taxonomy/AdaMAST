@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="This post is the seventh in our ADRS series. Designing effective multi-agent systems typically requires debugging workloads via execution logs and iteratively refining the agentic systems&#x27; behavior. In this blog, we replace hand-tuning with OpenEvolve to optimize the Multi-Agent ">
+    <meta name="description" content="This post is the seventh in our ADRS series. We replace hand-tuning with OpenEvolve, using MAST failure modes as a fine-grained reward to optimize multi-agent system code directly, improving failure rates by 7x.">
     <meta name="theme-color" content="#f5f7fb">
     <link rel="canonical" href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/improving-multi-agent-system-design-using-mast/">
     <meta property="og:type" content="article">
     <meta property="og:title" content="Automating Algorithm Discovery: A Case Study in Improving Multi-Agent System Design using MAST">
-    <meta property="og:description" content="This post is the seventh in our ADRS series. Designing effective multi-agent systems typically requires debugging workloads via execution logs and iteratively refining the agentic systems&#x27; behavior. In this blog, we replace hand-tuning with OpenEvolve to optimize the Multi-Agent ">
+    <meta property="og:description" content="This post is the seventh in our ADRS series. We replace hand-tuning with OpenEvolve, using MAST failure modes as a fine-grained reward to optimize multi-agent system code directly, improving failure rates by 7x.">
     <meta property="og:url" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/improving-multi-agent-system-design-using-mast/">
     <meta property="og:image" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/improving-multi-agent-system-design-using-mast/hero.png">
     <meta name="twitter:card" content="summary_large_image">
@@ -45,7 +45,7 @@
         <p class="post__date">December 2025</p>
         <p class="post__meta post__meta--affil">
           Originally published on the
-          <a href="https://ucbskyadrs.github.io/blog/improving-multi-agent-system-design-using-mast">UC Berkeley ADRS blog</a>.
+          <a href="https://ucbskyadrs.github.io/blog/improving-multi-agent-system-design-using-mast/">UC Berkeley ADRS blog</a>.
         </p>
         <hr class="post__rule">
 <aside class="callout">
@@ -73,7 +73,7 @@
 <p>We also expose the risks of automated design: without strict guardrails (like mandatory evidence gates), the evolutionary search creates "reward hacks"--optimizing for score by simply deleting the agents responsible for reporting failures.</p>
 <h2>The Problem: MAS Debugging Does Not Scale</h2>
 <p>Multi-agent systems are easy to prototype but painful to <em>improve</em>. When a run goes wrong, you rarely get a single clear signal. Often, you see a spaghetti trace where agents repeat steps, drift roles, drop context, ignore each other's messages, "verify" hand-wavily, or declare success early. The result is that every design decision becomes a guessing game: <strong>How many agents? How to break down the task? How agents should communicate with each other?</strong></p>
-<p>In a previous <a href="https://www.notion.so/Automating-Algorithm-Discovery-A-Case-Study-in-Improving-Multi-Agent-System-Design-using-MAST-2ca8d1e3404480f78f76ccabb3c9cfd8?pvs=21">blog</a>, we introduce <a href="https://arxiv.org/abs/2503.13657">MAST [NeurIPS'25 Spotlight]</a>, a failure taxonomy and LLM annotator that turns those messy agent traces into structured, actionable failure signals (instead of vibes-based log reading). But even with good diagnostics, the development loop is still mostly manual:</p>
+<p>In a previous <a href="../how-to-use-mast-to-improve-your-agents/">blog</a>, we introduce <a href="https://arxiv.org/abs/2503.13657">MAST [NeurIPS'25 Spotlight]</a>, a failure taxonomy and LLM annotator that turns those messy agent traces into structured, actionable failure signals (instead of vibes-based log reading). But even with good diagnostics, the development loop is still mostly manual:</p>
 <ol>
 <li>Run tasks</li>
 <li>Read long traces</li>

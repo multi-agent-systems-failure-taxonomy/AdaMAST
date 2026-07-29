@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="In our previous work (\&quot;Automating Algorithm Discovery with MAST\&quot;), we showed that the Multi-Agent Systems Failure Taxonomy (MAST) could transform the traditionally manual process of agent debugging into a tractable search problem. By using fine-gr...">
+    <meta name="description" content="Using OpenEvolve to optimize multi-agent math reasoning workflows, we find the evaluator is the bottleneck: MAST-based feedback yields 33% accuracy on Olympiad-level problems versus 25% with binary feedback.">
     <meta name="theme-color" content="#f5f7fb">
     <link rel="canonical" href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/improving-multi-agent-reasoning-systems-using-mast/">
     <meta property="og:type" content="article">
     <meta property="og:title" content="Automating Algorithm Discovery: A Case Study in Improving Multi-Agent Reasoning Systems using MAST (Part 2)">
-    <meta property="og:description" content="In our previous work (\&quot;Automating Algorithm Discovery with MAST\&quot;), we showed that the Multi-Agent Systems Failure Taxonomy (MAST) could transform the traditionally manual process of agent debugging into a tractable search problem. By using fine-gr...">
+    <meta property="og:description" content="Using OpenEvolve to optimize multi-agent math reasoning workflows, we find the evaluator is the bottleneck: MAST-based feedback yields 33% accuracy on Olympiad-level problems versus 25% with binary feedback.">
     <meta property="og:url" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/improving-multi-agent-reasoning-systems-using-mast/">
     <meta property="og:image" content="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/improving-multi-agent-reasoning-systems-using-mast/hero.png">
     <meta name="twitter:card" content="summary_large_image">
@@ -45,7 +45,7 @@
         <p class="post__date">February 2026</p>
         <p class="post__meta post__meta--affil">
           Originally published on the
-          <a href="https://ucbskyadrs.github.io/blog/improving-multi-agent-reasoning-systems-using-mast">UC Berkeley ADRS blog</a>.
+          <a href="https://ucbskyadrs.github.io/blog/improving-multi-agent-reasoning-systems-using-mast/">UC Berkeley ADRS blog</a>.
         </p>
         <hr class="post__rule">
 <aside class="callout">
@@ -67,7 +67,7 @@
 </ul>
 </aside>
 <h2>The Problem: Evaluation Is the Bottleneck</h2>
-<p>In our previous work <a href="https://mast-ucb.notion.site/mast-evolve?source=copy_link">("Automating Algorithm Discovery with MAST")</a>, we showed that the Multi-Agent Systems Failure Taxonomy (MAST) could transform the traditionally manual process of agent debugging into a tractable search problem. By using fine-grained failure signals rather than unstructured logs, we can use an evolutionary program optimization algorithm like OpenEvolve that iteratively refines agentic programs to discover sophisticated design patterns that are hard to find by hand.</p>
+<p>In our previous work <a href="../improving-multi-agent-system-design-using-mast/">("Automating Algorithm Discovery with MAST")</a>, we showed that the Multi-Agent Systems Failure Taxonomy (MAST) could transform the traditionally manual process of agent debugging into a tractable search problem. By using fine-grained failure signals rather than unstructured logs, we can use an evolutionary program optimization algorithm like OpenEvolve that iteratively refines agentic programs to discover sophisticated design patterns that are hard to find by hand.</p>
 <p>In this follow-up blog, we apply the same idea to <strong>multi-agent reasoning systems</strong> for tasks that require <strong>long chains of thought</strong>, like Math Olympiad problems. While multi-agent systems (comprising specialized roles for translation, reasoning and verification) are conceptually well-suited for these tasks, optimizing them remains a significant challenge. The design space is very large, and the failure modes are often subtle; a minor modification can cause cascading errors.</p>
 <p>In order to navigate MAS optimization, we need better evaluation tools. The standard approach is to hill-climb on <strong>task accuracy</strong>. But for multi-agent reasoning, accuracy is often too coarse. It tells you whether you succeeded, but it does not tell you what failed inside the workflow, so search has weak guidance on what to change next.</p>
 <p>Our main claim is simple:</p>

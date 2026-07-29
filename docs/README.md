@@ -55,10 +55,9 @@ is built from these Markdown pages with MkDocs Material (see
 placeholder sourced from [website/](../website/); the complete Pages tree is
 assembled by [scripts/build_site.py](../scripts/build_site.py).
 
-> 📦 **In this private repository**, GitHub Actions builds the site strictly
-> and stores it as a workflow artifact, but does not deploy it to GitHub
-> Pages. Public deployment belongs to the public repository after the
-> reviewed changes are transferred.
+> 📦 GitHub Actions builds the site strictly on every docs change; the
+> deploy job publishes it to GitHub Pages from the
+> [AdaMAST repository](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST).
 
 The docs home is [index.md](index.md); this README stays the index for
 GitHub's file view.
