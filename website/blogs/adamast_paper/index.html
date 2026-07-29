@@ -69,42 +69,44 @@
 
         <aside class="callout">
           <p>
-            🤖 Almost every way of improving an LLM agent without retraining
-            it, best-of-N selection, prompt optimization, and runtime
-            monitoring, works by reading execution traces and diagnosing what
-            went wrong. Then it throws the diagnosis away. Traces record
-            everything and remember nothing: long, instance-specific, no
-            stable names for the failures that keep happening.
+            🤖 A failure taxonomy is a rubric of an agent system's recurring
+            failure modes. Each mode gets a name, a definition, and evidence
+            quoted from the system's own rollouts. Fixed, hand-built
+            taxonomies such as <strong>MAST</strong> already work well as
+            debugging aids. But a rubric written before a system exists
+            cannot name the failures specific to that system's roles,
+            harness, or task.
           </p>
           <p>
-            <strong>AdaMAST</strong> gives an agent system a memory of its own
-            failures. It converts the system's traces into a compact taxonomy
-            of named failure codes on three fixed axes (system-level,
-            role-specific, domain-specific), induced automatically, validated
-            before anything trusts them. The taxonomy is not a post-hoc
-            report; it is a shared feedback interface that search, runtime
-            monitoring, and selection consume instead of raw traces.
+            <strong>AdaMAST</strong> makes the taxonomy adaptive. It observes
+            the system's rollouts and induces a bespoke rubric, matched to
+            the agent's weaknesses and the task's challenges, then validates
+            it before anything trusts it. The rollouts remain the evidence.
+            The rubric is what carries their lessons across runs, and it
+            plugs into three improvement loops: best-of-N judging at test
+            time, runtime feedback for coding agents, and mutation feedback
+            in agent-system search.
           </p>
           <p><strong>Results across three integration settings:</strong></p>
           <ul>
             <li>
               🏆 <strong>Best-of-N judging (Terminal-Bench 2.0):</strong>
-              these adaptive taxonomies give a massive boost:
               <strong>89.9%</strong> with the Claude Opus 4.6 / ForgeCode
               harness and the adaptive taxonomy driving a best-of-5 judge, up
-              to +15 points over Pass@1 and up to +4.5 over fixed taxonomies.
+              to +15 points over Pass@1 and up to +4.5 points over fixed
+              taxonomies.
             </li>
             <li>
               🖥️ <strong>Runtime feedback for coding agents
-              (SWE-Bench-Verified Mini):</strong> resolution rises from 60%
-              to <strong>70%</strong> on SWE-agent and from 64.0% to
-              <strong>70.7%</strong> on Claude Code, where the taxonomy
-              attaches as a native runtime skill.
+              (SWE-bench Verified Mini):</strong> resolution rises from 50%
+              to <strong>70%</strong> on SWE-agent (60% with free-text
+              reflection) and from 64.0% to <strong>70.7%</strong> on Claude
+              Code, where the taxonomy attaches as a native runtime skill.
             </li>
             <li>
               🧬 <strong>Mutation feedback in optimization loops:</strong>
               taxonomy-coded diagnoses beat free-form reflection on all five
-              search benchmarks (+3.5 to +7.5%), reaching
+              search benchmarks (+3.5 to +7.5 points), reaching
               <strong>91.9%</strong> on 655 held-out OlympiadBench problems.
             </li>
             <li>
@@ -131,13 +133,12 @@
 
         <h2 id="traces-are-evidence">Traces Are Evidence, Not an Interface</h2>
         <p>
-          If you have ever tried to improve an LLM agent system without
-          touching model weights, you have written one of these loops: sample
-          N trajectories and pick the best one; run the agent, read what went
-          wrong, rewrite the prompt; watch a run in flight and intervene
-          before it commits a mistake. Each of these procedures consumes the
-          same input (execution traces) and extracts feedback in one of two
-          forms.
+          Improving an LLM agent without touching its weights usually means
+          one of these loops: sample N trajectories and pick the best one;
+          run the agent, read what went wrong, rewrite the prompt; watch a
+          run in flight and intervene before it commits a mistake. Each of
+          these procedures consumes the same input (execution traces) and
+          extracts feedback in one of two forms.
         </p>
         <p>
           A <strong>scalar outcome</strong> (a pass rate, a verifier score)
@@ -177,6 +178,7 @@
             alt="Six representative failure codes arranged on the three AdaMAST axes with verbatim evidence quotes."
             width="1329"
             height="318"
+            loading="lazy"
           >
           <figcaption>
             Figure 1: The axes of intervention are fixed; everything inside
@@ -218,11 +220,11 @@
           Why induce the vocabulary rather than fix it in advance? MAST
           distilled 14 recurring failure modes from hundreds of annotated
           multi-agent traces and remains a strong baseline throughout this
-          work. But any catalog fixed <em>before</em> the target system is
+          work. But any rubric fixed <em>before</em> the target system is
           observed faces a structural limit, not a quality limit:
           role-specific failures presuppose roles that exist only once an
           architecture is instantiated, and domain-specific failures
-          presuppose task knowledge that no general catalog enumerates. No
+          presuppose task knowledge that no general rubric enumerates. No
           pre-committed list anticipates a competitive-programming agent
           committing to a greedy strategy where the problem demands dynamic
           programming.
@@ -263,6 +265,7 @@
             alt="Bar chart of post-search accuracy across five benchmarks: taxonomy-coded feedback beats free-form reflection on all five."
             width="1085"
             height="449"
+            loading="lazy"
           >
           <figcaption>
             Figure 2: Post-search accuracy, taxonomy-coded feedback vs.
@@ -294,6 +297,7 @@
             alt="Two panels: dev-score trajectories over search iterations, and the corresponding held-out accuracy, for vanilla and taxonomy-guided runs."
             width="1309"
             height="556"
+            loading="lazy"
           >
           <figcaption>
             Figure 3: (a) Dev-score trajectories. The vanilla run exhausts
@@ -382,10 +386,11 @@
         </p>
         <p>
           Across three Terminal-Bench 2.0 harnesses, it improves best-of-5
-          accuracy by 8 to 15% over Pass@1, keeping a +3.4/+4.5% margin over
-          the fixed MAST vocabulary on the two harnesses that aren't already
-          saturated. The underlying signal is simple: passing trajectories
-          fire fewer codes than failing ones, even a selector that just picks
+          accuracy by 8 to 15 points over Pass@1, keeping a +3.4/+4.5 point
+          margin over the fixed MAST vocabulary on the two harnesses that
+          aren't already saturated. The underlying signal is simple: passing
+          trajectories fire fewer codes than failing ones; even a selector
+          that just picks
           the candidate with the fewest fired codes lifts expected accuracy
           from 58% to 67% on the tasks where selection can change the
           outcome.
@@ -403,6 +408,7 @@
             alt="Three panels measuring the taxonomy directly: compression ratio, human faithfulness on TRAIL, and cross-domain code overlap."
             width="1350"
             height="435"
+            loading="lazy"
           >
           <figcaption>
             Figure 4: Direct measurements of the artifact: (a) compression,
@@ -447,10 +453,10 @@
           discriminative criteria, so the codes and that machinery share the
           credit. Search and runtime are the cleaner tests of the vocabulary
           itself; there, the codes are read directly, with nothing learned in
-          between. Second, fixed catalogs are not straw men. On SWE-agent,
+          between. Second, fixed taxonomies are not straw men. On SWE-agent,
           the fixed 14-code MAST checklist reaches 68%, compared to AdaMAST's
           70%. What the induced taxonomy adds is the long tail: the role- and
-          domain-specific failures that no catalog written before seeing your
+          domain-specific failures that no rubric written before seeing your
           system can include.
         </p>
         <p>
