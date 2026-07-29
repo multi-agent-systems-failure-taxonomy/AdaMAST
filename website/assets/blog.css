@@ -139,6 +139,25 @@ a {
   line-height: 1.14;
 }
 
+.post__subtitle {
+  margin: -0.75rem 0 1.5rem;
+  color: var(--graphite);
+  font-size: clamp(1.02rem, 2vw, 1.18rem);
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  line-height: 1.45;
+}
+
+.post .post__subtitle a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.post .post__subtitle a:hover {
+  color: var(--cobalt);
+}
+
 .post__meta {
   margin: 0 0 0.4rem;
   color: var(--graphite);
