@@ -6,7 +6,8 @@
 
 <p align="center">
   <a href="https://arxiv.org/abs/2607.16387"><img src="https://img.shields.io/badge/paper-arXiv-B31B1B?style=flat-square&logo=arxiv&logoColor=white" alt="Paper" /></a>
-  <a href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/"><img src="https://img.shields.io/badge/docs-website-2457D6?style=flat-square" alt="Docs" /></a>
+  <a href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/"><img src="https://img.shields.io/badge/website-AdaMAST-2D5BCE?style=flat-square" alt="Website" /></a>
+  <a href="https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/"><img src="https://img.shields.io/badge/docs-reference-2457D6?style=flat-square" alt="Docs" /></a>
   <a href="https://pypi.org/project/adamast/"><img src="https://img.shields.io/pypi/v/adamast?style=flat-square" alt="PyPI" /></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-1F8A70?style=flat-square" alt="License" /></a>
@@ -21,7 +22,7 @@ AI agents (coding assistants, tool-using pipelines, multi-agent systems) don't f
 - ✅ **Catalogs are quality-gated.** Several independent automated reviews must agree before one is accepted
 - 🔌 **Live mode.** Plug into Codex or Claude Code and the catalog is learned and applied while you work
 
-**Paper:** [Fantastic Adaptive Taxonomies and How to Use Them](https://arxiv.org/abs/2607.16387) · **Blog:** [AdaMAST announcement](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/adamast_paper/) · **Docs:** [Website](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/)
+**Paper:** [Fantastic Adaptive Taxonomies and How to Use Them](https://arxiv.org/abs/2607.16387) · **Website:** [AdaMAST](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/) · **Blog:** [AdaMAST announcement](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/blogs/adamast_paper/) · **Docs:** [Reference](https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/)
 
 ---
 
