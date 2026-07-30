@@ -6,18 +6,9 @@ pipeline needs, and shows the minimal code to run each one.
 AdaMAST separates judgment tasks because one prompt should not be expected to
 perform every kind of evaluation.
 
-!!! note "Run this first: unpack the example files"
+!!! note "Run this first"
     Commands on this page read the bundled examples. Create them in the
-    directory you are working from:
-
-    ```bash
-    python -m adamast.examples
-    ```
-
-    Installing AdaMAST does not create these files, and they do not
-    follow you to another directory. Without them the commands stop with
-    `trace source does not exist`. Substitute your own paths once the
-    examples have worked.
+    directory you are working from with `python -m adamast.examples`.
 
 ## 🧭 Judge selection table
 

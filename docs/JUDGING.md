@@ -8,18 +8,9 @@ trace can carry several failure modes at once (even a single failure point
 can express more than one), so the default judge returns every supported
 code, each with its evidence.
 
-!!! note "Run this first: unpack the example files"
+!!! note "Run this first"
     Commands on this page read the bundled examples. Create them in the
-    directory you are working from:
-
-    ```bash
-    python -m adamast.examples
-    ```
-
-    Installing AdaMAST does not create these files, and they do not
-    follow you to another directory. Without them the commands stop with
-    `trace source does not exist`. Substitute your own paths once the
-    examples have worked.
+    directory you are working from with `python -m adamast.examples`.
 
 ## 🎯 What it does
 

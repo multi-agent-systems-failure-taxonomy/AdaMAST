@@ -94,12 +94,6 @@ they are written into whichever directory you run this from:
 python -m adamast.examples
 ```
 
-This creates `adamast-examples/` with `traces.jsonl` and
-`taxonomy.sample.json`. It is required, not a smoke test: skip it and the
-commands below stop with `trace source does not exist`. Installing or
-upgrading AdaMAST does not create these files, and they do not follow you to
-another directory.
-
 **2. Set one provider credential.** OpenAI is the default, so no `--provider`
 flag is needed; Anthropic, Google, and AWS Bedrock work the same way with
 `--provider` or `ADAMAST_PROVIDER` (see [Providers](docs/PROVIDERS.md)):

@@ -8,18 +8,9 @@ directory when reproducibility matters; `taxonomy.json` alone is enough for the
 judge. From Python, `render_taxonomy_html(taxonomy_path)` produces the same
 read-only field guide as `adamast view`.
 
-!!! note "Run this first: unpack the example files"
+!!! note "Run this first"
     Commands on this page read the bundled examples. Create them in the
-    directory you are working from:
-
-    ```bash
-    python -m adamast.examples
-    ```
-
-    Installing AdaMAST does not create these files, and they do not
-    follow you to another directory. Without them the commands stop with
-    `trace source does not exist`. Substitute your own paths once the
-    examples have worked.
+    directory you are working from with `python -m adamast.examples`.
 
 ## 📁 Output directory
 

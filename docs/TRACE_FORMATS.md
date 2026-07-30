@@ -7,18 +7,9 @@ Generation and the judge use the same loader. Give AdaMAST one
 `.json` or `.jsonl` file, or a directory containing those files, and it
 normalizes every accepted record to one stable shape before any model call.
 
-!!! note "Run this first: unpack the example files"
+!!! note "Run this first"
     Commands on this page read the bundled examples. Create them in the
-    directory you are working from:
-
-    ```bash
-    python -m adamast.examples
-    ```
-
-    Installing AdaMAST does not create these files, and they do not
-    follow you to another directory. Without them the commands stop with
-    `trace source does not exist`. Substitute your own paths once the
-    examples have worked.
+    directory you are working from with `python -m adamast.examples`.
 
 ## 🧾 What counts as a trace
 
