@@ -4,10 +4,18 @@ Run AdaMAST generation and judging on the provider you already use. Both
 workflows share one provider-neutral text interface, so the prompts and
 output validation stay the same when the provider changes.
 
-!!! note "Bundled examples"
-    Commands on this page read the bundled example files. Run
-    `python -m adamast.examples` once in your working directory to
-    create `adamast-examples/`, or substitute your own paths.
+!!! note "Run this first: unpack the example files"
+    Commands on this page read the bundled examples. Create them in the
+    directory you are working from:
+
+    ```bash
+    python -m adamast.examples
+    ```
+
+    Installing AdaMAST does not create these files, and they do not
+    follow you to another directory. Without them the commands stop with
+    `trace source does not exist`. Substitute your own paths once the
+    examples have worked.
 
 ## 🧩 Supported providers
 

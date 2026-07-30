@@ -87,11 +87,21 @@ adamast validate adamast-examples/traces.jsonl
 
 ## 🚀 Use it
 
-Every command below runs against the bundled examples, so they work as written
-after `python -m adamast.examples`.
+**1. Unpack the example files.** Every command in this section reads them, and
+they are written into whichever directory you run this from:
 
-Set one provider credential. OpenAI is the default, so no `--provider` flag is
-needed; Anthropic, Google, and AWS Bedrock work the same way with
+```bash
+python -m adamast.examples
+```
+
+This creates `adamast-examples/` with `traces.jsonl` and
+`taxonomy.sample.json`. It is required, not a smoke test: skip it and the
+commands below stop with `trace source does not exist`. Installing or
+upgrading AdaMAST does not create these files, and they do not follow you to
+another directory.
+
+**2. Set one provider credential.** OpenAI is the default, so no `--provider`
+flag is needed; Anthropic, Google, and AWS Bedrock work the same way with
 `--provider` or `ADAMAST_PROVIDER` (see [Providers](docs/PROVIDERS.md)):
 
 ```bash
