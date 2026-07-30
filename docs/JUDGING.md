@@ -26,12 +26,16 @@ causality live in [Choose a judge](JUDGE_TYPES.md).
 
 ```bash
 adamast judge \
-  --provider openai \
   --model gpt-5-nano \
-  --taxonomy ./taxonomy-run/taxonomy.json \
-  --traces ./new-traces.jsonl \
+  --taxonomy adamast-examples/taxonomy.sample.json \
+  --traces adamast-examples/traces.jsonl \
   --output ./judgments.json
 ```
+
+Both paths come from `python -m adamast.examples`, so the command runs as
+written before you have generated anything; swap in your own taxonomy and
+traces once it works. OpenAI is the default provider, so `--provider` is only
+needed to choose a different one.
 
 `--traces` accepts one file or a directory in any supported format. Omit
 `--output` to print the JSON result to standard output.
@@ -55,9 +59,9 @@ model:
 ```python
 from adamast import create_judge, load_traces
 
-traces = load_traces("./new-traces.jsonl")
+traces = load_traces("adamast-examples/traces.jsonl")
 judge = create_judge(
-    "./taxonomy-run/taxonomy.json",
+    "adamast-examples/taxonomy.sample.json",
     provider="anthropic",
     model="YOUR_MODEL_ID",
 )
@@ -82,8 +86,8 @@ directory path. Both accept the same `mode` parameter.
 from adamast import judge_traces
 
 diagnoses = judge_traces(
-    "./taxonomy-run/taxonomy.json",
-    "./new-traces.jsonl",
+    "adamast-examples/taxonomy.sample.json",
+    "adamast-examples/traces.jsonl",
     provider="bedrock",
     model="YOUR_BEDROCK_MODEL_ID",
     aws_region="us-east-1",
@@ -143,9 +147,8 @@ For an explicit experiment only:
 ```bash
 adamast judge \
   --allow-review-required \
-  --provider openai \
-  --taxonomy ./taxonomy-run/taxonomy.json \
-  --traces ./new-traces.jsonl
+  --taxonomy adamast-examples/taxonomy.sample.json \
+  --traces adamast-examples/traces.jsonl
 ```
 
 !!! warning
@@ -161,9 +164,8 @@ truncation marker between them.
 ```bash
 adamast judge \
   --max-trace-chars 12000 \
-  --provider openai \
-  --taxonomy ./taxonomy-run/taxonomy.json \
-  --traces ./new-traces.jsonl
+  --taxonomy adamast-examples/taxonomy.sample.json \
+  --traces adamast-examples/traces.jsonl
 ```
 
 !!! note

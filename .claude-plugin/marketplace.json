@@ -1,0 +1,29 @@
+{
+  "name": "adamast",
+  "owner": {
+    "name": "multi-agent-systems-failure-taxonomy"
+  },
+  "metadata": {
+    "description": "Adaptive failure-mode taxonomies for coding agents.",
+    "version": "0.2.1"
+  },
+  "plugins": [
+    {
+      "name": "adamast",
+      "source": "./plugins/adamast",
+      "description": "Checkpoint agent work at natural boundaries, record evidence, and learn a project-specific failure taxonomy automatically.",
+      "version": "0.2.1",
+      "author": {
+        "name": "AdaMAST"
+      },
+      "homepage": "https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST",
+      "license": "Apache-2.0",
+      "keywords": [
+        "failure-analysis",
+        "taxonomy",
+        "evaluation",
+        "observability"
+      ]
+    }
+  ]
+}

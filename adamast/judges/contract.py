@@ -265,8 +265,11 @@ def create_judge(
             f"mode must be one of {', '.join(JUDGE_MODES)}; got {mode!r}"
         )
     taxonomy_document = _load_taxonomy(taxonomy)
+    # Validate before normalizing: the credential error distinguishes a
+    # provider the caller chose from one AdaMAST defaulted to, and that is
+    # only visible while the argument is still unset.
+    validate_provider_credentials(provider)
     provider_name = normalize_provider_name(provider)
-    validate_provider_credentials(provider_name)
     model_name = resolve_model(provider_name, model)
     adapter = create_provider(
         provider_name,

@@ -111,6 +111,40 @@ def uninstall(
     }
 
 
+def uninstall_skill(
+    *,
+    skills_dir: Path | None = None,
+    name: str | None = None,
+    force: bool = False,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    """Remove the AdaMAST guidance skill installed for Claude Code."""
+    # Imported here: install.py imports remove_adamast_hooks from this module,
+    # so a module-level import back into install would be circular.
+    from .install import SKILL_MARKER_FILE, SKILL_NAME, default_skills_dir
+
+    name = name or SKILL_NAME
+    target_root = (skills_dir or default_skills_dir()).expanduser()
+    skill_dir = target_root / name
+    marker = skill_dir / SKILL_MARKER_FILE
+    if not skill_dir.exists():
+        return {"skill_dir": str(skill_dir), "removed": [], "dry_run": dry_run}
+    if not marker.exists() and not force:
+        raise FileNotFoundError(
+            f"{marker} not found; refusing to uninstall a skill not marked as "
+            "AdaMAST-managed. Pass --force-skill to remove known AdaMAST file names."
+        )
+    removed: list[str] = []
+    for path in (skill_dir / "SKILL.md", marker):
+        if path.exists():
+            removed.append(str(path))
+            if not dry_run:
+                path.unlink()
+    if not dry_run and skill_dir.exists() and not any(skill_dir.iterdir()):
+        skill_dir.rmdir()
+    return {"skill_dir": str(skill_dir), "removed": removed, "dry_run": dry_run}
+
+
 def _clean_settings(path: Path, *, include_legacy: bool) -> int:
     if not path.is_file():
         return 0
@@ -138,6 +172,25 @@ def main(argv=None) -> int:
         action="store_true",
         help="also remove legacy AdaMAST hooks from ~/.claude/settings.json",
     )
+    parser.add_argument(
+        "--remove-skill",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help=(
+            "also remove the AdaMAST guidance skill; defaults to on for "
+            "--user-level, matching what the installer wrote"
+        ),
+    )
+    parser.add_argument(
+        "--skills-dir",
+        type=Path,
+        help="override the skill location (default: ~/.claude/skills)",
+    )
+    parser.add_argument(
+        "--force-skill",
+        action="store_true",
+        help="remove known AdaMAST skill file names even without the marker",
+    )
     args = parser.parse_args(argv)
     if args.user_level and args.project_dir is not None:
         parser.error("--user-level cannot be combined with --project-dir")
@@ -146,6 +199,14 @@ def main(argv=None) -> int:
         migrate_legacy_global=args.migrate_legacy_global,
         user_level=args.user_level,
     )
+    remove_skill = (
+        args.remove_skill if args.remove_skill is not None else args.user_level
+    )
+    if remove_skill:
+        result["skill"] = uninstall_skill(
+            skills_dir=args.skills_dir,
+            force=args.force_skill,
+        )
     print(json.dumps(result, indent=2))
     return 0
 

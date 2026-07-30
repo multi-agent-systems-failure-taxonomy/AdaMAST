@@ -28,7 +28,7 @@ from adamast.core.reflection import (
 )
 from adamast.core import mast, resolver
 
-from adamast.hosts.shared import build_session_state
+from adamast.hosts.shared import build_session_state, recorder_command
 from adamast.hosts.interactive.selector import (
     SELECTOR_VERSION,
     build_selection,
@@ -59,6 +59,7 @@ from .learning_jobs import (
     enqueue_claude_learning_job,
 )
 from .prompts import (
+    RECORDER,
     STANDING_PROMPT,
     checkpoint_transport_prompt,
     failure_nudge,
@@ -676,7 +677,7 @@ def blocking_checkpoint(
     return 2, (
         "AdaMAST needs its private checkpoint before this gate can finish. "
         "Keep it out of chat and retry the gate after running: "
-        "adamast-claude-checkpoint --trace-output "
+        f"{recorder_command(RECORDER)} --trace-output "
         f'"{Path(config.trace_output).expanduser().resolve()}" --session-id '
         f'"{state["session_id"]}" --gate "{gate}" with the four compact '
         "field flags."

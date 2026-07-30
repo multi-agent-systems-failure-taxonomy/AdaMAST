@@ -36,9 +36,8 @@ its evidence, and `none apply` is an explicit valid answer.
 
 ```bash
 adamast judge \
-  --provider openai \
-  --taxonomy ./taxonomy.json \
-  --traces ./traces.jsonl
+  --taxonomy adamast-examples/taxonomy.sample.json \
+  --traces adamast-examples/traces.jsonl
 ```
 
 [Judge traces](JUDGING.md) covers the full CLI and Python surface.
@@ -52,9 +51,8 @@ confidence score and a recovery hint.
 ```bash
 adamast judge \
   --mode single \
-  --provider openai \
-  --taxonomy ./taxonomy.json \
-  --traces ./traces.jsonl
+  --taxonomy adamast-examples/taxonomy.sample.json \
+  --traces adamast-examples/traces.jsonl
 ```
 
 ## 🪞 Reflection judge
@@ -68,7 +66,7 @@ reduces the risk that the existing codebook determines what the judge notices.
 from adamast.core.taxonomy_data import Taxonomy
 from adamast.judges.reflection_judge import AdaMASTReflectionJudge
 
-taxonomy = Taxonomy.from_json("./taxonomy.json")
+taxonomy = Taxonomy.from_json("adamast-examples/taxonomy.sample.json")
 judge = AdaMASTReflectionJudge(
     taxonomy,
     judge_model="gpt-5",

@@ -1,5 +1,10 @@
 # AdaMAST
 
+> **Private development repository.** This tree is laid out exactly as the
+> public AdaMAST repository should look; publishing is a filtered copy that
+> drops only the private paths listed in [`publish.exclude`](publish.exclude).
+> See [the publishing workflow](docs/PUBLISHING.md).
+
 <p align="center">
   <b>Learn how your AI agents fail, from their own recorded work.</b>
 </p>
@@ -54,7 +59,25 @@ Every entry in the catalog belongs to one of three categories:
 
 ## 📦 Install
 
-Requirements: Python 3.10+.
+**Running AdaMAST live inside your coding agent?** Install the native plugin;
+nothing needs to be set up first:
+
+```
+/plugin marketplace add multi-agent-systems-failure-taxonomy/AdaMAST
+/plugin install adamast@adamast
+```
+```bash
+codex plugin marketplace add multi-agent-systems-failure-taxonomy/AdaMAST
+codex plugin add adamast@adamast
+```
+
+The first block is Claude Code, the second Codex. Both install hooks and the
+guidance skill, then learn a taxonomy from your own conversations. Details and
+the package-based alternative are under
+[Runtime integration](#-runtime-integration).
+
+**Using the CLI to generate or judge taxonomies from trace files?** Requirements:
+Python 3.10+.
 
 ```bash
 pip install adamast
@@ -69,7 +92,12 @@ adamast validate adamast-examples/traces.jsonl
 
 ## 🚀 Use it
 
-Set one provider credential (OpenAI shown; Anthropic, Google, and AWS Bedrock work the same, see [Providers](docs/PROVIDERS.md)):
+Every command below runs against the bundled examples, so they work as written
+after `python -m adamast.examples`.
+
+Set one provider credential. OpenAI is the default, so no `--provider` flag is
+needed; Anthropic, Google, and AWS Bedrock work the same way with
+`--provider` or `ADAMAST_PROVIDER` (see [Providers](docs/PROVIDERS.md)):
 
 ```bash
 export OPENAI_API_KEY="..."
@@ -78,24 +106,33 @@ export OPENAI_API_KEY="..."
 **Generate a taxonomy** from a trace file or folder (any of the 7 auto-detected formats):
 
 ```bash
-adamast generate --provider openai --traces adamast-examples/traces.jsonl --output ./my-taxonomy --view
+adamast generate --traces adamast-examples/traces.jsonl --output ./my-taxonomy --view
 ```
 
 **Judge new traces** with it:
 
 ```bash
-adamast judge --provider openai --taxonomy ./my-taxonomy/taxonomy.json --traces ./new_traces --output judgments.json
+adamast judge --taxonomy ./my-taxonomy/taxonomy.json --traces adamast-examples/traces.jsonl --output judgments.json
 ```
 
-**The everyday commands:**
+A ready-made taxonomy ships too, so judging works without waiting on generation:
+
+```bash
+adamast judge --taxonomy adamast-examples/taxonomy.sample.json --traces adamast-examples/traces.jsonl --output judgments.json
+```
+
+**The everyday commands**, each runnable as written against the bundled examples:
 
 | Command | Purpose |
 |---|---|
-| `adamast validate <traces>` | Check trace files: count, detected formats, empty trajectories |
-| `adamast normalize <traces> --output out.jsonl` | Convert any accepted format to canonical AdaMAST JSONL |
-| `adamast generate --traces … --output …` | Agreement-gated taxonomy generation |
-| `adamast judge --taxonomy … --traces …` | Every supported failure code per trace, with evidence |
-| `adamast view <taxonomy.json>` | Open a taxonomy as a read-only browser field guide |
+| `adamast validate adamast-examples/traces.jsonl` | Check trace files: count, detected formats, empty trajectories |
+| `adamast normalize adamast-examples/traces.jsonl --output out.jsonl` | Convert any accepted format to canonical AdaMAST JSONL |
+| `adamast generate --traces adamast-examples/traces.jsonl --output ./my-taxonomy` | Agreement-gated taxonomy generation |
+| `adamast judge --taxonomy adamast-examples/taxonomy.sample.json --traces adamast-examples/traces.jsonl` | Every supported failure code per trace, with evidence |
+| `adamast view adamast-examples/taxonomy.sample.json` | Open a taxonomy as a read-only browser field guide |
+
+Only `generate` and `judge` call a model; `validate`, `normalize`, and `view`
+need no credential.
 
 Deeper guides: [Trace formats](docs/TRACE_FORMATS.md) · [Generation](docs/GENERATION.md) · [The agreement gate](docs/AGREEMENT_GATE.md) · [Judging](docs/JUDGING.md) · [Judge types](docs/JUDGE_TYPES.md) · [Outputs](docs/TAXONOMY_OUTPUTS.md)
 
@@ -103,15 +140,71 @@ Deeper guides: [Trace formats](docs/TRACE_FORMATS.md) · [Generation](docs/GENER
 
 AdaMAST can also run **live** inside Codex or Claude Code: hooks checkpoint the agent's work at natural boundaries, record evidence, and learn a project-specific taxonomy automatically from completed conversations. No API key or config is needed for the interactive path. Until your project's own catalog is learned, conversations start from a built-in adaptation of the MAST taxonomy (["Why Do Multi-Agent LLM Systems Fail?"](https://arxiv.org/abs/2503.13657), Cemri et al., 2025).
 
-```bash
-# once, for the host you use
-adamast claude install --user-level
-adamast codex install --user-level
+### Claude Code
 
-# health check and live monitor (paths: docs/DASHBOARD.md)
-adamast doctor
+Two paths. Pick one — both register the same hooks, so do not run both.
+
+**A · Plugin (recommended).** Nothing to install first:
+
+```
+/plugin marketplace add multi-agent-systems-failure-taxonomy/AdaMAST
+/plugin install adamast@adamast
+```
+
+The plugin ships the skill, hooks, and taxonomy subagent together. On first use
+it installs its version-pinned runtime privately, so Python, `pip`, `uv`, and
+the `claude` CLI do not need to be installed beforehand. See
+[the plugin README](plugins/adamast/README.md).
+
+**B · Package CLI.** Prefer this if you already manage AdaMAST as a dependency,
+pin versions, or want a project-local install:
+
+```bash
+uv tool install adamast          # or: pip install adamast
+adamast claude install --user-level
+```
+
+Requires the `claude` CLI binary on `PATH` — the installer verifies the hook
+contract against it and aborts without it.
+
+### Codex
+
+**A · Plugin (recommended).** Nothing to install first:
+
+```bash
+codex plugin marketplace add multi-agent-systems-failure-taxonomy/AdaMAST
+codex plugin add adamast@adamast
+```
+
+Open `/hooks` in Codex and trust the new plugin hooks.
+
+**B · Package CLI.** Use this for project-local registration or advanced
+installer flags:
+
+```bash
+pip install adamast
+adamast codex install --user-level
+```
+
+Both paths install the guidance skill and the same runtime behavior. Do not
+enable both paths at once.
+
+> **Use `uv tool install`, not `uvx`.** Hook commands embed the interpreter
+> path, and `uvx` resolves to a content-hashed path inside the uv *cache* that
+> `uv cache clean` or a version bump invalidates, silently breaking every hook.
+
+### Verify the integration
+
+```bash
+claude plugin list                 # native Claude Code plugin
+codex plugin list                  # native Codex plugin
+adamast doctor                     # package CLI installation
 adamast dashboard --trace-output <program-dir>
 ```
+
+Native plugins keep their managed runtime private and do not modify your
+shell's `PATH`. Use the plugin list and the host's `/hooks` view to verify that
+path; the `adamast` commands above apply when you installed the package CLI.
 
 The full details (how checkpoints work, the taxonomy picker, background learning, the live monitor, and every knob) live in **[the runtime integration guide](docs/RUNTIME_INTEGRATION.md)**.
 

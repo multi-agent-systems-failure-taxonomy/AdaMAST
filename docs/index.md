@@ -45,18 +45,26 @@ Requires Python 3.10 or newer.
 
 ## 🧪 Generate your first taxonomy
 
-1. Set one provider credential. This example uses OpenAI; the same workflow
-   supports Anthropic, Google, and AWS Bedrock:
+1. Extract the bundled examples, if you have not already done so above. The
+   generation command below reads them, and they are not written until this
+   runs:
+
+    ```bash
+    python -m adamast.examples
+    ```
+
+2. Set one provider credential. This example uses OpenAI, which is the default,
+   so no `--provider` flag is needed. Anthropic, Google, and AWS Bedrock work
+   the same way through `--provider` or `ADAMAST_PROVIDER`:
 
     ```bash
     export OPENAI_API_KEY="..."
     ```
 
-2. Run generation on the bundled example traces:
+3. Run generation on the bundled example traces:
 
     ```bash
     adamast generate \
-      --provider openai \
       --model gpt-5-nano \
       --traces adamast-examples/traces.jsonl \
       --output ./taxonomy-run \

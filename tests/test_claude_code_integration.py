@@ -27,12 +27,14 @@ from adamast.hosts.claude_code.hooks import (
 )
 from adamast.hosts.claude_code.install import (
     REQUIRED_EVENTS,
+    SKILL_NAME,
     install,
+    install_skill,
     installed_claude_executable,
     main as install_main,
     verify_installed_hooks,
 )
-from adamast.hosts.claude_code.uninstall import uninstall
+from adamast.hosts.claude_code.uninstall import uninstall, uninstall_skill
 from adamast.hosts.claude_code.state import load_state
 from adamast.hosts.claude_code.transcript import claude_thread_title
 from adamast.core.evidence import EVIDENCE_FILE
@@ -1146,6 +1148,112 @@ class ClaudeCodeInstallerTests(unittest.TestCase):
                 "my-adamast-failure-modes-notifier",
                 json.dumps(remaining),
             )
+
+
+class ClaudeSkillInstallTests(unittest.TestCase):
+    def test_skill_install_uninstall_roundtrip(self):
+        with tempfile.TemporaryDirectory() as temp:
+            skills_dir = Path(temp) / "skills"
+            result = install_skill(skills_dir=skills_dir)
+            self.assertEqual(result.skill_dir, skills_dir / SKILL_NAME)
+            self.assertTrue(result.skill_md.exists())
+            summary = uninstall_skill(skills_dir=skills_dir)
+            self.assertIn(str(result.skill_md), summary["removed"])
+            self.assertFalse(result.skill_md.exists())
+
+    def test_skill_reinstall_updates_an_adamast_managed_folder(self):
+        with tempfile.TemporaryDirectory() as temp:
+            skills_dir = Path(temp) / "skills"
+            first = install_skill(skills_dir=skills_dir)
+            first.skill_md.write_text("outdated managed skill", encoding="utf-8")
+
+            second = install_skill(skills_dir=skills_dir)
+
+            self.assertEqual(second.skill_dir, first.skill_dir)
+            self.assertNotEqual(
+                second.skill_md.read_text(encoding="utf-8"),
+                "outdated managed skill",
+            )
+
+    def test_skill_install_refuses_an_unmanaged_folder(self):
+        with tempfile.TemporaryDirectory() as temp:
+            skills_dir = Path(temp) / "skills"
+            skill_dir = skills_dir / SKILL_NAME
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text("user skill", encoding="utf-8")
+
+            with self.assertRaises(FileExistsError):
+                install_skill(skills_dir=skills_dir)
+
+    def test_skill_uninstall_refuses_unmarked_folder(self):
+        with tempfile.TemporaryDirectory() as temp:
+            skills_dir = Path(temp) / "skills"
+            skill_dir = skills_dir / SKILL_NAME
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text("user skill", encoding="utf-8")
+            with self.assertRaises(FileNotFoundError):
+                uninstall_skill(skills_dir=skills_dir)
+
+    def test_installed_skill_declares_the_claude_integration(self):
+        # The marker keys the managed-folder check, so a Codex-marked folder
+        # must not read as AdaMAST-managed for Claude Code, or one host's
+        # uninstall would silently consume the other's skill.
+        with tempfile.TemporaryDirectory() as temp:
+            skills_dir = Path(temp) / "skills"
+            result = install_skill(skills_dir=skills_dir)
+            record = json.loads(result.marker.read_text(encoding="utf-8"))
+            self.assertEqual(record["integration"], "claude_code")
+            self.assertEqual(record["managed_by"], "adamast")
+
+
+class RecorderCommandTests(unittest.TestCase):
+    def test_recorder_resolves_beside_the_interpreter(self):
+        # Regression: the prompt used to hand the agent a bare console-script
+        # name, which exits 127 whenever the script's directory is off PATH.
+        from adamast.hosts.shared import recorder_command
+
+        with tempfile.TemporaryDirectory() as temp:
+            bin_dir = Path(temp) / "bin"
+            bin_dir.mkdir()
+            script = bin_dir / "adamast-claude-checkpoint"
+            script.write_text("#!/bin/sh\n", encoding="utf-8")
+            with unittest.mock.patch.object(
+                sys, "executable", str(bin_dir / "python")
+            ):
+                self.assertEqual(
+                    recorder_command("adamast-claude-checkpoint"), str(script)
+                )
+
+    def test_recorder_falls_back_to_the_bare_name(self):
+        from adamast.hosts.shared import recorder_command
+
+        with tempfile.TemporaryDirectory() as temp:
+            with unittest.mock.patch.object(
+                sys, "executable", str(Path(temp) / "python")
+            ):
+                self.assertEqual(
+                    recorder_command("adamast-no-such-script"),
+                    "adamast-no-such-script",
+                )
+
+    def test_transport_prompt_embeds_an_absolute_recorder(self):
+        from adamast.hosts.claude_code.prompts import checkpoint_transport_prompt
+
+        with tempfile.TemporaryDirectory() as temp:
+            bin_dir = Path(temp) / "bin"
+            bin_dir.mkdir()
+            script = bin_dir / "adamast-claude-checkpoint"
+            script.write_text("#!/bin/sh\n", encoding="utf-8")
+            with unittest.mock.patch.object(
+                sys, "executable", str(bin_dir / "python")
+            ):
+                rendered = checkpoint_transport_prompt(Path(temp) / "prog", "sess-1")
+            prefix = next(
+                line
+                for line in rendered.splitlines()
+                if line.startswith("Recorder command prefix")
+            )
+            self.assertIn(str(script), prefix)
 
 
 if __name__ == "__main__":

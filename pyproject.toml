@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adamast"
-version = "0.2.0"
+version = "0.2.1"
 description = "Adaptive failure-mode taxonomy runtime for Codex, Claude Code, and custom agent harnesses."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -93,7 +93,7 @@ exclude = ["tests*"]
 [tool.ruff]
 target-version = "py310"
 line-length = 88
-exclude = ["adamast/learning/vendor"]
+exclude = ["adamast/learning/vendor", "experiments"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F"]

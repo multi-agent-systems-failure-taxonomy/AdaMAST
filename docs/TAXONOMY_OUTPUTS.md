@@ -27,7 +27,7 @@ taxonomy-run/
 ## 👀 Open the browser field guide
 
 ```bash
-adamast view ./taxonomy-run/taxonomy.json
+adamast view adamast-examples/taxonomy.sample.json
 ```
 
 This creates or refreshes a self-contained `taxonomy.html` and opens it in the
@@ -41,17 +41,19 @@ default browser. The view is read-only and scoped to that one taxonomy.
 
 ### Supply a manifest explicitly
 
-When the manifest is not next to the taxonomy:
+When the manifest is not next to the taxonomy. Both paths here come from a
+completed `adamast generate` run rather than the bundled examples, which ship
+a taxonomy without a separate manifest:
 
 ```bash
-adamast view ./taxonomy.json --manifest ./run-manifest.json
+adamast view ./taxonomy-run/taxonomy.json --manifest ./taxonomy-run/manifest.json
 ```
 
 ### Write without opening
 
 ```bash
 adamast view \
-  ./taxonomy-run/taxonomy.json \
+  adamast-examples/taxonomy.sample.json \
   --output ./exports/taxonomy-field-guide.html \
   --no-open
 ```
@@ -62,8 +64,7 @@ The resulting HTML is portable and can be archived with experiment artifacts.
 
 ```bash
 adamast generate \
-  --provider openai \
-  --traces ./traces.jsonl \
+  --traces adamast-examples/traces.jsonl \
   --output ./taxonomy-run \
   --view
 ```

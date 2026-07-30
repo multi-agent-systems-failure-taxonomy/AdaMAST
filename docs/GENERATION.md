@@ -21,11 +21,14 @@ on the codes before the result counts).
 
 ```bash
 adamast generate \
-  --provider openai \
   --model gpt-5-nano \
-  --traces ./traces.jsonl \
+  --traces adamast-examples/traces.jsonl \
   --output ./taxonomy-run
 ```
+
+That path comes from `python -m adamast.examples`, so the command runs as
+written; substitute your own traces once it works. OpenAI is the default
+provider, so `--provider` is only needed to choose a different one.
 
 The `--traces` value may be one accepted file or a directory. The output must
 be a directory because AdaMAST writes the public taxonomy, a manifest, a
@@ -44,7 +47,7 @@ browser view, normalized inputs, and intermediate agreement artifacts.
 from adamast import generate_taxonomy
 
 taxonomy = generate_taxonomy(
-    "./traces.jsonl",
+    "adamast-examples/traces.jsonl",
     "./taxonomy-run",
     provider="openai",
     model="gpt-5-nano",
@@ -105,7 +108,7 @@ The public taxonomy receives one of two statuses:
 adamast generate \
   --provider anthropic \
   --model YOUR_MODEL_ID \
-  --traces ./traces.jsonl \
+  --traces adamast-examples/traces.jsonl \
   --output ./taxonomy-run \
   --max-rounds 5 \
   --kappa-target 0.75 \

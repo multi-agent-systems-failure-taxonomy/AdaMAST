@@ -4162,7 +4162,7 @@ def main():
         "--provider",
         choices=["openai", "anthropic", "google", "bedrock"],
         default=os.getenv("ADAMAST_PROVIDER"),
-        help="Model API provider",
+        help="Model API provider (default: openai; override with ADAMAST_PROVIDER)",
     )
     parser.add_argument("--model", type=str, default=None, help="Model to use")
     parser.add_argument("--max-codes", type=int, default=0,

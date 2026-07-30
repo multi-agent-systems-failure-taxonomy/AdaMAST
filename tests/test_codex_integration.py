@@ -184,6 +184,61 @@ class CodexIntegrationTests(unittest.TestCase):
         self.assertTrue(_next_action_requires_repair("repair required"))
         self.assertTrue(_next_action_requires_repair("report unresolved"))
 
+    def test_mandated_no_change_needed_wording_is_ready(self):
+        # checkpoint_reflection.md mandates "no change needed, because <reason>".
+        # Accepting only the `required` spelling made that wording fall through
+        # to the trigger list, so a clean gate that explained itself by naming
+        # the fix it had already made was reported REPAIR_REQUIRED.
+        self.assertFalse(_next_action_requires_repair("no change needed"))
+        self.assertFalse(
+            _next_action_requires_repair(
+                "no change needed, because the fix is already verified"
+            )
+        )
+        self.assertFalse(
+            _next_action_requires_repair(
+                "no change needed, because the repair landed in an earlier commit"
+            )
+        )
+        self.assertFalse(_next_action_requires_repair("no further action needed"))
+        self.assertFalse(_next_action_requires_repair("no work needed"))
+
+    def test_genuine_repair_intent_still_blocks(self):
+        # The widened negation must not swallow real unresolved intent.
+        self.assertTrue(_next_action_requires_repair("fix the failing hook"))
+        self.assertTrue(
+            _next_action_requires_repair("change: resolve the stale claim token")
+        )
+        self.assertTrue(_next_action_requires_repair("retry the gate"))
+        self.assertTrue(_next_action_requires_repair("blocked on the recorder"))
+
+    def test_mandated_change_wording_blocks_without_a_trigger_verb(self):
+        # checkpoint_reflection.md mandates `change: <one focused change>` for
+        # the repair case. Detection must come from that wording, not from the
+        # description happening to contain repair/fix/resolve/etc. These four
+        # name real unresolved work and previously classified as ready, which
+        # let a gate pass when repair had been called for -- the opposite and
+        # more damaging half of the negation defect.
+        self.assertTrue(_next_action_requires_repair("change: run the new tests"))
+        self.assertTrue(
+            _next_action_requires_repair("change: add a stall notice to the dashboard")
+        )
+        self.assertTrue(_next_action_requires_repair("change: rename the flag"))
+        self.assertTrue(
+            _next_action_requires_repair(
+                "change: pass a launcher when the cli path resolves"
+            )
+        )
+
+    def test_change_prefix_takes_precedence_over_the_negation(self):
+        # The two mandated forms are mutually exclusive, so a change-prefixed
+        # action must block even when its reason mentions unchanged work.
+        self.assertTrue(
+            _next_action_requires_repair(
+                "change: widen the alternation; no other change needed"
+            )
+        )
+
     def base_config(self, root: Path) -> CodexConfig:
         return CodexConfig(
             trace_output=root / "program",

@@ -16,23 +16,35 @@
 
 ## 🚀 Quickstart (zero configuration)
 
-Requirements: Python 3.10+ and Codex or Claude Code.
+Requirements: Codex or Claude Code and network access for the first start.
+
+Install the native plugin for your host:
+
+```text
+# Inside Claude Code
+/plugin marketplace add multi-agent-systems-failure-taxonomy/AdaMAST
+/plugin install adamast@adamast
+```
+
+```bash
+# In a terminal for Codex
+codex plugin marketplace add multi-agent-systems-failure-taxonomy/AdaMAST
+codex plugin add adamast@adamast
+```
+
+In Codex, open `/hooks` and trust the AdaMAST plugin hooks. Then start a **new
+conversation**. The plugin manages its own version-pinned runtime, so there is
+no Python setup, config file, extra API key, or second login.
+
+The package CLI remains available for project-local setup and advanced
+installer flags. Disable the plugin before using it so events do not fire
+twice:
 
 ```bash
 pip install adamast
-```
-
-Then register AdaMAST with the host you use (once):
-
-```bash
-# Claude Code
 adamast claude install --user-level
-
-# Codex
-adamast codex install --user-level
+# or: adamast codex install --user-level
 ```
-
-Fully quit and reopen Codex / Claude Code, then start a **new conversation**. That's it: no config file, no extra API key, no second login.
 
 On your first message, AdaMAST opens its taxonomy picker and asks one question: where should this conversation start from?
 
@@ -44,7 +56,9 @@ On your first message, AdaMAST opens its taxonomy picker and asks one question: 
 
 Pick with one click (or one number in a terminal), and your held message continues automatically.
 
-> 💡 **Check it worked:** run `adamast doctor` any time. It validates your install and tells you exactly what to do if something is off.
+> 💡 **Check it worked:** use `claude plugin list` or `codex plugin list`, then
+> inspect the host's `/hooks` view. Package-CLI installs can additionally run
+> `adamast doctor`.
 
 ## 🔄 What happens while you work
 
@@ -63,11 +77,16 @@ flowchart LR
 4. **At 5 traces, learning kicks in.** A background worker drafts a taxonomy of *your* project's actual failure patterns, with verbatim evidence for every code. A separate reviewer must approve it before it activates. Your conversation never waits.
 5. **It keeps improving.** The taxonomy is reviewed against new traces after 10 more, then every 20.
 
-Watch it live: the hosts open the local monitor automatically. To open it manually, run `adamast dashboard --trace-output <program-dir>` ([Live monitor](DASHBOARD.md) has the interactive-store paths); it shows every checkpoint, the evidence behind it, and which failure modes fired.
+Watch it live: the hosts open the local monitor automatically. A package-CLI
+install can also open it manually with
+`adamast dashboard --trace-output <program-dir>` ([Live monitor](DASHBOARD.md)
+has the interactive-store paths); it shows every checkpoint, the evidence
+behind it, and which failure modes fired.
 
 ## 🎛️ Make it yours
 
-Everything above ran on defaults. Each step has one obvious knob when you want a custom setup:
+Everything above ran on native-plugin defaults. The options below use the
+package CLI; disable the native plugin before registering package hooks:
 
 | I want to… | Do this instead |
 |---|---|
@@ -76,7 +95,7 @@ Everything above ran on defaults. Each step has one obvious knob when you want a
 | Learn faster / slower | `--generation-threshold N` (default 5), `--k-init N` (10), `--k N` (20) |
 | Freeze the taxonomy (no more learning) | `--freeze` |
 | Use a provider API for learning instead of native subagents | `--learning-backend provider --adamast-model <model>` · [Providers](PROVIDERS.md) |
-| Build a taxonomy from traces I already have | `adamast import-traces --traces ./my_traces --adamast-model <model>` · [Trace formats](TRACE_FORMATS.md) |
+| Build a taxonomy from traces I already have | `adamast import-traces --traces adamast-examples/traces.jsonl --adamast-model <model>` · [Trace formats](TRACE_FORMATS.md) |
 | Wrap a single LLM call instead of a whole host | `adamast single-run` · [Single LLM](SINGLE_LLM.md) |
 | Put AdaMAST inside my own agent loop | `from adamast import start_session` · [Runtime API](INTEGRATION.md) |
 

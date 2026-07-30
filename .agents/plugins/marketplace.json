@@ -1,0 +1,20 @@
+{
+  "name": "adamast",
+  "interface": {
+    "displayName": "AdaMAST"
+  },
+  "plugins": [
+    {
+      "name": "adamast",
+      "source": {
+        "source": "local",
+        "path": "./plugins/adamast"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

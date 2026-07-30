@@ -19,13 +19,14 @@ import threading
 import time
 import webbrowser
 from datetime import datetime
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse
 from urllib.request import Request, urlopen
 
 from adamast.core import mast, store
+from adamast.dashboard._http import LocalThreadingHTTPServer
 from adamast.hosts.codex.transcript import codex_thread_title
 from adamast.hosts.claude_code.transcript import claude_thread_title
 
@@ -36,6 +37,7 @@ from adamast.core.program import ProgramWorkspace
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
 DEFAULT_READY_TIMEOUT = 15.0
+DASHBOARD_HEALTH_TIMEOUT = 2.0
 DASHBOARD_STATE = ".adamast-dashboard.json"
 RUNTIME_EVIDENCE = ".adamast-runtime-evidence.json"
 TASK_LABELS = ".adamast-task-labels.json"
@@ -811,7 +813,7 @@ def build_server(
     *,
     shutdown_token: str | None = None,
     monitor_root: Path | str | None = None,
-) -> ThreadingHTTPServer:
+) -> LocalThreadingHTTPServer:
     """Build the persistent dashboard server without starting it."""
     workspace = ProgramWorkspace(trace_output)
     store_dir = Path(store_dir)
@@ -938,7 +940,7 @@ def build_server(
             )
             threading.Thread(target=self.server.shutdown, daemon=True).start()
 
-    return ThreadingHTTPServer((host, port), Handler)
+    return LocalThreadingHTTPServer((host, port), Handler)
 
 
 def _query_value(query: dict[str, list[str]], name: str) -> str | None:
@@ -1016,7 +1018,7 @@ def start_dashboard_thread(
     port: int = 0,
     *,
     monitor_root: Path | str | None = None,
-) -> tuple[ThreadingHTTPServer, threading.Thread]:
+) -> tuple[LocalThreadingHTTPServer, threading.Thread]:
     """Start a daemon dashboard for embedding and tests."""
     server = build_server(
         trace_output,
@@ -1181,7 +1183,9 @@ def _dashboard_is_live(
     monitor_id: str | None = None,
 ) -> bool:
     try:
-        with urlopen(str(state["health_url"]), timeout=0.5) as response:
+        with urlopen(
+            str(state["health_url"]), timeout=DASHBOARD_HEALTH_TIMEOUT
+        ) as response:
             data = json.loads(response.read().decode("utf-8"))
         identity_matches = (
             data.get("view") == "monitor" and data.get("monitor_id") == monitor_id

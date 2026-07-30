@@ -7,7 +7,10 @@ from pathlib import Path
 from string import Template
 from typing import Any
 
+from adamast.hosts.shared import recorder_command
 from adamast.protocol.checkpoint_prompt import render_reflection_prompt
+
+RECORDER = "adamast-codex-checkpoint"
 
 
 def _text_asset(name: str) -> str:
@@ -28,14 +31,18 @@ def checkpoint_transport_prompt(
     dashboard_url: str | None = None,
 ) -> str:
     """Render the conversation-specific direct checkpoint destination."""
+    # Absolute, not the bare console-script name: the recorder's directory is
+    # usually missing from the agent shell's PATH, which made every gate exit
+    # 127. See adamast.hosts.shared.recorder_command.
+    recorder = recorder_command(RECORDER)
     lines = [
         "AdaMAST checkpoint recording is configured for this conversation.",
         "At an existing AdaMAST gate, create the same four fields privately and ",
-        "record them with `adamast-codex-checkpoint`; do not print the four-line ",
+        f"record them with `{recorder}`; do not print the four-line ",
         "checkpoint in the user-facing conversation.",
         f"Trace output: `{Path(trace_output).expanduser().resolve()}`",
         f"Conversation ID: `{session_id}`",
-        "Recorder command prefix: `adamast-codex-checkpoint --trace-output "
+        f"Recorder command prefix: `{recorder} --trace-output "
         f"\"{Path(trace_output).expanduser().resolve()}\" --session-id "
         f"\"{session_id}\"`",
         "Use gate `stop` for the final gate and `tool_failure` for the existing ",

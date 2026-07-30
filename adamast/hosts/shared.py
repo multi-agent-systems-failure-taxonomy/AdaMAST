@@ -3,11 +3,33 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sys
 from pathlib import Path
 from typing import Any
 
 from adamast.core.fsio import write_text_atomic_retry
+
+
+def recorder_command(script_name: str) -> str:
+    """Resolve a console script to an absolute path for use inside a prompt.
+
+    Console scripts land next to ``sys.executable`` — ``~/.local/bin`` for
+    ``uv tool``/``pipx``, or a venv's ``bin`` — and that directory is routinely
+    absent from the PATH the host agent's shell inherits. Handing the agent a
+    bare name therefore makes every checkpoint exit 127, and the agent reports
+    an operational error instead of recording the gate.
+
+    The hook commands the installers register already embed the absolute
+    interpreter path for this same reason; prompts must not be the one place
+    that relies on PATH. Fall back to the bare name only when nothing
+    resolves, which keeps the prompt readable on an editable checkout.
+    """
+    candidate = Path(sys.executable).parent / script_name
+    for path in (candidate, candidate.with_suffix(".exe")):
+        if path.is_file():
+            return str(path)
+    return shutil.which(script_name) or script_name
 
 
 def force_utf8_stdio() -> None:

@@ -85,7 +85,7 @@ Generate and store an inheritable taxonomy from traces you already have:
 ```bash
 adamast import-traces \
   --config adamast.json \
-  --traces ./traces
+  --traces adamast-examples/traces.jsonl
 ```
 
 Imported taxonomies become normal flat store records after acceptance. If you

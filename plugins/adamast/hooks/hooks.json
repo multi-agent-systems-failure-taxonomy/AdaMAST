@@ -1,0 +1,73 @@
+{
+  "description": "AdaMAST lifecycle monitoring for Codex.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${PLUGIN_ROOT}/bin/adamast-hook\" --host codex --event SessionStart",
+            "commandWindows": "cmd.exe /d /s /c call \"%PLUGIN_ROOT%\\bin\\adamast-hook.cmd\" codex SessionStart",
+            "timeout": 180,
+            "statusMessage": "Starting AdaMAST"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${PLUGIN_ROOT}/bin/adamast-hook\" --host codex --event UserPromptSubmit",
+            "commandWindows": "cmd.exe /d /s /c call \"%PLUGIN_ROOT%\\bin\\adamast-hook.cmd\" codex UserPromptSubmit",
+            "timeout": 1800,
+            "statusMessage": "Checking AdaMAST state"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${PLUGIN_ROOT}/bin/adamast-hook\" --host codex --event PostToolUse",
+            "commandWindows": "cmd.exe /d /s /c call \"%PLUGIN_ROOT%\\bin\\adamast-hook.cmd\" codex PostToolUse",
+            "timeout": 60,
+            "statusMessage": "Polling AdaMAST"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${PLUGIN_ROOT}/bin/adamast-hook\" --host codex --event SubagentStop",
+            "commandWindows": "cmd.exe /d /s /c call \"%PLUGIN_ROOT%\\bin\\adamast-hook.cmd\" codex SubagentStop",
+            "timeout": 60,
+            "statusMessage": "Reconciling AdaMAST learning"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${PLUGIN_ROOT}/bin/adamast-hook\" --host codex --event Stop",
+            "commandWindows": "cmd.exe /d /s /c call \"%PLUGIN_ROOT%\\bin\\adamast-hook.cmd\" codex Stop",
+            "timeout": 60,
+            "statusMessage": "Saving AdaMAST checkpoint"
+          }
+        ]
+      }
+    ]
+  }
+}

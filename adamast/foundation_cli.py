@@ -43,7 +43,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--provider",
         choices=SUPPORTED_PROVIDERS,
         default=os.getenv("ADAMAST_PROVIDER"),
-        help="model API transport; generation prompts are unchanged",
+        help=(
+            "model API transport (default: openai; override with "
+            "ADAMAST_PROVIDER); generation prompts are unchanged"
+        ),
     )
     generate.add_argument(
         "--model",
@@ -101,7 +104,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--provider",
         choices=SUPPORTED_PROVIDERS,
         default=os.getenv("ADAMAST_PROVIDER"),
-        help="model API transport; judge prompts are unchanged",
+        help=(
+            "model API transport (default: openai; override with "
+            "ADAMAST_PROVIDER); judge prompts are unchanged"
+        ),
     )
     judge.add_argument(
         "--model",

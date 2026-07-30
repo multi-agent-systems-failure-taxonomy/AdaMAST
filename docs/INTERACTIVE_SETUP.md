@@ -5,15 +5,15 @@ guide to follow next.
 
 ## 🧭 Pick your host
 
-1. Install the AdaMAST package from the
-   [documentation home](index.md#install-adamast) first.
-2. Open the guide for your host. Each host page contains the additional
-   commands and behavior that apply only to that environment:
+1. Open the guide for your host.
+2. Use its native plugin path (recommended, with no Python prerequisite), or
+   choose the package CLI path when you need project-local registration or
+   advanced installer flags:
 
 | Your host | Follow | That guide covers |
 |---|---|---|
-| Codex | [Codex integration guide](CODEX.md) | User-level or project-local hooks, taxonomy selection, Stop handling, native subagent learning, diagnostics, and uninstall steps |
-| Claude Code | [Claude Code integration guide](CLAUDE_CODE.md) | User-level or project-local hooks, blocking checkpoints, tool matchers, native Agent learning, diagnostics, and uninstall steps |
+| Codex | [Codex integration guide](CODEX.md) | Native plugin and package paths, taxonomy selection, Stop handling, native subagent learning, diagnostics, and uninstall steps |
+| Claude Code | [Claude Code integration guide](CLAUDE_CODE.md) | Native plugin and package paths, blocking checkpoints, tool matchers, native Agent learning, diagnostics, and uninstall steps |
 
 !!! tip "Building a script or application instead?"
     For a script or application rather than an interactive coding host, use

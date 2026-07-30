@@ -1,0 +1,187 @@
+#!/bin/sh
+# Portable AdaMAST plugin launcher for macOS, Linux, and Claude Code's
+# Windows Git-Bash environment. Windows-native Codex hooks use the companion
+# PowerShell launcher.
+
+set -u
+
+RUNTIME_VERSION="0.2.1"
+HOST=""
+EVENT=""
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --host) HOST="${2:-}"; shift 2 ;;
+        --event) EVENT="${2:-}"; shift 2 ;;
+        *) shift ;;
+    esac
+done
+
+[ "$HOST" = "claude" ] || [ "$HOST" = "codex" ] || exit 0
+[ -n "$EVENT" ] || exit 0
+
+native_path() {
+    if command -v cygpath >/dev/null 2>&1; then
+        cygpath -u "$1" 2>/dev/null || printf '%s' "$1"
+    else
+        printf '%s' "$1"
+    fi
+}
+
+host_path() {
+    if command -v cygpath >/dev/null 2>&1; then
+        cygpath -w "$1" 2>/dev/null || printf '%s' "$1"
+    else
+        printf '%s' "$1"
+    fi
+}
+
+PLUGIN_DATA_DIR="${CLAUDE_PLUGIN_DATA:-${PLUGIN_DATA:-}}"
+if [ -z "$PLUGIN_DATA_DIR" ]; then
+    PLUGIN_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/adamast/plugins/$HOST"
+fi
+PLUGIN_DATA_DIR=$(native_path "$PLUGIN_DATA_DIR")
+STATE_DIR="$PLUGIN_DATA_DIR/state"
+UV_DIR="$PLUGIN_DATA_DIR/uv"
+TOOL_DIR="$PLUGIN_DATA_DIR/uv-tools"
+BIN_DIR="$PLUGIN_DATA_DIR/bin"
+export UV_TOOL_DIR="$(host_path "$TOOL_DIR")"
+export UV_TOOL_BIN_DIR="$(host_path "$BIN_DIR")"
+LOG_FILE="$STATE_DIR/bootstrap.log"
+LOCK_DIR="$STATE_DIR/bootstrap.lock"
+PACKAGE_SPEC="${ADAMAST_PACKAGE_SPEC:-adamast==$RUNTIME_VERSION}"
+
+log() {
+    mkdir -p "$STATE_DIR" 2>/dev/null || return 0
+    printf '%s %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$*" \
+        >>"$LOG_FILE" 2>/dev/null || true
+}
+
+runtime_matches() {
+    _python="$1"
+    [ -x "$_python" ] || return 1
+    "$_python" -c \
+        'import importlib.metadata,sys; sys.exit(importlib.metadata.version("adamast") != sys.argv[1])' \
+        "$RUNTIME_VERSION" >/dev/null 2>&1
+}
+
+managed_python() {
+    for _candidate in \
+        "$TOOL_DIR/adamast/bin/python" \
+        "$TOOL_DIR/adamast/Scripts/python.exe"
+    do
+        _candidate=$(native_path "$_candidate")
+        if runtime_matches "$_candidate"; then
+            printf '%s' "$_candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+resolve_python() {
+    if [ -n "${ADAMAST_PYTHON:-}" ]; then
+        _candidate=$(native_path "$ADAMAST_PYTHON")
+        if runtime_matches "$_candidate"; then
+            printf '%s' "$_candidate"
+            return 0
+        fi
+    fi
+    managed_python && return 0
+    return 1
+}
+
+resolve_uv() {
+    if [ -n "${ADAMAST_UV:-}" ]; then
+        _candidate=$(native_path "$ADAMAST_UV")
+        if [ -x "$_candidate" ]; then printf '%s' "$_candidate"; return 0; fi
+    fi
+    _candidate=$(command -v uv 2>/dev/null) || _candidate=""
+    if [ -n "$_candidate" ]; then printf '%s' "$_candidate"; return 0; fi
+    for _candidate in "$UV_DIR/uv" "$UV_DIR/uv.exe"; do
+        _candidate=$(native_path "$_candidate")
+        if [ -x "$_candidate" ]; then printf '%s' "$_candidate"; return 0; fi
+    done
+    return 1
+}
+
+install_uv() {
+    mkdir -p "$UV_DIR" "$STATE_DIR" 2>/dev/null || return 1
+    log "installing the private uv bootstrap"
+    if command -v curl >/dev/null 2>&1; then
+        curl -LsSf https://astral.sh/uv/install.sh |
+            env UV_INSTALL_DIR="$UV_DIR" sh >>"$LOG_FILE" 2>&1
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO- https://astral.sh/uv/install.sh |
+            env UV_INSTALL_DIR="$UV_DIR" sh >>"$LOG_FILE" 2>&1
+    else
+        log "neither curl nor wget is available; cannot bootstrap uv"
+        return 1
+    fi
+    resolve_uv >/dev/null 2>&1
+}
+
+acquire_lock() {
+    mkdir -p "$STATE_DIR" 2>/dev/null || return 1
+    if mkdir "$LOCK_DIR" 2>/dev/null; then
+        printf '%s\n' "$$" >"$LOCK_DIR/pid"
+        return 0
+    fi
+    if [ -f "$LOCK_DIR/pid" ]; then
+        _owner=$(sed -n '1p' "$LOCK_DIR/pid" 2>/dev/null || true)
+        if [ -n "$_owner" ] && ! kill -0 "$_owner" 2>/dev/null; then
+            rm -f "$LOCK_DIR/pid" 2>/dev/null || true
+            rmdir "$LOCK_DIR" 2>/dev/null || true
+            mkdir "$LOCK_DIR" 2>/dev/null || return 1
+            printf '%s\n' "$$" >"$LOCK_DIR/pid"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+release_lock() {
+    rm -f "$LOCK_DIR/pid" 2>/dev/null || true
+    rmdir "$LOCK_DIR" 2>/dev/null || true
+}
+
+bootstrap_runtime() {
+    if ! acquire_lock; then
+        _attempt=0
+        while [ "$_attempt" -lt 60 ]; do
+            managed_python >/dev/null 2>&1 && return 0
+            sleep 1
+            _attempt=$((_attempt + 1))
+        done
+        log "timed out waiting for another runtime bootstrap"
+        return 1
+    fi
+    trap release_lock EXIT HUP INT TERM
+    _uv=$(resolve_uv) || {
+        install_uv || { release_lock; trap - EXIT HUP INT TERM; return 1; }
+        _uv=$(resolve_uv) || {
+            release_lock; trap - EXIT HUP INT TERM; return 1;
+        }
+    }
+    log "installing AdaMAST runtime $RUNTIME_VERSION"
+    if "$_uv" tool install --force --upgrade "$PACKAGE_SPEC" \
+        >>"$LOG_FILE" 2>&1 && managed_python >/dev/null 2>&1
+    then
+        log "AdaMAST runtime ready"
+        release_lock
+        trap - EXIT HUP INT TERM
+        return 0
+    fi
+    log "AdaMAST runtime installation failed"
+    release_lock
+    trap - EXIT HUP INT TERM
+    return 1
+}
+
+PYTHON=$(resolve_python) || {
+    [ "$EVENT" = "SessionStart" ] || exit 0
+    bootstrap_runtime || exit 0
+    PYTHON=$(resolve_python) || exit 0
+}
+
+exec "$PYTHON" -m adamast.hosts.plugin_dispatcher \
+    --host "$HOST" --event "$EVENT"

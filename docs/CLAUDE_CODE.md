@@ -7,18 +7,73 @@ AdaMAST runtime at session start, user-prompt submission, checkpoints, and
 final submission, either project-local or user-level (an interactive mode
 shared with Codex).
 
-!!! note
-    This page assumes the general AdaMAST package is already installed from
-    the [documentation home](index.md#install-adamast). Everything below is
-    specific to Claude Code.
+## 🛣️ Choose an install path
 
-## 🚀 Install (zero configuration)
+Two paths register the same hooks and produce the same runtime behavior. Pick
+one — running both double-registers every event.
+
+Both end at the same dispatcher reading the same `~/.claude/adamast.json`, so the
+**runtime behavior is identical**: same eight events, same checkpoints, same
+taxonomy picker, same blocking final gate. They differ only in what it takes to
+get there and what else comes along.
+
+| | **A · Plugin** | **B · Package CLI** |
+|---|---|---|
+| Install | `/plugin marketplace add …` + `/plugin install` | `uv tool install adamast` + `adamast claude install --user-level` |
+| Package needed first | No — fetched on first use | Yes |
+| Needs the `claude` binary on `PATH` | No | **Yes** — the installer verifies against it and aborts without it |
+| First run | Live in the first new session | Live immediately |
+| Ships the guidance skill | Yes, as a plugin component | Yes, into `~/.claude/skills/` |
+| Taxonomy worker agent | Yes, as a plugin component | Yes, into `~/.claude/agents/` |
+| Hooks registered in | The plugin registry | `~/.claude/settings.json` |
+| Project-local scoping | No | Yes, `--project-dir` |
+| Tuning knobs | Fixed defaults | 41 install flags |
+| Version pinning | Follows the marketplace | Yes, pin the package |
+| Updates | `/plugin update` | Reinstall the package |
+| Supported systems | Windows, macOS, Linux | Windows, macOS, Linux |
+
+Choose **A** for the shortest path, or when you cannot install the `claude` CLI.
+Choose **B** when you need project-local scope, an exact pinned version, any of
+the install flags, or a surface where plugins are unavailable.
+
+## 🚀 Path A · Plugin (zero configuration)
+
+```
+/plugin marketplace add multi-agent-systems-failure-taxonomy/AdaMAST
+/plugin install adamast@adamast
+```
+
+The plugin bundles the skill, all eight hook events, and the taxonomy worker
+subagent. Start a new conversation after installation. Its first
+`SessionStart` installs the version-pinned runtime into Claude Code's writable
+plugin data directory, writes `~/.claude/adamast.json` with native paths, and
+continues that same conversation. Python, `pip`, and `uv` are not prerequisites.
+
+It never edits `~/.claude/settings.json` — Claude Code owns plugin hook
+registration. Bootstrap activity is logged inside the plugin data directory at
+`state/bootstrap.log`.
+
+Implementation notes live in [the plugin README](https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST/blob/main/plugins/adamast/README.md).
+
+## 🚀 Path B · Package CLI (zero configuration)
+
+!!! note
+    This path assumes the general AdaMAST package is already installed from
+    the [documentation home](index.md#install-adamast), and that the `claude`
+    CLI binary is on `PATH`. The installer verifies the hook contract against
+    it and aborts with `installed Claude Code executable was not found`
+    otherwise — set `CLAUDE_CODE_EXECUTABLE` to point at it explicitly.
 
 1. Register AdaMAST for every Claude Code conversation:
 
     ```bash
     adamast claude install --user-level
     ```
+
+    This also installs the guidance skill to
+    `~/.claude/skills/adamast-failure-modes/`. Pass `--no-install-skill` to skip
+    it, `--skills-dir` to place it elsewhere, or `--install-skill` to add it to
+    a project-local install, where it is off by default.
 
 2. Check the install:
 
@@ -50,7 +105,10 @@ From then on, in each conversation AdaMAST will:
 | Install for **one project** only | `adamast claude install --project-dir . --config adamast.json`, then start Claude Code in that project |
 | Pick taxonomies **inline in chat** (numbered) instead of a browser page | `adamast claude install --user-level --selector-surface inline` |
 | Turn built-in hooks off, or narrow them to certain tools | see "Customize the hooks" below |
-| Undo the user-level registration | `adamast claude uninstall --user-level` |
+| Undo the **package CLI** registration | `adamast claude uninstall --user-level` (also removes the skill; `--no-remove-skill` keeps it) |
+| Undo the **plugin** | `/plugin uninstall adamast@adamast` |
+| Point the **plugin** at a specific interpreter | set `ADAMAST_PYTHON` |
+| Point the **plugin** at a specific config | set `ADAMAST_CONFIG`, or add `adamast.json` to the project root |
 
 ## 🧭 The taxonomy picker
 

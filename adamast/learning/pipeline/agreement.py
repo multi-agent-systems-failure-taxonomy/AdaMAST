@@ -3237,7 +3237,7 @@ def main():
         "--provider",
         choices=["openai", "anthropic", "google", "bedrock"],
         default=os.getenv("ADAMAST_PROVIDER"),
-        help="Model API provider",
+        help="Model API provider (default: openai; override with ADAMAST_PROVIDER)",
     )
     parser.add_argument("--model", default=None, help="Model to use")
     parser.add_argument("--max-rounds", type=int, default=5, help="Max rounds")

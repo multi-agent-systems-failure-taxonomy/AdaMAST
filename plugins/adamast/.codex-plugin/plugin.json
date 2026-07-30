@@ -1,0 +1,34 @@
+{
+  "name": "adamast",
+  "version": "0.2.1",
+  "description": "Checkpoint agent work, record evidence privately, and learn a project-specific failure taxonomy automatically.",
+  "author": {
+    "name": "AdaMAST"
+  },
+  "homepage": "https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/",
+  "repository": "https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST",
+  "license": "Apache-2.0",
+  "keywords": [
+    "failure-analysis",
+    "taxonomy",
+    "evaluation",
+    "observability"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "AdaMAST",
+    "shortDescription": "Adaptive failure-mode monitoring for agents",
+    "longDescription": "Monitor Codex work at natural boundaries, retain trace-backed evidence privately, and adapt a project-scoped failure taxonomy as the conversation develops.",
+    "developerName": "AdaMAST",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/",
+    "brandColor": "#4CC9C0",
+    "defaultPrompt": [
+      "Use AdaMAST to monitor this task against its active failure taxonomy."
+    ]
+  }
+}

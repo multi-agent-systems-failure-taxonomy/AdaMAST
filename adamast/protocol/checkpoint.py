@@ -118,8 +118,24 @@ def checkpoint_line(line: str) -> str:
 def next_action_requires_repair(value: str) -> bool:
     """Classify explicit unresolved intent without treating negation as failure."""
     normalized = " ".join(str(value or "").casefold().split())
+    # The reflection prompt mandates exactly one of `change: <one focused
+    # change>` or `no change needed, because <reason>`. Honour the first form
+    # directly: its wording carries the repair intent, so detection must not
+    # depend on the change description happening to contain one of the verbs
+    # below. "change: add a stall notice" names real unresolved work and used
+    # to classify as ready, which let a gate pass when repair was needed.
+    if re.match(r"change\s*:", normalized):
+        return True
+    # `needed` matters as much as `required`: the reflection prompt mandates
+    # "no change needed, because <reason>", and a clean checkpoint routinely
+    # explains itself by naming the fix it already made. Accepting only
+    # `required` let that mandated wording fall through to the trigger list
+    # below, so well-formed clean gates were reported REPAIR_REQUIRED whenever
+    # their reason happened to contain a word like "fix" or "repair" — a
+    # spurious block, and a skew in the recorded repair-required rate.
     if re.search(
-        r"\b(?:no|not)\s+(?:further\s+)?(?:action|repair|change|work)\s+required\b",
+        r"\b(?:no|not)\s+(?:further\s+)?(?:action|repair|change|work)"
+        r"\s+(?:required|needed)\b",
         normalized,
     ):
         return False

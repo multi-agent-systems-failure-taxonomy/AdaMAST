@@ -8,6 +8,7 @@ from typing import Any, Literal, Mapping, Protocol, runtime_checkable
 
 
 SUPPORTED_PROVIDERS = ("openai", "anthropic", "google", "bedrock")
+DEFAULT_PROVIDER = "openai"
 DEFAULT_OPENAI_MODEL = "gpt-5-nano"
 DEFAULT_MAX_OUTPUT_TOKENS = 8192
 
@@ -50,10 +51,14 @@ class TextProvider(Protocol):
 
 
 def normalize_provider_name(name: str | None) -> str:
+    """Resolve a provider name, falling back to the default when unset.
+
+    Precedence is explicit argument, then ``ADAMAST_PROVIDER`` (applied by the
+    CLI parsers), then ``DEFAULT_PROVIDER``. Defaulting here rather than in each
+    parser keeps every entry point and internal caller on one rule.
+    """
     if not name:
-        raise ProviderConfigurationError(
-            "AdaMAST model workflows require --provider or ADAMAST_PROVIDER"
-        )
+        return DEFAULT_PROVIDER
     normalized = name.strip().lower()
     if normalized not in SUPPORTED_PROVIDERS:
         supported = ", ".join(SUPPORTED_PROVIDERS)
@@ -105,6 +110,15 @@ def validate_provider_credentials(provider: str) -> None:
         if (value := os.getenv(variable)) is not None
     ):
         joined = " or ".join(variables)
+        # Say the provider was defaulted, not chosen. Otherwise someone whose
+        # only credential is another provider's reads "openai requires
+        # OPENAI_API_KEY" as a bug rather than a missing flag.
+        if not provider:
+            raise ProviderConfigurationError(
+                f"no provider selected, so AdaMAST defaulted to {name}, which "
+                f"requires {joined}. Set it, or choose another provider with "
+                "--provider or ADAMAST_PROVIDER."
+            )
         raise ProviderConfigurationError(f"{name} requires {joined}")
     # Bedrock intentionally has no single credential check. Boto3 supports the
     # Bedrock bearer token as well as its normal AWS credential/provider chain.

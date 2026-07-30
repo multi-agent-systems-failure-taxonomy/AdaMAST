@@ -41,6 +41,20 @@ class WebViewTests(unittest.TestCase):
         with urlopen(f"http://127.0.0.1:{self.port}{path}") as resp:
             return resp.read().decode("utf-8")
 
+    def test_loopback_bind_does_not_require_reverse_dns(self):
+        self.server.shutdown()
+        self.thread.join()
+        self.server.server_close()
+        with patch("socket.getfqdn", side_effect=AssertionError("DNS called")):
+            self.server, self.result, self.done = webview.build_server(STORE_DIR)
+        self.port = self.server.server_address[1]
+        self.thread = threading.Thread(
+            target=self.server.serve_forever,
+            daemon=True,
+        )
+        self.thread.start()
+        self.assertIn("Select the failure model", self._get("/"))
+
     def test_catalog_has_human_facing_workspace_and_is_global(self):
         body = self._get("/")
         self.assertIn('class="library-pane"', body)

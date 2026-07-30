@@ -1,0 +1,12 @@
+{
+  "name": "adamast",
+  "description": "Checkpoint agent work at natural boundaries, record evidence, and learn a project-specific failure taxonomy automatically.",
+  "version": "0.2.1",
+  "author": {
+    "name": "AdaMAST"
+  },
+  "homepage": "https://multi-agent-systems-failure-taxonomy.github.io/AdaMAST/docs/",
+  "repository": "https://github.com/multi-agent-systems-failure-taxonomy/AdaMAST",
+  "license": "Apache-2.0",
+  "hooks": "./hooks/claude.json"
+}

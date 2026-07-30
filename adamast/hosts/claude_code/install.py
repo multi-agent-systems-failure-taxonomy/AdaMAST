@@ -10,7 +10,7 @@ import shlex
 import shutil
 import subprocess
 import sys
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from importlib.resources import files
 from pathlib import Path
 from typing import Any
@@ -41,6 +41,102 @@ from .uninstall import remove_adamast_hooks
 
 REQUIRED_EVENTS = BUILT_IN_HOOK_EVENTS
 TAXONOMY_WORKER_AGENT = "adamast-taxonomy-worker.md"
+SKILL_NAME = "adamast-failure-modes"
+SKILL_MARKER_FILE = ".adamast-claude-skill.json"
+
+
+def default_skills_dir() -> Path:
+    """Return the personal skill location Claude Code loads for every project."""
+    return Path.home() / ".claude" / "skills"
+
+
+@dataclass(frozen=True)
+class ClaudeSkillInstallResult:
+    skill_dir: Path
+    skill_md: Path
+    marker: Path
+    dry_run: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "skill_dir": str(self.skill_dir),
+            "skill_md": str(self.skill_md),
+            "marker": str(self.marker),
+            "dry_run": self.dry_run,
+        }
+
+
+def install_skill(
+    *,
+    skills_dir: Path | None = None,
+    name: str = SKILL_NAME,
+    force: bool = False,
+    dry_run: bool = False,
+) -> ClaudeSkillInstallResult:
+    """Install the AdaMAST guidance skill for Claude Code.
+
+    Mirrors the Codex installer. The skill is guidance only: it shapes how
+    Claude reflects at gates, while the hooks remain what actually records
+    evidence and blocks a final gate.
+    """
+    if not name or "/" in name or "\\" in name:
+        raise ValueError("skill name must be a single directory name")
+    target_root = (skills_dir or default_skills_dir()).expanduser()
+    skill_dir = target_root / name
+    skill_md = skill_dir / "SKILL.md"
+    marker = skill_dir / SKILL_MARKER_FILE
+    if skill_md.exists() and not force and not _is_managed_skill(marker, name):
+        raise FileExistsError(
+            f"{skill_md} already exists and is not marked as AdaMAST-managed; "
+            "pass --force-skill to replace the known skill files"
+        )
+    result = ClaudeSkillInstallResult(
+        skill_dir=skill_dir,
+        skill_md=skill_md,
+        marker=marker,
+        dry_run=dry_run,
+    )
+    if dry_run:
+        return result
+    skill_dir.mkdir(parents=True, exist_ok=True)
+    skill_md.write_text(_asset_text("SKILL.md"), encoding="utf-8")
+    marker.write_text(
+        json.dumps(
+            {
+                "managed_by": "adamast",
+                "integration": "claude_code",
+                "skill_name": name,
+                "files": ["SKILL.md"],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return result
+
+
+def _is_managed_skill(marker: Path, name: str) -> bool:
+    if not marker.is_file():
+        return False
+    try:
+        record = json.loads(marker.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    return bool(
+        isinstance(record, dict)
+        and record.get("managed_by") == "adamast"
+        and record.get("integration") == "claude_code"
+        and record.get("skill_name") == name
+    )
+
+
+def _asset_text(name: str) -> str:
+    return (
+        files("adamast.hosts.claude_code")
+        .joinpath("assets").joinpath(name)
+        .read_text(encoding="utf-8")
+    )
 
 
 def installed_claude_executable() -> Path:
@@ -484,6 +580,29 @@ def main(argv=None) -> int:
     learning_group.add_argument("--claude-cli-path", type=Path)
     learning_group.add_argument("--worker-timeout-seconds", type=int)
 
+    skill_group = parser.add_argument_group(
+        "guidance skill", "the AdaMAST skill Claude loads alongside the hooks"
+    )
+    skill_group.add_argument(
+        "--install-skill",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help=(
+            "install the AdaMAST guidance skill; defaults to on for "
+            "--user-level and off for a project-local install"
+        ),
+    )
+    skill_group.add_argument(
+        "--skills-dir",
+        type=Path,
+        help="override the skill location (default: ~/.claude/skills)",
+    )
+    skill_group.add_argument(
+        "--force-skill",
+        action="store_true",
+        help="replace existing skill files not marked as AdaMAST-managed",
+    )
+
     advanced_group = parser.add_argument_group(
         "advanced tuning", "retry budgets, scoping, storage, and model plumbing"
     )
@@ -723,6 +842,17 @@ def main(argv=None) -> int:
         migrate_legacy_global=args.migrate_legacy_global,
         user_level=args.user_level,
     )
+    # A user-level install is the interactive path, so ship the guidance skill
+    # with it by default; a project-local install stays opt-in because the
+    # skill location is personal rather than per-repository.
+    install_skill_enabled = (
+        args.install_skill if args.install_skill is not None else args.user_level
+    )
+    if install_skill_enabled:
+        result["skill"] = install_skill(
+            skills_dir=args.skills_dir,
+            force=args.force_skill,
+        ).to_dict()
     # Make the learning cadence honest at install time so single-run users
     # don't expect taxonomy improvement that will never fire from one trace.
     print(

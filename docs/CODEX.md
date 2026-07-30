@@ -5,35 +5,32 @@ modes while it runs and, after enough completed tasks, learns a catalog
 specific to your project. The integration installs user-level or project-local
 hooks that call AdaMAST from Codex session and boundary events.
 
-!!! note
-    This page assumes the general AdaMAST package is already installed from
-    the [documentation home](index.md#install-adamast). Everything below is
-    specific to Codex.
+## 🚀 Install the native plugin (recommended)
 
-## 🚀 Install (zero configuration)
+Run:
 
-1. Register AdaMAST for every Codex conversation:
+```bash
+codex plugin marketplace add multi-agent-systems-failure-taxonomy/AdaMAST
+codex plugin add adamast@adamast
+```
+
+No AdaMAST, Python, `pip`, `uv`, config file, or separate model API key is
+required beforehand. Start a new task after installation. On first use, the
+plugin installs its version-pinned runtime into Codex's writable plugin data
+directory and continues that same task.
+
+1. Open `/hooks` inside Codex and trust the AdaMAST plugin hooks. This trust
+   review is required for non-managed Codex hooks.
+
+2. Check that AdaMAST is installed and enabled:
 
     ```bash
-    adamast codex install --user-level
+    codex plugin list
     ```
 
-2. Check the install:
-
-    ```bash
-    adamast doctor --codex
-    ```
-
-3. Open `/hooks` inside Codex and trust the installed AdaMAST hooks.
-
-4. If Codex Desktop was already running when you installed or updated
-   AdaMAST, fully quit and reopen it before starting the first AdaMAST
-   conversation. Opening a new conversation inside the old Desktop process is
-   not sufficient to reload new hook registration.
-
-No `adamast.json` or separate model API key is required. The installer writes
-`~/.codex/hooks.json`, `~/.codex/adamast.json`, and the guidance skill at
-`~/.agents/skills/adamast-failure-modes`.
+The plugin owns hook registration and creates `~/.codex/adamast.json` with the
+zero-configuration defaults. Its bundled skill is loaded from the plugin; it
+does not need a second copy in `~/.agents/skills`.
 
 The defaults are automatic Git-project scoping, task group `default`, the
 conversation selector, generation after five traces, and native
@@ -48,7 +45,23 @@ wait for them.
 |---|---|
 | Install for **one project** only | `adamast codex install --project-dir . --config adamast.json`; see the next section |
 | Pick taxonomies **inline in chat** instead of a browser page | add `--selector-surface inline` |
-| Undo the user-level install | `adamast codex uninstall --user-level` |
+| Undo the native plugin | `codex plugin remove adamast@adamast` |
+| Use all advanced install flags | use the package CLI path below |
+
+## Package CLI alternative
+
+Use the package installer when you need project-local registration or advanced
+flags:
+
+```bash
+pip install adamast
+adamast codex install --user-level
+adamast doctor --codex
+```
+
+Do not keep both the native plugin and package-installed Codex hooks enabled;
+otherwise every lifecycle event runs twice. The package path writes
+`~/.codex/hooks.json`, `~/.codex/adamast.json`, and a standalone guidance skill.
 
 ## 🧩 Project-local install
 

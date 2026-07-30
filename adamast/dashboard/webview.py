@@ -7,11 +7,12 @@ import json
 from importlib import resources
 import threading
 import webbrowser
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler
 from typing import Any, Callable
 from urllib.parse import parse_qs, quote, urlparse
 
 from adamast.core import mast, store
+from adamast.dashboard._http import LocalThreadingHTTPServer
 
 NONE_SENTINEL = "__none__"
 _CODE_PRIMARY = ("id", "name", "description", "category")
@@ -441,7 +442,7 @@ def build_server(
     # liveness while the just-opened browser is still fetching the page. A
     # single-threaded server makes that probe queue behind the page render
     # and read as a dead picker.
-    server = ThreadingHTTPServer((host, port), Handler)
+    server = LocalThreadingHTTPServer((host, port), Handler)
     return server, result, done
 
 

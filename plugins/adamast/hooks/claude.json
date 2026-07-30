@@ -1,0 +1,103 @@
+{
+  "description": "AdaMAST lifecycle monitoring for Claude Code.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event SessionStart",
+            "timeout": 180,
+            "statusMessage": "Starting AdaMAST"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event UserPromptSubmit",
+            "timeout": 1800,
+            "statusMessage": "Checking AdaMAST state"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event PostToolUse",
+            "timeout": 60,
+            "statusMessage": "Polling AdaMAST"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event PostToolUseFailure",
+            "timeout": 60,
+            "statusMessage": "Recording AdaMAST evidence"
+          }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event TaskCompleted",
+            "timeout": 60,
+            "statusMessage": "Saving AdaMAST trace"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event SubagentStop",
+            "timeout": 60,
+            "statusMessage": "Reconciling AdaMAST learning"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event Stop",
+            "timeout": 60,
+            "statusMessage": "Saving AdaMAST checkpoint"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event SessionEnd",
+            "timeout": 3,
+            "statusMessage": "Closing AdaMAST session"
+          }
+        ]
+      }
+    ]
+  }
+}

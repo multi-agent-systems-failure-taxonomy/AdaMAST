@@ -15,6 +15,8 @@ from adamast.llm.providers import (
     ProviderRequestError,
     create_provider,
     resolve_model,
+    DEFAULT_PROVIDER,
+    normalize_provider_name,
     validate_provider_credentials,
 )
 
@@ -250,6 +252,40 @@ def test_api_key_validation_is_provider_specific(
     # Bedrock may use AWS_BEARER_TOKEN_BEDROCK, a profile, an IAM role, or
     # another standard Boto3 credential source, so there is no single key gate.
     validate_provider_credentials("bedrock")
+
+
+def test_unset_provider_defaults_to_openai() -> None:
+    # --provider is optional: argparse passes None when neither the flag nor
+    # ADAMAST_PROVIDER is set, and resolution supplies the default.
+    assert normalize_provider_name(None) == DEFAULT_PROVIDER
+    assert normalize_provider_name("") == DEFAULT_PROVIDER
+    assert DEFAULT_PROVIDER == "openai"
+
+
+def test_explicit_provider_still_wins_over_the_default() -> None:
+    for name in ("anthropic", "google", "bedrock", "openai"):
+        assert normalize_provider_name(name) == name
+    assert normalize_provider_name("  Anthropic  ") == "anthropic"
+    with pytest.raises(ProviderConfigurationError, match="unsupported provider"):
+        normalize_provider_name("not-a-provider")
+
+
+def test_defaulted_provider_names_itself_in_the_credential_error(monkeypatch) -> None:
+    # A user whose only credential is another provider's must be told the
+    # provider was defaulted, not that openai is inexplicably required.
+    for variable in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY"):
+        monkeypatch.delenv(variable, raising=False)
+
+    with pytest.raises(ProviderConfigurationError) as defaulted:
+        validate_provider_credentials(None)
+    message = str(defaulted.value)
+    assert "defaulted to openai" in message
+    assert "--provider" in message and "ADAMAST_PROVIDER" in message
+
+    # An explicitly chosen provider keeps the terse message.
+    with pytest.raises(ProviderConfigurationError) as explicit:
+        validate_provider_credentials("openai")
+    assert "defaulted" not in str(explicit.value)
 
 
 def test_provider_factory_rejects_invalid_shared_limits() -> None:

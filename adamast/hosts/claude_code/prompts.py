@@ -7,7 +7,10 @@ from pathlib import Path
 from string import Template
 from typing import Any
 
+from adamast.hosts.shared import recorder_command
 from adamast.protocol.checkpoint_prompt import render_reflection_prompt
+
+RECORDER = "adamast-claude-checkpoint"
 
 
 def _text_asset(name: str) -> str:
@@ -29,16 +32,20 @@ def checkpoint_transport_prompt(
 ) -> str:
     """Render the Claude conversation's private checkpoint destination."""
     root = Path(trace_output).expanduser().resolve()
+    # Absolute, not the bare console-script name: the recorder's directory is
+    # usually missing from the agent shell's PATH, which made every gate exit
+    # 127. See adamast.hosts.shared.recorder_command.
+    recorder = recorder_command(RECORDER)
     lines = [
         "AdaMAST checkpoint recording is configured for this conversation.",
         (
             "At an existing AdaMAST gate, create the same four compact fields "
-            "privately and record them with `adamast-claude-checkpoint`; do not "
+            f"privately and record them with `{recorder}`; do not "
             "print the checkpoint or the longer reflection in the conversation."
         ),
         f"Trace output: `{root}`",
         f"Conversation ID: `{session_id}`",
-        "Recorder command prefix: `adamast-claude-checkpoint --trace-output "
+        f"Recorder command prefix: `{recorder} --trace-output "
         f'"{root}" --session-id "{session_id}"`',
         (
             "Use gate `stop` for the final gate, `task_completed` for a completed "
@@ -95,7 +102,7 @@ def failure_nudge(
     return (
         taxonomy_context
         + "\n\nHandle this checkpoint privately. Record the four compact fields "
-        "with the configured `adamast-claude-checkpoint` command using gate "
-        "`tool_failure`. Do not print either checkpoint format in the "
+        "with the recorder command prefix supplied by runtime context, using "
+        "gate `tool_failure`. Do not print either checkpoint format in the "
         "conversation; continue the user's task after recording it."
     )

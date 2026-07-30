@@ -84,8 +84,11 @@ def generate_taxonomy(
         ``"accepted"`` or ``"review_required"``.
     """
 
-    provider = normalize_provider_name(provider)
+    # Validate before normalizing: the credential error distinguishes a
+    # provider the caller chose from one AdaMAST defaulted to, and that is
+    # only visible while the argument is still unset.
     validate_provider_credentials(provider)
+    provider = normalize_provider_name(provider)
     model = resolve_model(provider, model)
 
     traces = Path(traces)

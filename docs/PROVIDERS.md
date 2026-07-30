@@ -26,7 +26,7 @@ export OPENAI_API_KEY="..."
 adamast generate \
   --provider openai \
   --model gpt-5-nano \
-  --traces ./traces.jsonl \
+  --traces adamast-examples/traces.jsonl \
   --output ./taxonomy-run
 ```
 
@@ -43,7 +43,7 @@ export ANTHROPIC_MODEL="YOUR_MODEL_ID"
 
 adamast generate \
   --provider anthropic \
-  --traces ./traces.jsonl \
+  --traces adamast-examples/traces.jsonl \
   --output ./taxonomy-run
 ```
 
@@ -56,7 +56,7 @@ export GEMINI_MODEL="YOUR_MODEL_ID"
 
 adamast generate \
   --provider google \
-  --traces ./traces.jsonl \
+  --traces adamast-examples/traces.jsonl \
   --output ./taxonomy-run
 ```
 
@@ -71,7 +71,7 @@ export BEDROCK_MODEL_ID="YOUR_BEDROCK_MODEL_ID"
 
 adamast generate \
   --provider bedrock \
-  --traces ./traces.jsonl \
+  --traces adamast-examples/traces.jsonl \
   --output ./taxonomy-run
 ```
 
@@ -88,7 +88,7 @@ adamast generate \
   --model YOUR_BEDROCK_MODEL_ID \
   --aws-profile research \
   --aws-region us-west-2 \
-  --traces ./traces.jsonl \
+  --traces adamast-examples/traces.jsonl \
   --output ./taxonomy-run
 ```
 
@@ -99,7 +99,7 @@ export ADAMAST_PROVIDER="anthropic"
 export ANTHROPIC_API_KEY="..."
 export ANTHROPIC_MODEL="YOUR_MODEL_ID"
 
-adamast generate --traces ./traces.jsonl --output ./taxonomy-run
+adamast generate --traces adamast-examples/traces.jsonl --output ./taxonomy-run
 ```
 
 Explicit CLI values take precedence over model environment variables.
@@ -115,8 +115,8 @@ adamast judge \
   --provider google \
   --model YOUR_MODEL_ID \
   --max-output-tokens 4096 \
-  --taxonomy ./taxonomy-run/taxonomy.json \
-  --traces ./new-traces.jsonl
+  --taxonomy adamast-examples/taxonomy.sample.json \
+  --traces adamast-examples/traces.jsonl
 ```
 
 !!! note "No silent fallback"

@@ -55,7 +55,7 @@ markup.
 ## 🔍 Validate before generation
 
 ```bash
-adamast validate ./my-traces
+adamast validate adamast-examples/traces.jsonl
 ```
 
 Example report:
@@ -78,7 +78,7 @@ trajectory cannot provide useful evidence for drafting or agreement.
 ## 🧐 Normalize for inspection
 
 ```bash
-adamast normalize ./my-traces --output ./traces.normalized.jsonl
+adamast normalize adamast-examples/traces.jsonl --output ./traces.normalized.jsonl
 ```
 
 The normalized file is deterministic UTF-8 JSONL. Inspect it to verify that

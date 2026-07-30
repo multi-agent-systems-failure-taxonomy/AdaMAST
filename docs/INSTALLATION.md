@@ -63,10 +63,33 @@ python -m mkdocs build --strict
 This is the same extras set the release workflow installs; `test` provides
 `pytest`, and `docs` provides MkDocs Material.
 
+## ⚡ Installing with uv
+
+`uv` installs AdaMAST into an isolated environment and supplies its own Python,
+so no system Python 3.10+ is required:
+
+```bash
+uv tool install adamast
+```
+
+!!! warning
+    Use `uv tool install`, not `uvx`. Host hook commands embed the interpreter
+    path at registration time. `uvx` resolves to a content-hashed path inside
+    the uv *cache*, which `uv cache clean` or a version bump invalidates —
+    every hook then fails silently. `uv tool install` yields a stable venv.
+
+Add `~/.local/bin` to `PATH` afterward, or run `uv tool update-shell`.
+
 ## 🔌 Host-specific installation
 
 General package installation stays here and on the documentation home. The
 host guides contain only the extra integration steps.
 
-Continue with [Codex integration](CODEX.md) or
-[Claude Code integration](CLAUDE_CODE.md).
+**Claude Code** offers a native plugin that needs no prior package install, or
+this package plus `adamast claude install`, which adds project-local scoping and
+the full set of install flags. Both install the guidance skill. Compare them in
+[Claude Code integration](CLAUDE_CODE.md#choose-an-install-path).
+
+**Codex** also offers a native plugin that manages its own runtime, plus the
+package-based `adamast codex install` path for project-local or advanced setup.
+See [Codex integration](CODEX.md).
