@@ -6,6 +6,11 @@ pipeline needs, and shows the minimal code to run each one.
 AdaMAST separates judgment tasks because one prompt should not be expected to
 perform every kind of evaluation.
 
+!!! note "Bundled examples"
+    Commands on this page read the bundled example files. Run
+    `python -m adamast.examples` once in your working directory to
+    create `adamast-examples/`, or substitute your own paths.
+
 ## 🧭 Judge selection table
 
 | Judge | Input | Output | Best suited for |

@@ -4,6 +4,11 @@ Run AdaMAST generation and judging on the provider you already use. Both
 workflows share one provider-neutral text interface, so the prompts and
 output validation stay the same when the provider changes.
 
+!!! note "Bundled examples"
+    Commands on this page read the bundled example files. Run
+    `python -m adamast.examples` once in your working directory to
+    create `adamast-examples/`, or substitute your own paths.
+
 ## 🧩 Supported providers
 
 | Provider flag | Install extra | Credential environment | Model environment |

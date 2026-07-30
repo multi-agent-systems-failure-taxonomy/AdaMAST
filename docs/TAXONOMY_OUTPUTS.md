@@ -8,6 +8,11 @@ directory when reproducibility matters; `taxonomy.json` alone is enough for the
 judge. From Python, `render_taxonomy_html(taxonomy_path)` produces the same
 read-only field guide as `adamast view`.
 
+!!! note "Bundled examples"
+    Commands on this page read the bundled example files. Run
+    `python -m adamast.examples` once in your working directory to
+    create `adamast-examples/`, or substitute your own paths.
+
 ## 📁 Output directory
 
 ```text

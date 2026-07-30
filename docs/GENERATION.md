@@ -8,6 +8,11 @@ model provider, and receive a standalone failure taxonomy with the full
 inter-annotator agreement layer (independent annotators must be able to agree
 on the codes before the result counts).
 
+!!! note "Bundled examples"
+    Commands on this page read the bundled example files. Run
+    `python -m adamast.examples` once in your working directory to
+    create `adamast-examples/`, or substitute your own paths.
+
 ## 🚀 Generate from the CLI
 
 1. Install AdaMAST from the [documentation home](index.md#install-adamast).

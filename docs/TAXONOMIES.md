@@ -12,6 +12,11 @@ Two rules drive everything below:
   `display_name` changes what people see without breaking stored traces or
   lineage references.
 
+!!! note "Bundled examples"
+    Commands on this page read the bundled example files. Run
+    `python -m adamast.examples` once in your working directory to
+    create `adamast-examples/`, or substitute your own paths.
+
 ## 📄 Record shape
 
 ```json

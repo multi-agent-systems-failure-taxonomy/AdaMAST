@@ -8,6 +8,11 @@ trace can carry several failure modes at once (even a single failure point
 can express more than one), so the default judge returns every supported
 code, each with its evidence.
 
+!!! note "Bundled examples"
+    Commands on this page read the bundled example files. Run
+    `python -m adamast.examples` once in your working directory to
+    create `adamast-examples/`, or substitute your own paths.
+
 ## 🎯 What it does
 
 `adamast judge` selects every failure code the trace evidence supports

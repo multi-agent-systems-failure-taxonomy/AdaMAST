@@ -7,6 +7,11 @@ Generation and the judge use the same loader. Give AdaMAST one
 `.json` or `.jsonl` file, or a directory containing those files, and it
 normalizes every accepted record to one stable shape before any model call.
 
+!!! note "Bundled examples"
+    Commands on this page read the bundled example files. Run
+    `python -m adamast.examples` once in your working directory to
+    create `adamast-examples/`, or substitute your own paths.
+
 ## 🧾 What counts as a trace
 
 A **trace** is one recorded agent execution: the sequence of steps the agent

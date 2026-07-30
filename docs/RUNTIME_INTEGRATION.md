@@ -95,7 +95,7 @@ package CLI; disable the native plugin before registering package hooks:
 | Learn faster / slower | `--generation-threshold N` (default 5), `--k-init N` (10), `--k N` (20) |
 | Freeze the taxonomy (no more learning) | `--freeze` |
 | Use a provider API for learning instead of native subagents | `--learning-backend provider --adamast-model <model>` · [Providers](PROVIDERS.md) |
-| Build a taxonomy from traces I already have | `adamast import-traces --traces adamast-examples/traces.jsonl --adamast-model <model>` · [Trace formats](TRACE_FORMATS.md) |
+| Build a taxonomy from traces I already have | `adamast import-traces --traces <your-traces> --adamast-model <model>` · [Trace formats](TRACE_FORMATS.md) |
 | Wrap a single LLM call instead of a whole host | `adamast single-run` · [Single LLM](SINGLE_LLM.md) |
 | Put AdaMAST inside my own agent loop | `from adamast import start_session` · [Runtime API](INTEGRATION.md) |
 
