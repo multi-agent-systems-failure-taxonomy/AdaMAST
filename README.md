@@ -1,10 +1,5 @@
 # AdaMAST
 
-> **Private development repository.** This tree is laid out exactly as the
-> public AdaMAST repository should look; publishing is a filtered copy that
-> drops only the private paths listed in [`publish.exclude`](publish.exclude).
-> See [the publishing workflow](docs/PUBLISHING.md).
-
 <p align="center">
   <b>Learn how your AI agents fail, from their own recorded work.</b>
 </p>
