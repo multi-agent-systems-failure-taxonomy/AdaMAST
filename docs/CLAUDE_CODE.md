@@ -288,6 +288,20 @@ assuming:
 
 ## 🧹 Uninstall
 
+Use the path you installed with.
+
+### Plugin
+
+```text
+/plugin uninstall adamast@adamast
+```
+
+That disables the plugin and stops every hook. The marketplace stays
+registered so you can reinstall without re-adding it; drop it too with
+`/plugin marketplace remove adamast`.
+
+### Package CLI
+
 ```bash
 # Remove only the user-level AdaMAST registration.
 adamast claude uninstall --user-level
@@ -296,7 +310,14 @@ adamast claude uninstall --user-level
 adamast claude uninstall --project-dir .
 ```
 
-Neither command deletes learned taxonomies or trace folders.
+The user-level command also removes the managed guidance skill; pass
+`--no-remove-skill` to keep it.
+
+### What survives either path
+
+Learned taxonomies, trace folders, and `~/.claude/adamast.json` are left alone
+so a reinstall resumes where you stopped. Delete `~/.adamast/` and that config
+by hand when you want nothing left.
 
 ## 🗂️ Source layout
 

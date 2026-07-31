@@ -315,6 +315,20 @@ selected Codex events:
 
 ## 🧹 Uninstall
 
+Use the path you installed with.
+
+### Plugin
+
+```bash
+codex plugin remove adamast@adamast
+```
+
+That removes the plugin and stops every hook. The marketplace stays registered
+so you can reinstall without re-adding it; drop it too with
+`codex plugin marketplace remove adamast`.
+
+### Package CLI
+
 ```bash
 # User-level
 adamast codex uninstall --user-level
@@ -324,7 +338,13 @@ adamast codex uninstall --project-dir .
 ```
 
 This removes AdaMAST hook config and, for the user-level default, the managed
-guidance skill. It does not delete learned taxonomies or trace folders.
+guidance skill.
+
+### What survives either path
+
+Learned taxonomies, trace folders, and `~/.codex/adamast.json` are left alone
+so a reinstall resumes where you stopped. Delete `~/.adamast/` and that config
+by hand when you want nothing left.
 
 ## 🗂️ Source layout
 

@@ -91,5 +91,21 @@ adamast claude install --user-level
 adamast codex install --user-level
 ```
 
-Remove the native plugin with `/plugin uninstall adamast@adamast` in Claude
-Code or `codex plugin remove adamast@adamast` in a terminal.
+## Uninstall
+
+```text
+/plugin uninstall adamast@adamast
+```
+
+```bash
+codex plugin remove adamast@adamast
+```
+
+Either one stops every hook. The marketplace stays registered so a reinstall
+does not need re-adding it; drop it as well with
+`/plugin marketplace remove adamast` or `codex plugin marketplace remove
+adamast`.
+
+Learned taxonomies, trace folders, and the host's `adamast.json` survive on
+purpose, so a reinstall resumes where you stopped. Delete `~/.adamast/` and
+that config by hand for a clean slate.
