@@ -29,7 +29,7 @@ def test_native_plugin_versions_and_marketplaces_stay_in_sync():
     claude_marketplace = _json(ROOT / ".claude-plugin" / "marketplace.json")
     codex_marketplace = _json(ROOT / ".agents" / "plugins" / "marketplace.json")
 
-    assert expected == "0.2.1"
+    assert expected == "0.2.2"
     assert claude_manifest["version"] == expected
     assert codex_manifest["version"] == expected
     assert claude_marketplace["metadata"]["version"] == expected

@@ -2374,7 +2374,9 @@ Remember: cross-category duplicates should be rare. Most duplicates will be WITH
 OUTPUT JSON:
 {{
   "duplicates_found": [{{"concept": "...", "found_in": ["A.1", "B.3"], "keep_in": "A.1", "remove": "B.3"}}]
-}}"""
+}}
+"remove" may be one code string or a list of code strings when a concept spans several.
+Never list the "keep_in" code in "remove": every concept must keep exactly one code."""
 
         try:
             response = call_llm(self.client, prompt)
@@ -2384,12 +2386,61 @@ OUTPUT JSON:
             if duplicates:
                 progress(f"  Duplicates found: {len(duplicates)}")
 
+            # The schema shows single-code fields, but when one concept spans
+            # several codes the model emits lists; accept both shapes, and
+            # strip stray whitespace so a padded code still matches.
+            def code_set(value) -> set:
+                if isinstance(value, str):
+                    value = [value]
+                if not isinstance(value, list):
+                    return set()
+                return {
+                    c.strip() for c in value if isinstance(c, str) and c.strip()
+                }
+
             # Remove duplicates from the ORIGINAL full codes (preserving all fields)
+            real_codes = {
+                c.get("code", "") for c in a_codes + b_codes + c_codes
+            }
             codes_to_remove = set()
+            codes_to_keep = set()
             for dup in duplicates:
-                remove_code = dup.get("remove", "")
-                if remove_code:
-                    codes_to_remove.add(remove_code)
+                if not isinstance(dup, dict):
+                    progress(f"  [!] Skipping malformed duplicate entry: {dup!r}")
+                    continue
+                remove = code_set(dup.get("remove", ""))
+                if not remove and dup.get("remove"):
+                    progress(f"  [!] Skipping unrecognized remove field: {dup!r}")
+                    continue
+                # A keeper only counts when it names a code that exists; a
+                # hallucinated keeper must not license wiping the concept.
+                keep = code_set(dup.get("keep_in", ""))
+                found = code_set(dup.get("found_in", ""))
+                if not (keep & real_codes) and found and found <= remove:
+                    progress(
+                        "  [!] Skipping duplicate entry that would remove every "
+                        f"code of its concept: {dup!r}"
+                    )
+                    continue
+                codes_to_keep.update(keep)
+                codes_to_remove.update(remove)
+            # Every concept keeps at least its keeper: a code any entry marked
+            # keep_in must survive, even if another field lists it for removal.
+            codes_to_remove.difference_update(codes_to_keep)
+            # Final invariant: removals accumulated across entries must not
+            # leave any described concept without a live code.
+            for dup in duplicates:
+                if not isinstance(dup, dict):
+                    continue
+                found = code_set(dup.get("found_in", "")) & real_codes
+                if found and found <= codes_to_remove:
+                    keep = code_set(dup.get("keep_in", "")) & found
+                    rescued = sorted(keep or found)[0]
+                    codes_to_remove.discard(rescued)
+                    progress(
+                        f"  [!] Keeping {rescued} so concept "
+                        f"{dup.get('concept')!r} retains one code"
+                    )
 
             filtered_a = [c for c in a_codes if c.get("code", "") not in codes_to_remove]
             filtered_b = [c for c in b_codes if c.get("code", "") not in codes_to_remove]
@@ -2402,7 +2453,7 @@ OUTPUT JSON:
                 "duplicates_found": duplicates
             }
         except Exception as e:
-            progress(f"  [!] Deduplication error: {e}")
+            progress(f"  [!] Deduplication error: {e}; returning codes unfiltered")
             return {
                 "category_a": a_codes,
                 "category_b": b_codes,

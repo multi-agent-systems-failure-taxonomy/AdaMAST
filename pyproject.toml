@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adamast"
-version = "0.2.1"
+version = "0.2.2"
 description = "Adaptive failure-mode taxonomy runtime for Codex, Claude Code, and custom agent harnesses."
 readme = "README.md"
 requires-python = ">=3.10"

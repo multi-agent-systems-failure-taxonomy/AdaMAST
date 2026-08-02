@@ -87,7 +87,7 @@ def main(argv: list[str] | None = None) -> int:
         backend = f"{args.host}_subagent"
         if args.host == "claude":
             backend = "claude_subagent"
-        assert version == "0.2.1"
+        assert version == "0.2.2"
         assert Path(document["trace_output"]) == traces
         assert document[adapter]["project_scope"] == "auto"
         assert document[adapter]["session_selector"] == "prompt"
@@ -108,10 +108,10 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _wheel(directory: Path) -> Path:
-    wheels = sorted(directory.glob("adamast-0.2.1-*.whl"))
+    wheels = sorted(directory.glob("adamast-0.2.2-*.whl"))
     if len(wheels) != 1:
         raise RuntimeError(
-            f"expected one AdaMAST 0.2.1 wheel in {directory}, found {wheels}"
+            f"expected one AdaMAST 0.2.2 wheel in {directory}, found {wheels}"
         )
     return wheels[0]
 
