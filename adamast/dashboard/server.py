@@ -256,6 +256,14 @@ def _clean_checkpoints(
     return checkpoints[-limit:]
 
 
+def _code_category(code: dict[str, Any]) -> str:
+    """Pull a code's category out of the generic ``fields`` list, if present."""
+    for field in code.get("fields", []):
+        if isinstance(field, dict) and field.get("name") == "category":
+            return str(field.get("value") or "")
+    return ""
+
+
 def _code_view(
     code: dict[str, Any], labels: dict[str, Any] | None = None
 ) -> dict[str, Any]:
@@ -463,6 +471,7 @@ def monitor_snapshot(
             "code_id": code["code_id"],
             "name": code["name"],
             "description": code["description"],
+            "category": _code_category(code),
             "checkpoint_count": fired_counts.get(code["code_id"], 0),
         }
         for code in taxonomy.get("codes", [])

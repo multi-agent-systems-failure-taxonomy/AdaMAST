@@ -29,7 +29,7 @@ def test_native_plugin_versions_and_marketplaces_stay_in_sync():
     claude_marketplace = _json(ROOT / ".claude-plugin" / "marketplace.json")
     codex_marketplace = _json(ROOT / ".agents" / "plugins" / "marketplace.json")
 
-    assert expected == "0.2.2"
+    assert expected == "0.2.2.1"
     assert claude_manifest["version"] == expected
     assert codex_manifest["version"] == expected
     assert claude_marketplace["metadata"]["version"] == expected
@@ -46,11 +46,13 @@ def test_claude_hooks_use_quoted_cross_platform_plugin_launcher():
     hooks = _json(PLUGIN / "hooks" / "claude.json")["hooks"]
     assert len(hooks) == 8
     for event, registrations in hooks.items():
-        command = registrations[0]["hooks"][0]["command"]
-        assert command == (
+        hook = registrations[0]["hooks"][0]
+        assert hook["command"] == (
             'sh "${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook" '
             f"--host claude --event {event}"
         )
+        assert "%CLAUDE_PLUGIN_ROOT%\\bin\\adamast-hook.cmd" in hook["commandWindows"]
+        assert f"claude {event}" in hook["commandWindows"]
 
 
 def test_codex_hooks_have_posix_and_windows_commands():

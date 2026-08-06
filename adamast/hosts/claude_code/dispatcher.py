@@ -64,6 +64,12 @@ HANDLERS = {
     "PostToolUseFailure": post_tool_use_failure.handle,
 }
 
+# Events after which we hand the main agent the next learning-phase launch
+# directive. SubagentStop completion-chains the pipeline (D2): the next phase
+# dispatches when a taxonomy-worker subagent finishes, not on the following
+# user prompt. The Codex dispatcher mirrors this set.
+_LEARNING_DISPATCH_EVENTS = {"SessionStart", "UserPromptSubmit", "SubagentStop"}
+
 
 def main(argv=None) -> int:
     force_utf8_stdio()
@@ -150,7 +156,7 @@ def main(argv=None) -> int:
                     _conversation_id(event),
                 ),
             )
-            if event_name in {"SessionStart", "UserPromptSubmit", "SubagentStop"}:
+            if event_name in _LEARNING_DISPATCH_EVENTS:
                 dispatch = claim_learning_job(
                     workspace,
                     conversation_id=_conversation_id(event),

@@ -8,7 +8,6 @@ import subprocess
 import sys
 import tempfile
 import textwrap
-import threading
 import time
 import unittest
 from pathlib import Path
@@ -135,52 +134,14 @@ class ClaudeNativeLearningTests(unittest.TestCase):
         )
         session_start(self.event("SessionStart"), config)
         original_prompt = "Run the smoke test and summarize it."
-        result: dict[str, object] = {}
-
-        def submit() -> None:
-            result["output"] = user_prompt_submit(
-                self.event("UserPromptSubmit", prompt=original_prompt),
-                config,
-            )
-
-        with patch(
-            "adamast.hosts.claude_code.runtime.open_browser_picker",
-            return_value=True,
-        ):
-            thread = threading.Thread(target=submit, daemon=True)
-            thread.start()
-            picker = None
-            deadline = time.monotonic() + 8
-            while time.monotonic() < deadline:
-                state = load_state(config.trace_output, "claude-session-1")
-                picker = (state.get("selection") or {}).get("browser_picker")
-                if picker:
-                    break
-                time.sleep(0.05)
-            self.assertIsNotNone(picker)
-            self.assertTrue(thread.is_alive(), "prompt hook returned before choice")
-            with urlopen(picker["url"] + "choose?id=mast", timeout=5) as response:
-                response.read()
-            thread.join(timeout=10)
-
-        self.assertFalse(thread.is_alive(), "prompt hook did not resume after choice")
-        output = result["output"]
-        self.assertNotIn("decision", output)
-        context = output["hookSpecificOutput"]["additionalContext"]
-        self.assertIn("submitted prompt is the held task", context)
-        self.assertNotIn(original_prompt, context)
-        state = load_state(config.trace_output, "claude-session-1")
-        self.assertEqual(state["selection"]["status"], "selected")
-        self.assertEqual(state["episode_task"], original_prompt)
-        self.assertFalse(state["finished"])
-
-    def test_browser_selection_timeout_blocks_without_echoing_prompt(self) -> None:
-        config = self.config(selector_surface="browser", worker_timeout_seconds=1)
-        session_start(self.event("SessionStart"), config)
         picker = {
-            "url": "http://127.0.0.1:9/",
-            "result_path": str(self.root / "missing-choice.json"),
+            "url": "http://127.0.0.1:43230/",
+            "result_path": str(self.root / "browser-choice.json"),
         }
+        # #14: selection is non-blocking. The first prompt opens the picker and
+        # resolves immediately -- here a pick ("mast") is already registered, so
+        # it is applied directly and the original prompt is held as the task
+        # (never re-echoed), without waiting on the browser.
         with (
             patch(
                 "adamast.hosts.claude_code.runtime.start_browser_picker",
@@ -191,7 +152,45 @@ class ClaudeNativeLearningTests(unittest.TestCase):
                 return_value=True,
             ),
             patch(
-                "adamast.hosts.claude_code.runtime.wait_for_browser_choice",
+                "adamast.hosts.claude_code.runtime.read_browser_choice",
+                return_value="mast",
+            ),
+        ):
+            output = user_prompt_submit(
+                self.event("UserPromptSubmit", prompt=original_prompt),
+                config,
+            )
+
+        self.assertNotIn("decision", output)
+        context = output["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("submitted prompt is the held task", context)
+        self.assertNotIn(original_prompt, context)
+        state = load_state(config.trace_output, "claude-session-1")
+        self.assertEqual(state["selection"]["status"], "selected")
+        self.assertEqual(state["episode_task"], original_prompt)
+        self.assertFalse(state["finished"])
+
+    def test_browser_selection_auto_resolves_without_echoing_prompt(self) -> None:
+        config = self.config(selector_surface="browser", worker_timeout_seconds=1)
+        session_start(self.event("SessionStart"), config)
+        picker = {
+            "url": "http://127.0.0.1:9/",
+            "result_path": str(self.root / "missing-choice.json"),
+        }
+        # #14: there is no timeout/block path anymore. With no pick registered
+        # (missing result file) the first prompt auto-resolves to the MAST
+        # default and holds the original prompt as the task without echoing it.
+        with (
+            patch(
+                "adamast.hosts.claude_code.runtime.start_browser_picker",
+                return_value=picker,
+            ),
+            patch(
+                "adamast.hosts.claude_code.runtime.open_browser_picker",
+                return_value=True,
+            ),
+            patch(
+                "adamast.hosts.claude_code.runtime.read_browser_choice",
                 return_value=None,
             ),
         ):
@@ -200,9 +199,10 @@ class ClaudeNativeLearningTests(unittest.TestCase):
                 config,
             )
 
-        self.assertEqual(output["decision"], "block")
-        self.assertTrue(output["suppressOriginalPrompt"])
-        self.assertIn("timed out", output["reason"])
+        self.assertNotIn("decision", output)
+        self.assertIn("selected MAST", output["systemMessage"])
+        context = output["hookSpecificOutput"]["additionalContext"]
+        self.assertNotIn("Do not echo this prompt", context)
 
     def test_resume_recovers_missed_inline_choice_before_browser_launch(self) -> None:
         inline_config = self.config(selector_surface="inline")
@@ -494,8 +494,8 @@ class ClaudeNativeLearningTests(unittest.TestCase):
             "summary": "Recurring integration failures.",
             "codes": [
                 {
-                    "id": "OPS-1",
-                    "name": "Demo boundary confusion",
+                    "id": f"OPS-{n}",
+                    "name": f"Demo boundary confusion {n}",
                     "description": "A simulation is presented as a live integration.",
                     "category": "C",
                     "evidence": {
@@ -512,6 +512,7 @@ class ClaudeNativeLearningTests(unittest.TestCase):
                         "rationale": "All frozen episodes expose this boundary.",
                     },
                 }
+                for n in range(1, 4)
             ],
         }
         receipt = {
@@ -575,13 +576,12 @@ class ClaudeNativeLearningTests(unittest.TestCase):
                 "supported": True,
                 "codes": [
                     {
-                        "id": "OPS-1",
+                        "id": code["id"],
                         "supported": True,
                         "reason": "The frozen episodes directly support this code.",
-                        "trace_ids": [
-                            item["problem_id"] for item in snapshot["traces"]
-                        ],
+                        "trace_ids": code["evidence"]["trace_ids"],
                     }
+                    for code in candidate["codes"]
                 ],
             },
         )

@@ -113,7 +113,7 @@ class CodexLearningJobTests(unittest.TestCase):
         self.assertEqual(claimed["job_id"], job_id)
 
     @staticmethod
-    def _candidate(snapshot: dict, *, suffix: str = "") -> dict:
+    def _candidate(snapshot: dict, *, suffix: str = "", count: int = 1) -> dict:
         trace_ids = [item["problem_id"] for item in snapshot["traces"]]
         quotes = [
             {
@@ -129,8 +129,8 @@ class CodexLearningJobTests(unittest.TestCase):
             "summary": "Failures that recur while building integrated company tools.",
             "codes": [
                 {
-                    "id": f"OPS-1{suffix}",
-                    "name": f"Simulation mistaken for integration{suffix}",
+                    "id": f"OPS-{index}{suffix}",
+                    "name": f"Simulation mistaken for integration {index}{suffix}",
                     "description": "The UI appears complete while persistence is absent.",
                     "category": "C",
                     "evidence": {
@@ -139,6 +139,23 @@ class CodexLearningJobTests(unittest.TestCase):
                         "rationale": "Each cited episode exposed a missing durable boundary.",
                     },
                 }
+                for index in range(1, count + 1)
+            ],
+        }
+
+    @staticmethod
+    def _support_all(candidate: dict) -> dict:
+        """A complete support review marking every candidate code supported."""
+        return {
+            "supported": True,
+            "codes": [
+                {
+                    "id": code["id"],
+                    "supported": True,
+                    "reason": "The cited episodes directly describe the failure.",
+                    "trace_ids": code["evidence"]["trace_ids"],
+                }
+                for code in candidate["codes"]
             ],
         }
 
@@ -306,7 +323,7 @@ class CodexLearningJobTests(unittest.TestCase):
         )
         job_dir = self.program / "learning_jobs" / job_id
         snapshot = json.loads((job_dir / "snapshot.json").read_text(encoding="utf-8"))
-        candidate = self._candidate(snapshot)
+        candidate = self._candidate(snapshot, count=3)
 
         generator = claim_learning_job(
             self.workspace,
@@ -343,17 +360,7 @@ class CodexLearningJobTests(unittest.TestCase):
         complete_support_review(
             job_dir,
             claim_token=reviewer["claim_token"],
-            review={
-                "supported": True,
-                "codes": [
-                    {
-                        "id": candidate["codes"][0]["id"],
-                        "supported": True,
-                        "reason": "The cited episodes directly describe the failure.",
-                        "trace_ids": candidate["codes"][0]["evidence"]["trace_ids"],
-                    }
-                ],
-            },
+            review=self._support_all(candidate),
         )
         reconcile_learning_jobs(
             self.workspace,
@@ -484,7 +491,9 @@ class CodexLearningJobTests(unittest.TestCase):
 
         rejected = json.loads((job_dir / "job.json").read_text(encoding="utf-8"))
         self.assertEqual(rejected["state"], "rejected")
-        self.assertIn("independent support review rejected", rejected["last_error"])
+        # Partial acceptance (F2.1): the single candidate code is unsupported,
+        # so the supported subset is empty and falls below the minimum floor.
+        self.assertIn("too few supported codes", rejected["last_error"])
         self.assertIsNone(self.workspace.load()["taxonomy_id"])
 
     def test_poll_repairs_a_missed_generation_trigger_idempotently(self) -> None:
@@ -616,7 +625,7 @@ class CodexLearningJobTests(unittest.TestCase):
             conversation_id="conversation-1",
         )
         snapshot = json.loads((job_dir / "snapshot.json").read_text(encoding="utf-8"))
-        candidate = self._candidate(snapshot)
+        candidate = self._candidate(snapshot, count=3)
         candidate["summary"] = "Échecs observés dans les opérations intégrées."
 
         with self.assertRaisesRegex(Exception, "claim token mismatch"):
@@ -657,17 +666,7 @@ class CodexLearningJobTests(unittest.TestCase):
         complete_support_review(
             job_dir,
             claim_token=reviewer["claim_token"],
-            review={
-                "supported": True,
-                "codes": [
-                    {
-                        "id": candidate["codes"][0]["id"],
-                        "supported": True,
-                        "reason": "The cited episodes directly support this code.",
-                        "trace_ids": candidate["codes"][0]["evidence"]["trace_ids"],
-                    }
-                ],
-            },
+            review=self._support_all(candidate),
         )
         reconcile_learning_jobs(
             self.workspace,
@@ -1009,6 +1008,122 @@ class CodexLearningJobTests(unittest.TestCase):
             [{"taxonomy_id": parent_id, "filename": later_name}],
         )
         self.assertEqual(manifest["refinement"]["rounds_completed"], 1)
+
+    def _refinement_snapshot(self, parent_code: dict) -> tuple[str, Path, dict]:
+        parent_id = "tax-parent"
+        store.register(
+            {
+                "taxonomy_id": parent_id,
+                "repo": "demo-project",
+                "domain": "Operations",
+                "summary": "Original taxonomy",
+                "codes": [parent_code],
+            },
+            self.store_dir,
+        )
+        self.workspace.bind_inherited_taxonomy(parent_id)
+        parent_traces = TraceStore(self.trace_root / parent_id)
+        frozen_names = parent_traces.append_many_with_names(
+            GenerationTrace(
+                problem_id=f"refine-{index}",
+                task=f"Refinement {index}",
+                raw_trajectory=f"New recurring failure {index}",
+            )
+            for index in range(1, 3)
+        )
+        self.workspace.add_refinement_traces(parent_id, frozen_names)
+        _, job_dir = self._enqueue("refinement")
+        snapshot = json.loads((job_dir / "snapshot.json").read_text(encoding="utf-8"))
+        return parent_id, job_dir, snapshot
+
+    def _refinement_candidate(self, snapshot: dict, code: dict) -> dict:
+        trace_ids = [item["problem_id"] for item in snapshot["traces"]]
+        quotes = [
+            {"trace_id": item["problem_id"], "quote": item["raw_trajectory"]}
+            for item in snapshot["traces"]
+        ]
+        return {
+            "decision": "replace",
+            "repo": snapshot["repo"],
+            "domain": "Operations",
+            "summary": "Original taxonomy",
+            "codes": [
+                {
+                    **code,
+                    "evidence": {
+                        "trace_ids": trace_ids,
+                        "quotes": quotes,
+                        "rationale": "Each cited episode still exposes this mode.",
+                    },
+                }
+            ],
+        }
+
+    def test_refinement_description_only_edit_updates_in_place(self) -> None:
+        # I2(a): same code {id, name, category}, only the description changed.
+        parent_id, job_dir, snapshot = self._refinement_snapshot(
+            {
+                "id": "OPS-KEEP",
+                "name": "Keep",
+                "description": "Original description",
+                "category": "A",
+            }
+        )
+        candidate = self._refinement_candidate(
+            snapshot,
+            {
+                "id": "OPS-KEEP",
+                "name": "Keep",
+                "description": "Sharper, refined description of the same mode.",
+                "category": "A",
+            },
+        )
+        self._complete_worker(job_dir, candidate)
+        reconcile_learning_jobs(
+            self.workspace,
+            store_dir=self.store_dir,
+            trace_root=self.trace_root,
+        )
+
+        # Stays on the same version (no successor minted)...
+        self.assertEqual(self.workspace.load()["taxonomy_id"], parent_id)
+        # ...but the improved description is written back in place, not discarded.
+        stored = store.fetch_by_id(parent_id, self.store_dir)
+        self.assertEqual(
+            stored["codes"][0]["description"],
+            "Sharper, refined description of the same mode.",
+        )
+        # The in-place rewrite must not re-parent the record onto its own id or
+        # otherwise rewrite its provenance (regression: it used to self-parent).
+        self.assertNotEqual(stored.get("parent_taxonomy_id"), parent_id)
+
+    def test_refinement_rename_mints_a_new_version(self) -> None:
+        # I2(a): a renamed code is a meaningful change -> new version.
+        parent_id, job_dir, snapshot = self._refinement_snapshot(
+            {
+                "id": "OPS-KEEP",
+                "name": "Keep",
+                "description": "Original description",
+                "category": "A",
+            }
+        )
+        candidate = self._refinement_candidate(
+            snapshot,
+            {
+                "id": "OPS-KEEP",
+                "name": "Renamed mode",
+                "description": "Original description",
+                "category": "A",
+            },
+        )
+        self._complete_worker(job_dir, candidate)
+        reconcile_learning_jobs(
+            self.workspace,
+            store_dir=self.store_dir,
+            trace_root=self.trace_root,
+        )
+
+        self.assertNotEqual(self.workspace.load()["taxonomy_id"], parent_id)
 
     def test_stale_refinement_is_rejected_before_successor_side_effects(self) -> None:
         parent_id = "tax-parent"

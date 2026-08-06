@@ -1,5 +1,6 @@
 """Interactive project and task-group identity tests."""
 
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -20,7 +21,7 @@ class ProjectScopeTests(unittest.TestCase):
             nested.mkdir(parents=True)
             with patch(
                 "adamast.core.project_scope._git_top_level",
-                return_value=str(root),
+                return_value=(str(root), False),
             ):
                 self.assertEqual(
                     project_key(root),
@@ -37,7 +38,7 @@ class ProjectScopeTests(unittest.TestCase):
             second.mkdir()
             with patch(
                 "adamast.core.project_scope._git_top_level",
-                return_value="",
+                return_value=("", False),
             ):
                 first_program = project_program_path(
                     base / "adamast",
@@ -62,6 +63,82 @@ class ProjectScopeTests(unittest.TestCase):
             )
             self.assertNotEqual(default, billing)
             self.assertEqual(default.parents[2], billing.parents[2])
+
+    def test_resolved_root_is_pinned_against_transient_git_failure(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve()
+            nested = root / "src"
+            nested.mkdir()
+            # First resolve succeeds via git and pins nested -> root.
+            with patch(
+                "adamast.core.project_scope._git_top_level",
+                return_value=(str(root), False),
+            ):
+                self.assertEqual(canonical_project_root(nested), root)
+                pinned_key = project_key(nested)
+            # A later transient git failure must NOT repartition history.
+            with patch(
+                "adamast.core.project_scope._git_top_level",
+                return_value=("", True),
+            ):
+                self.assertEqual(canonical_project_root(nested), root)
+                self.assertEqual(project_key(nested), pinned_key)
+
+    def test_transient_failure_without_a_pin_is_not_cached(self):
+        with tempfile.TemporaryDirectory() as temp:
+            workspace = Path(temp).resolve()
+            child = workspace / "repo"
+            child.mkdir()
+            # Transient failure, no prior pin: fall back to the workspace but do
+            # not pin it, so a later successful resolve can still win.
+            with patch(
+                "adamast.core.project_scope._git_top_level",
+                return_value=("", True),
+            ):
+                self.assertEqual(canonical_project_root(child), child)
+            with patch(
+                "adamast.core.project_scope._git_top_level",
+                return_value=(str(workspace), False),
+            ):
+                self.assertEqual(canonical_project_root(child), workspace)
+
+    def test_late_git_init_cannot_repartition_a_pinned_workspace(self):
+        with tempfile.TemporaryDirectory() as temp:
+            workspace = Path(temp).resolve()
+            # Established as a clean non-repo: pinned to itself.
+            with patch(
+                "adamast.core.project_scope._git_top_level",
+                return_value=("", False),
+            ):
+                self.assertEqual(canonical_project_root(workspace), workspace)
+                original_key = project_key(workspace)
+            # A parent later gets `git init`; git now reports a new toplevel.
+            with patch(
+                "adamast.core.project_scope._git_top_level",
+                return_value=(str(workspace.parent), False),
+            ):
+                self.assertEqual(canonical_project_root(workspace), workspace)
+                self.assertEqual(project_key(workspace), original_key)
+
+    def test_pin_is_dropped_when_the_target_no_longer_exists(self):
+        with tempfile.TemporaryDirectory() as temp:
+            workspace = Path(temp).resolve()
+            gone = workspace / "gone"
+            gone.mkdir()
+            here = workspace / "here"
+            here.mkdir()
+            with patch(
+                "adamast.core.project_scope._git_top_level",
+                return_value=(str(gone), False),
+            ):
+                self.assertEqual(canonical_project_root(here), gone)
+            shutil.rmtree(gone)
+            # A pinned target that vanished must not be returned as a dead path.
+            with patch(
+                "adamast.core.project_scope._git_top_level",
+                return_value=(str(here), False),
+            ):
+                self.assertEqual(canonical_project_root(here), here)
 
     def test_explicit_project_id_is_stable_and_validated(self):
         with tempfile.TemporaryDirectory() as temp:

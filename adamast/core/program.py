@@ -519,6 +519,32 @@ class ProgramWorkspace:
                 "last_error": None,
             }
 
+    def rebind_over_default(self, taxonomy_id: str, *, default_id: str) -> None:
+        """Replace an auto-selected default binding with the user's explicit pick.
+
+        The non-blocking selector may auto-bind the default taxonomy (``default_id``,
+        e.g. MAST) before the user finishes choosing in the library. Unlike
+        :meth:`bind_inherited_taxonomy` — which refuses to change an already-bound
+        program — this permits replacing that provisional default with the chosen
+        taxonomy, the same way activation overwrites the bound taxonomy. It still
+        conflicts if the program is on some *other* established taxonomy.
+        """
+        with self.locked_manifest() as manifest:
+            current = manifest.get("taxonomy_id")
+            if current not in (None, default_id, taxonomy_id):
+                raise ProgramConflict(
+                    f"program already uses taxonomy {current!r}, not {taxonomy_id!r}"
+                )
+            manifest["taxonomy_id"] = taxonomy_id
+            if isinstance(manifest.get("branch"), dict):
+                branch = manifest["branch"]
+                branch["seed_taxonomy_id"] = taxonomy_id
+                branch["head_taxonomy_id"] = taxonomy_id
+            manifest["generation"] = {
+                "state": "not_needed",
+                "last_error": None,
+            }
+
     def generation_state(self) -> str:
         return str(self.load().get("generation", {}).get("state", "idle"))
 

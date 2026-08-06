@@ -1,6 +1,7 @@
 """Regression coverage for corrected learning-model boundaries."""
 
 import ast
+import importlib.util
 import json
 import os
 import sys
@@ -24,6 +25,13 @@ from adamast.llm.learning_calls import (
 from adamast.core.program import ProgramWorkspace
 from adamast.core.traces import GenerationTrace
 from adamast.core import store
+
+# The provider transports import their SDKs lazily. These tests exercise the
+# Anthropic / Bedrock paths, so skip them cleanly when the optional SDK is
+# absent instead of failing with ModuleNotFoundError. Install them via the
+# "test" extra (see pyproject.toml) to run these for real. See issue #42.
+_HAS_ANTHROPIC = importlib.util.find_spec("anthropic") is not None
+_HAS_BOTOCORE = importlib.util.find_spec("botocore") is not None
 
 
 def _code(category: str) -> dict:
@@ -234,6 +242,7 @@ class LearningCallTests(unittest.TestCase):
                         offenders.append(f"{path.relative_to(root)}:{term}")
         self.assertEqual(offenders, [])
 
+    @unittest.skipUnless(_HAS_ANTHROPIC, "requires the anthropic SDK")
     def test_support_transport_caps_anthropic_and_openai(self):
         anthropic_create = unittest.mock.Mock(
             return_value=SimpleNamespace(
@@ -297,6 +306,7 @@ class LearningCallTests(unittest.TestCase):
             GEMINI_MAX_OUTPUT_TOKENS,
         )
 
+    @unittest.skipUnless(_HAS_BOTOCORE, "requires botocore (install the boto3 SDK)")
     def test_support_transport_uses_boto3_for_bedrock_bearer_token(self):
         captured = {}
 
@@ -341,6 +351,7 @@ class LearningCallTests(unittest.TestCase):
         )
         self.assertEqual(captured["system"][0]["text"], "Output ONLY valid JSON. No markdown.")
 
+    @unittest.skipUnless(_HAS_ANTHROPIC, "requires the anthropic SDK")
     def test_refinement_transport_caps_all_providers(self):
         anthropic_create = unittest.mock.Mock(
             return_value=SimpleNamespace(content=[SimpleNamespace(text="{}")])

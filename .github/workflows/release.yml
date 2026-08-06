@@ -1,18 +1,69 @@
 name: release
 
+# Publishes to PyPI when a version-bumped commit lands on the public repo's
+# default branch (i.e. a merged PR), or when a `v*` tag is pushed manually.
+# The publish only ever runs in the PUBLIC repository — the mirrored copy in
+# the private repository is inert via the repository guard below, so pushing to
+# private `main` never publishes.
 on:
   push:
     tags:
       - "v*"
+    branches:
+      - "main"
 
 permissions:
   contents: write
 
 jobs:
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.decide.outputs.publish }}
+      version: ${{ steps.decide.outputs.version }}
+      tag: ${{ steps.decide.outputs.tag }}
+      from_tag: ${{ steps.decide.outputs.from_tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: decide
+        shell: bash
+        run: |
+          version="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml","rb"))["project"]["version"])')"
+          tag="v$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          # Only the public repository publishes to PyPI.
+          if [ "$GITHUB_REPOSITORY" != "multi-agent-systems-failure-taxonomy/AdaMAST" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "from_tag=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            # Manual tag push: the tag must match the packaged version.
+            test "$GITHUB_REF_NAME" = "$tag"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "from_tag=true" >> "$GITHUB_OUTPUT"
+          else
+            # Merge to main: publish only if this version has no tag yet, so a
+            # normal (non-version-bump) merge is a no-op.
+            if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+              echo "publish=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "publish=true" >> "$GITHUB_OUTPUT"
+            fi
+            echo "from_tag=false" >> "$GITHUB_OUTPUT"
+          fi
+
   github-release:
+    needs: guard
+    if: needs.guard.outputs.publish == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
@@ -21,11 +72,16 @@ jobs:
       - run: python -m ruff check adamast tests
       - run: python -m pytest tests -q
       - run: python scripts/build_site.py
-      - name: Verify tag matches package version
+      - name: Tag this version when publishing from main
+        if: needs.guard.outputs.from_tag == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          version="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
-          test "$GITHUB_REF_NAME" = "v$version"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${{ needs.guard.outputs.tag }}"
+          git push origin "${{ needs.guard.outputs.tag }}"
       # The bundled README becomes the PyPI project page: strip the
       # private-repository note and absolutize relative links/images,
       # which PyPI does not resolve. CI-workspace only; the committed
@@ -35,21 +91,22 @@ jobs:
       - run: python -m twine check dist/*
       - uses: actions/upload-artifact@v7
         with:
-          name: adamast-${{ github.ref_name }}
+          name: adamast-${{ needs.guard.outputs.tag }}
           path: dist/*
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          flags=(--generate-notes --verify-tag)
-          if [[ "$GITHUB_REF_NAME" =~ (a|b|rc)[0-9]+$ ]]; then
+          flags=(--generate-notes)
+          if [[ "${{ needs.guard.outputs.tag }}" =~ (a|b|rc)[0-9]+$ ]]; then
             flags+=(--prerelease)
           fi
-          gh release create "$GITHUB_REF_NAME" dist/* "${flags[@]}"
+          gh release create "${{ needs.guard.outputs.tag }}" dist/* "${flags[@]}"
 
   pypi-publish:
-    needs: github-release
+    needs: [guard, github-release]
+    if: needs.guard.outputs.publish == 'true'
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -59,6 +116,6 @@ jobs:
     steps:
       - uses: actions/download-artifact@v7
         with:
-          name: adamast-${{ github.ref_name }}
+          name: adamast-${{ needs.guard.outputs.tag }}
           path: dist
       - uses: pypa/gh-action-pypi-publish@release/v1

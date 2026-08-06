@@ -19,6 +19,13 @@ from adamast.core.fsio import read_text_retry, write_text_atomic_retry
 from adamast.core import mast, store
 from adamast.dashboard import webview
 
+# The first prompt opens the taxonomy library and pauses briefly for the user to
+# choose before falling back to MAST (non-blocking beyond this bounded window),
+# so the selection tab gets a real chance before the monitor tab opens.
+SELECTION_WAIT_SECONDS = 5.0
+# How long the picker worker (and its browser page) stays alive before expiring.
+SELECTION_TIMEOUT_SECONDS = 600
+
 
 def start_browser_picker(
     trace_output: Path,
@@ -259,6 +266,8 @@ def apply_browser_choice(
     if not state:
         raise ValueError(f"the {host_label} selector state no longer exists")
     selection = state.get("selection") or request.get("selection") or {}
+    overriding_default = False
+    override_default_id = ""
     if selection.get("status") not in {"pending", "browser_pending"}:
         selected = str(selection.get("selected_taxonomy_id") or "")
         if choice == selected or (
@@ -269,7 +278,16 @@ def apply_browser_choice(
                 "status": selection.get("status"),
                 "trace_output": str(trace_output),
             }
-        raise ValueError(f"this {host_label} conversation already has a choice")
+        if not selection.get("auto_selected"):
+            raise ValueError(f"this {host_label} conversation already has a choice")
+        # The non-blocking selector auto-bound the default (e.g. auto-MAST) before
+        # the user finished choosing in the library. Let the explicit pick
+        # supersede it: reopen the selection and rebind over that provisional
+        # default below, instead of rejecting the choice.
+        overriding_default = True
+        override_default_id = selected or mast.MAST_ID
+        selection.pop("auto_selected", None)
+        selection["status"] = "browser_pending"
 
     option = allowed_option(selection, choice, store_dir)
     selection["selected_kind"] = option["kind"]
@@ -301,10 +319,16 @@ def apply_browser_choice(
             source_state["selection"] = {**selection, "status": "routed"}
             save_state(trace_output, session_id, source_state)
         elif option["kind"] == "taxonomy":
-            ProgramWorkspace(
+            workspace = ProgramWorkspace(
                 trace_output,
                 repo_path=(request.get("event") or {}).get("cwd"),
-            ).bind_inherited_taxonomy(str(option["taxonomy_id"]))
+            )
+            if overriding_default:
+                workspace.rebind_over_default(
+                    str(option["taxonomy_id"]), default_id=override_default_id
+                )
+            else:
+                workspace.bind_inherited_taxonomy(str(option["taxonomy_id"]))
         selection["status"] = "selected"
         state["selection"] = selection
         save_state(target_output, session_id, state)

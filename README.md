@@ -205,6 +205,20 @@ Native plugins keep their managed runtime private and do not modify your
 shell's `PATH`. Use the plugin list and the host's `/hooks` view to verify that
 path; the `adamast` commands above apply when you installed the package CLI.
 
+### Uninstall
+
+```text
+/plugin uninstall adamast@adamast          # Claude Code plugin
+```
+```bash
+codex plugin remove adamast@adamast        # Codex plugin
+adamast claude uninstall --user-level      # package CLI
+adamast codex uninstall --user-level       # package CLI
+```
+
+Learned taxonomies and trace folders are kept so a reinstall resumes; the host
+guides cover clearing those and dropping the marketplace registration.
+
 The full details (how checkpoints work, the taxonomy picker, background learning, the live monitor, and every knob) live in **[the runtime integration guide](docs/RUNTIME_INTEGRATION.md)**.
 
 ## 📚 Learn more

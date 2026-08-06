@@ -721,6 +721,7 @@
         <div class="segmented" aria-label="Viewing mode">
           <button id="mode-failures" type="button" aria-pressed="true">Failure modes</button>
           <button id="mode-checkpoints" type="button" aria-pressed="false">Checkpoints</button>
+          <button id="mode-taxonomy" type="button" aria-pressed="false">Failure taxonomy</button>
         </div>
         <label class="toggle">
           <input id="show-clean" type="checkbox">
@@ -960,14 +961,50 @@
     }
 
     function setMode(mode) {
-      state.mode = mode === "checkpoints" ? "checkpoints" : "failures";
+      state.mode = ["checkpoints", "taxonomy"].includes(mode) ? mode : "failures";
       localStorage.setItem("adamast-monitor-mode", state.mode);
       byId("mode-failures").setAttribute("aria-pressed", String(state.mode === "failures"));
       byId("mode-checkpoints").setAttribute("aria-pressed", String(state.mode === "checkpoints"));
+      byId("mode-taxonomy").setAttribute("aria-pressed", String(state.mode === "taxonomy"));
       byId("axis-title").textContent = state.mode === "failures"
         ? "Failure modes → checkpoints"
-        : "Checkpoints → failure modes";
-      if (state.data) renderLedger();
+        : state.mode === "checkpoints"
+          ? "Checkpoints → failure modes"
+          : "Failure taxonomy";
+      if (!state.data) return;
+      renderActive();
+    }
+
+    function renderActive() {
+      if (state.mode === "taxonomy") renderTaxonomy();
+      else renderLedger();
+    }
+
+    function renderTaxonomy() {
+      ledger.replaceChildren();
+      const modes = state.data.failure_modes || [];
+      if (!modes.length) {
+        showEmpty("No failure modes defined", "The active taxonomy has no codes to show.");
+        return;
+      }
+      const overview = element("article", "group");
+      const head = element("header", "group-heading");
+      head.append(element("div", "group-id", state.data.taxonomy.taxonomy_id || "—"));
+      head.append(element("h3", "", state.data.taxonomy.domain || "Active taxonomy"));
+      head.append(element("p", "", "The active taxonomy this conversation's checkpoints are scored against."));
+      head.append(element("span", "group-count", `${modes.length} mode${modes.length === 1 ? "" : "s"}`));
+      overview.append(head);
+      ledger.append(overview);
+      modes.forEach((mode) => {
+        const card = element("article", "group");
+        const cardHead = element("header", "group-heading");
+        cardHead.append(element("div", "group-id", mode.code_id));
+        cardHead.append(element("h3", "", mode.name));
+        cardHead.append(element("p", "", mode.description || "No description recorded."));
+        if (mode.category) cardHead.append(element("span", "group-count", mode.category));
+        card.append(cardHead);
+        ledger.append(card);
+      });
     }
 
     function renderLedger() {
@@ -1149,9 +1186,10 @@
     });
     byId("mode-failures").addEventListener("click", () => setMode("failures"));
     byId("mode-checkpoints").addEventListener("click", () => setMode("checkpoints"));
+    byId("mode-taxonomy").addEventListener("click", () => setMode("taxonomy"));
     byId("show-clean").addEventListener("change", (event) => {
       state.showClean = event.target.checked;
-      renderLedger();
+      renderActive();
     });
     document.querySelectorAll("[data-window]").forEach((button) => {
       button.addEventListener("click", () => {
