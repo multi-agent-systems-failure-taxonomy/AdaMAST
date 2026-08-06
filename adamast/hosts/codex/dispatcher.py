@@ -55,6 +55,12 @@ HANDLERS = {
 
 AGENT_VISIBLE_EVENTS = {"SessionStart", "UserPromptSubmit"}
 
+# Events after which we claim and hand the main agent the next learning-phase
+# launch directive. Includes SubagentStop (D2 completion-chaining): when a
+# taxonomy-worker subagent finishes, dispatch the next phase immediately rather
+# than waiting for the following user prompt. Mirrors the Claude Code dispatcher.
+_LEARNING_DISPATCH_EVENTS = {"SessionStart", "UserPromptSubmit", "SubagentStop"}
+
 
 def main(argv: list[str] | None = None) -> int:
     force_utf8_stdio()
@@ -120,7 +126,7 @@ def main(argv: list[str] | None = None) -> int:
                     output,
                     drain_learning_notices(workspace, _conversation_id(event)),
                 )
-            if event_name in {"SessionStart", "UserPromptSubmit"}:
+            if event_name in _LEARNING_DISPATCH_EVENTS:
                 dispatch = claim_learning_job(
                     workspace,
                     conversation_id=_conversation_id(event),

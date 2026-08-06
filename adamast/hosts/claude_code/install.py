@@ -159,7 +159,8 @@ def installed_claude_executable() -> Path:
             return candidate.resolve()
     raise RuntimeError(
         "installed Claude Code executable was not found; put `claude` on "
-        "PATH or set CLAUDE_CODE_EXECUTABLE"
+        "PATH or set CLAUDE_CODE_EXECUTABLE, or re-run with --no-verify to "
+        "skip the check (needed for a desktop-app-only setup)"
     )
 
 
@@ -196,7 +197,7 @@ def verify_installed_hooks(executable: Path | None = None) -> str:
         labels = ", ".join(repr(marker.decode()) for marker in sorted(missing))
         raise RuntimeError(
             f"installed Claude Code {version_text} lacks required hook "
-            f"contract marker(s): {labels}"
+            f"contract marker(s): {labels}; re-run with --no-verify to skip"
         )
     return version_text
 
@@ -497,6 +498,15 @@ def main(argv=None) -> int:
         "--user-level",
         action="store_true",
         help="install in ~/.claude/settings.json for all Claude Code projects",
+    )
+    start_group.add_argument(
+        "--no-verify",
+        action="store_true",
+        help=(
+            "skip verifying the installed `claude` CLI hook contract. Use this "
+            "for a desktop-app-only setup where no `claude` binary is on PATH "
+            "(the Claude Code desktop app ships an Electron binary, not the CLI)"
+        ),
     )
     start_group.add_argument("--trace-output")
     start_group.add_argument("--adamast-model")
@@ -841,6 +851,7 @@ def main(argv=None) -> int:
         ClaudeCodeConfig(**fields),
         migrate_legacy_global=args.migrate_legacy_global,
         user_level=args.user_level,
+        verify=not args.no_verify,
     )
     # A user-level install is the interactive path, so ship the guidance skill
     # with it by default; a project-local install stays opt-in because the

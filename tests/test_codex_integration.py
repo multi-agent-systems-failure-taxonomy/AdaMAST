@@ -7,14 +7,11 @@ import io
 import re
 import sys
 import tempfile
-import threading
-import time
 import unittest
 from contextlib import redirect_stdout
 from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
-from urllib.request import urlopen
 
 from adamast.hosts.codex.config import CodexConfig, parse_codex_hooks
 from adamast.hosts.codex.checkpoint import record_checkpoint
@@ -260,6 +257,64 @@ class CodexIntegrationTests(unittest.TestCase):
             selector_surface="inline",
         )
 
+    def _run_non_blocking_launch(self, browser_choice):
+        """Drive _launch_selection_browser (UPS) with the picker choice mocked.
+
+        Returns (output, accept_mock, timeout_mock). read_browser_choice ->
+        browser_choice (None means the user has not picked yet).
+        """
+        from adamast.core import mast
+        from adamast.hosts.codex import runtime as R
+
+        selection = {
+            "options": [
+                {"kind": "mast", "taxonomy_id": mast.MAST_ID, "label": "MAST"},
+                {
+                    "kind": "taxonomy",
+                    "taxonomy_id": "tax-django-orm-001",
+                    "label": "Django ORM",
+                },
+            ]
+        }
+        state = {"selection": selection}
+        with tempfile.TemporaryDirectory() as td:
+            config = self.base_config(Path(td))
+            event = {"session_id": "cx14", "cwd": td}
+            accepted = {"hookSpecificOutput": {"additionalContext": "accepted"}}
+            with patch.object(
+                R, "start_browser_picker", return_value={"url": "http://x"}
+            ), patch.object(R, "open_browser_picker", return_value=True), patch.object(
+                R, "wait_for_browser_choice", return_value=browser_choice
+            ), patch.object(
+                R, "_accept_selection_choice", return_value=accepted
+            ) as acc, patch.object(
+                R, "_browser_timeout_output"
+            ) as timeout_out:
+                out = R._launch_selection_browser(
+                    state, event, config, event_name="UserPromptSubmit"
+                )
+        return out, acc, timeout_out, accepted
+
+    def test_browser_selection_is_non_blocking_and_auto_resolves(self):
+        from adamast.core import mast
+
+        # No pick yet -> auto-resolve to the MAST default, never wait/timeout.
+        out, acc, timeout_out, accepted = self._run_non_blocking_launch(None)
+        self.assertIs(out, accepted)
+        timeout_out.assert_not_called()
+        self.assertEqual(acc.call_args.args[3].get("taxonomy_id"), mast.MAST_ID)
+
+    def test_browser_selection_applies_an_already_made_choice(self):
+        # A pick already registered is honored directly (still non-blocking).
+        out, acc, timeout_out, accepted = self._run_non_blocking_launch(
+            "tax-django-orm-001"
+        )
+        self.assertIs(out, accepted)
+        timeout_out.assert_not_called()
+        self.assertEqual(
+            acc.call_args.args[3].get("taxonomy_id"), "tax-django-orm-001"
+        )
+
     def test_default_hooks_can_be_customized(self):
         specs = parse_codex_hooks(
             {
@@ -461,7 +516,10 @@ class CodexIntegrationTests(unittest.TestCase):
                 "claimed",
             )
 
-    def test_dispatcher_never_claims_next_phase_on_subagent_stop(self):
+    def test_dispatcher_claims_next_phase_on_subagent_stop(self):
+        # D2 completion-chaining: when a taxonomy-worker subagent finishes, the
+        # codex dispatcher claims and injects the next-phase directive right
+        # away instead of deferring to the following user prompt.
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             config = replace(
@@ -491,15 +549,21 @@ class CodexIntegrationTests(unittest.TestCase):
                     "adamast.hosts.codex.dispatcher.drain_learning_notices",
                     return_value=[],
                 ) as drain,
-                patch("adamast.hosts.codex.dispatcher.claim_learning_job") as claim,
+                patch(
+                    "adamast.hosts.codex.dispatcher.claim_learning_job",
+                    return_value={
+                        "directive": "AdaMAST: launch the next phase now."
+                    },
+                ) as claim,
             ):
                 code = dispatcher_main(["--config", str(config_path)])
 
             self.assertEqual(code, 0)
-            self.assertEqual(stdout.getvalue(), "")
             poll.assert_called_once()
+            claim.assert_called_once()
+            self.assertIn("launch the next phase now", stdout.getvalue())
+            # Notices stay user-prompt-visible only, not surfaced on SubagentStop.
             drain.assert_not_called()
-            claim.assert_not_called()
 
     def test_dispatcher_keeps_learning_notices_queued_at_stop(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -1607,7 +1671,12 @@ class CodexIntegrationTests(unittest.TestCase):
             )
             self.assertIn("recovered", resumed["systemMessage"].lower())
 
-    def test_browser_catalog_waits_for_user_prompt_and_applies_directly(self):
+    def test_browser_catalog_applies_an_already_made_choice_without_blocking(self):
+        # Selection is non-blocking (#14 parity with Claude Code): the first
+        # prompt does not wait on the picker. A choice already registered when
+        # the hook runs is applied directly; otherwise it auto-resolves to MAST
+        # (covered by the _launch_selection_browser unit tests above). Here we
+        # verify the end-to-end apply-directly path with the pick pre-registered.
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             transcript = root / "codex.jsonl"
@@ -1622,11 +1691,19 @@ class CodexIntegrationTests(unittest.TestCase):
                 "cwd": str(root),
                 "transcript_path": str(transcript),
             }
-
-            result: dict[str, object] = {}
-
-            def submit() -> None:
-                result["output"] = user_prompt_submit(
+            with patch(
+                "adamast.hosts.codex.runtime.open_browser_picker",
+                return_value=True,
+            ), patch(
+                "adamast.hosts.codex.runtime.wait_for_browser_choice",
+                return_value="tax-django-orm-001",
+            ):
+                started = session_start(
+                    {**event, "hook_event_name": "SessionStart"}, config
+                )
+                self.assertIsNone(started)
+                self.assertFalse(config.trace_output.exists())
+                output = user_prompt_submit(
                     {
                         **event,
                         "hook_event_name": "UserPromptSubmit",
@@ -1635,36 +1712,6 @@ class CodexIntegrationTests(unittest.TestCase):
                     config,
                 )
 
-            with patch(
-                "adamast.hosts.codex.runtime.open_browser_picker",
-                return_value=True,
-            ):
-                started = session_start(
-                    {**event, "hook_event_name": "SessionStart"}, config
-                )
-                self.assertIsNone(started)
-                self.assertFalse(config.trace_output.exists())
-                thread = threading.Thread(target=submit, daemon=True)
-                thread.start()
-                picker = None
-                deadline = time.monotonic() + 8
-                while time.monotonic() < deadline:
-                    waiting = load_state(config.trace_output, event["session_id"])
-                    picker = (waiting.get("selection") or {}).get("browser_picker")
-                    if picker:
-                        break
-                    time.sleep(0.05)
-                self.assertIsNotNone(picker)
-                self.assertTrue(thread.is_alive(), "prompt hook returned before choice")
-                with urlopen(
-                    picker["url"] + "choose?id=tax-django-orm-001",
-                    timeout=5,
-                ) as response:
-                    response.read()
-                thread.join(timeout=10)
-
-            self.assertFalse(thread.is_alive(), "prompt hook did not resume after choice")
-            output = result["output"]
             self.assertNotIn("continue", output)
             context = output["hookSpecificOutput"]["additionalContext"]
             self.assertIn("submitted prompt is the held task", context)
@@ -1677,50 +1724,6 @@ class CodexIntegrationTests(unittest.TestCase):
             )
             self.assertEqual(state["episode_task"], "Inspect the project.")
             self.assertFalse(state["finished"])
-
-    def test_browser_selection_timeout_stops_original_prompt(self):
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            transcript = root / "codex.jsonl"
-            transcript.write_text("", encoding="utf-8")
-            config = replace(
-                self.selector_config(root),
-                selector_surface="browser",
-                worker_timeout_seconds=1,
-            )
-            event = {
-                "session_id": "selector-browser-timeout",
-                "cwd": str(root),
-                "transcript_path": str(transcript),
-                "hook_event_name": "UserPromptSubmit",
-                "prompt": "Do not run this task after timeout.",
-            }
-            picker = {
-                "url": "http://127.0.0.1:9/",
-                "result_path": str(root / "missing-choice.json"),
-            }
-            with (
-                patch(
-                    "adamast.hosts.codex.runtime.start_browser_picker",
-                    return_value=picker,
-                ),
-                patch(
-                    "adamast.hosts.codex.runtime.open_browser_picker",
-                    return_value=True,
-                ),
-                patch(
-                    "adamast.hosts.codex.runtime.wait_for_browser_choice",
-                    return_value=None,
-                ),
-            ):
-                output = user_prompt_submit(event, config)
-
-            self.assertFalse(output["continue"])
-            self.assertIn("timed out", output["stopReason"])
-            self.assertNotIn(
-                event["prompt"],
-                output["hookSpecificOutput"]["additionalContext"],
-            )
 
     def test_legacy_pending_selector_refreshes_before_parsing_old_number(self):
         with tempfile.TemporaryDirectory() as temp:

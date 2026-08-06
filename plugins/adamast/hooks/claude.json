@@ -7,6 +7,7 @@
           {
             "type": "command",
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event SessionStart",
+            "commandWindows": "cmd.exe /d /s /c call \"%CLAUDE_PLUGIN_ROOT%\\bin\\adamast-hook.cmd\" claude SessionStart",
             "timeout": 180,
             "statusMessage": "Starting AdaMAST"
           }
@@ -19,6 +20,7 @@
           {
             "type": "command",
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event UserPromptSubmit",
+            "commandWindows": "cmd.exe /d /s /c call \"%CLAUDE_PLUGIN_ROOT%\\bin\\adamast-hook.cmd\" claude UserPromptSubmit",
             "timeout": 1800,
             "statusMessage": "Checking AdaMAST state"
           }
@@ -32,6 +34,7 @@
           {
             "type": "command",
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event PostToolUse",
+            "commandWindows": "cmd.exe /d /s /c call \"%CLAUDE_PLUGIN_ROOT%\\bin\\adamast-hook.cmd\" claude PostToolUse",
             "timeout": 60,
             "statusMessage": "Polling AdaMAST"
           }
@@ -45,6 +48,7 @@
           {
             "type": "command",
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event PostToolUseFailure",
+            "commandWindows": "cmd.exe /d /s /c call \"%CLAUDE_PLUGIN_ROOT%\\bin\\adamast-hook.cmd\" claude PostToolUseFailure",
             "timeout": 60,
             "statusMessage": "Recording AdaMAST evidence"
           }
@@ -57,6 +61,7 @@
           {
             "type": "command",
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event TaskCompleted",
+            "commandWindows": "cmd.exe /d /s /c call \"%CLAUDE_PLUGIN_ROOT%\\bin\\adamast-hook.cmd\" claude TaskCompleted",
             "timeout": 60,
             "statusMessage": "Saving AdaMAST trace"
           }
@@ -69,6 +74,7 @@
           {
             "type": "command",
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event SubagentStop",
+            "commandWindows": "cmd.exe /d /s /c call \"%CLAUDE_PLUGIN_ROOT%\\bin\\adamast-hook.cmd\" claude SubagentStop",
             "timeout": 60,
             "statusMessage": "Reconciling AdaMAST learning"
           }
@@ -81,6 +87,7 @@
           {
             "type": "command",
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event Stop",
+            "commandWindows": "cmd.exe /d /s /c call \"%CLAUDE_PLUGIN_ROOT%\\bin\\adamast-hook.cmd\" claude Stop",
             "timeout": 60,
             "statusMessage": "Saving AdaMAST checkpoint"
           }
@@ -93,6 +100,7 @@
           {
             "type": "command",
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook\" --host claude --event SessionEnd",
+            "commandWindows": "cmd.exe /d /s /c call \"%CLAUDE_PLUGIN_ROOT%\\bin\\adamast-hook.cmd\" claude SessionEnd",
             "timeout": 3,
             "statusMessage": "Closing AdaMAST session"
           }

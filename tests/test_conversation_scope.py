@@ -251,6 +251,83 @@ class ConversationScopeTests(unittest.TestCase):
             output["hookSpecificOutput"]["additionalContext"],
         )
 
+    def test_legacy_state_resolves_after_migration_sentinel_exists(self) -> None:
+        # Regression: the one-time bulk migration only captures legacy state
+        # present when it ran. A conversation selected AFTER the sweep (its
+        # `.migrated` sentinel already dropped) must still resolve to its
+        # original program on a resume from a drifted cwd, not fork a new one.
+        config = self.config(selector_surface="browser")
+        original_program = project_program_path(
+            self.routing_root,
+            cwd=self.project,
+            task_group="default",
+        )
+        selection = build_selection(
+            trace_output=original_program,
+            store_dir=STORE_DIR,
+            cwd=self.project,
+            catalog_mode="browser",
+        )
+        selection.update(
+            status="selected",
+            selected_kind="mast",
+            selected_taxonomy_id=mast.MAST_ID,
+            selected_label="MAST",
+        )
+        save_state(
+            original_program,
+            "claude-resume-session",
+            {
+                "version": 1,
+                "session_id": "claude-resume-session",
+                "conversation_id": "claude-resume-session",
+                "cwd": str(self.project),
+                "episode_sequence": 4,
+                "selection": selection,
+                "finished": True,
+            },
+        )
+        # Simulate a prior migration that did not capture this conversation.
+        sentinel = (
+            self.routing_root / ".adamast-claude-session-scopes" / ".migrated"
+        )
+        sentinel.parent.mkdir(parents=True, exist_ok=True)
+        sentinel.write_text("1\n", encoding="utf-8")
+
+        other_project = self.root / "resume-shell"
+        other_project.mkdir()
+        resumed = config.for_event(self.event("SessionStart", other_project))
+
+        self.assertEqual(resumed.trace_output, original_program)
+
+    def test_migration_runs_once_then_new_sessions_skip_the_walk(self) -> None:
+        from adamast.hosts.interactive import session_routes as SR
+
+        scope_dir = ".adamast-claude-session-scopes"
+        state_dir = ".adamast-claude-code"
+        # First call performs the one-time sweep and drops the sentinel.
+        ran = SR._migrate_legacy_scopes(
+            self.routing_root,
+            scope_dir=scope_dir,
+            state_dir=state_dir,
+            default_task_group="default",
+            host="claude_code",
+        )
+        self.assertTrue(ran)
+        self.assertTrue((self.routing_root / scope_dir / ".migrated").exists())
+        # Once migrated, a new conversation must short-circuit without walking
+        # the routing root (the O(1) win of #15).
+        with patch.object(Path, "rglob") as rglob:
+            again = SR._migrate_legacy_scopes(
+                self.routing_root,
+                scope_dir=scope_dir,
+                state_dir=state_dir,
+                default_task_group="default",
+                host="claude_code",
+            )
+        self.assertFalse(again)
+        rglob.assert_not_called()
+
     def test_codex_conversation_scope_is_stable_after_cwd_changes(self) -> None:
         config = CodexConfig(
             trace_output=self.routing_root,
@@ -392,7 +469,9 @@ class ConversationScopeTests(unittest.TestCase):
 
         self.assertIn("taxonomy is pinned to MAST", context)
 
-    def test_claude_browser_selection_waits_for_first_user_prompt(self) -> None:
+    def test_claude_browser_selection_auto_resolves_on_first_user_prompt(
+        self,
+    ) -> None:
         event = {
             "hook_event_name": "SessionStart",
             "session_id": "claude-browser-defer",
@@ -414,10 +493,11 @@ class ConversationScopeTests(unittest.TestCase):
                 "adamast.hosts.claude_code.runtime.open_browser_picker",
                 return_value=True,
             ) as opened,
+            # No pick lands within the brief wait window -> falls back to MAST.
             patch(
                 "adamast.hosts.claude_code.runtime.wait_for_browser_choice",
-                return_value="mast",
-            ),
+                return_value=None,
+            ) as waited,
         ):
             started = session_start(event, config)
             self.assertIsNone(started)
@@ -427,6 +507,9 @@ class ConversationScopeTests(unittest.TestCase):
             launch.assert_not_called()
             opened.assert_not_called()
 
+            # The first prompt opens the picker and waits briefly for a choice;
+            # with none registered it falls back to the MAST default (the monitor
+            # tab only opens once this resolves, so the two no longer collide).
             resumed = user_prompt_submit(
                 {
                     **event,
@@ -436,15 +519,67 @@ class ConversationScopeTests(unittest.TestCase):
                 config,
             )
         launch.assert_called_once()
+        # The picker gets its own 10-minute lifetime, not the learning worker's.
+        self.assertEqual(
+            launch.call_args.kwargs["timeout_seconds"], 600
+        )
         opened.assert_called_once_with(picker)
+        waited.assert_called_once()
         self.assertNotIn("decision", resumed)
         self.assertIn("selected MAST", resumed["systemMessage"])
         state = load_state(config.trace_output, event["session_id"])
         self.assertEqual(state["selection"]["status"], "selected")
         self.assertEqual(state["selection"]["pending_task"], "hey")
         self.assertEqual(state["episode_task"], "hey")
+        # Auto-fallback is tagged so a later library pick can supersede it.
+        self.assertTrue(state["selection"]["auto_selected"])
 
-    def test_claude_browser_picker_relaunches_after_worker_death(self) -> None:
+    def test_claude_browser_pick_within_wait_window_is_honored(self) -> None:
+        event = {
+            "hook_event_name": "SessionStart",
+            "session_id": "claude-browser-pick",
+            "cwd": str(self.project),
+            "transcript_path": str(self.transcript),
+        }
+        config = self.config(selector_surface="browser").for_event(event)
+        picker = {
+            "pid": 4242,
+            "url": "http://127.0.0.1:43210/",
+            "result_path": str(self.root / "browser-result.json"),
+        }
+        with (
+            patch(
+                "adamast.hosts.claude_code.runtime.start_browser_picker",
+                return_value=picker,
+            ),
+            patch(
+                "adamast.hosts.claude_code.runtime.open_browser_picker",
+                return_value=True,
+            ),
+            # The user chooses within the wait window.
+            patch(
+                "adamast.hosts.claude_code.runtime.wait_for_browser_choice",
+                return_value="tax-django-orm-001",
+            ),
+        ):
+            resumed = user_prompt_submit(
+                {
+                    **event,
+                    "hook_event_name": "UserPromptSubmit",
+                    "prompt": "hey",
+                },
+                config,
+            )
+        self.assertNotIn("selected MAST", resumed.get("systemMessage", ""))
+        state = load_state(config.trace_output, event["session_id"])
+        self.assertEqual(state["selection"]["status"], "selected")
+        self.assertEqual(
+            state["selection"]["selected_taxonomy_id"], "tax-django-orm-001"
+        )
+        # An explicit in-window pick is NOT an auto-default.
+        self.assertFalse(state["selection"].get("auto_selected"))
+
+    def test_claude_browser_pending_auto_resolves_without_relaunch(self) -> None:
         session_id = "claude-browser-dead"
         event = {
             "hook_event_name": "UserPromptSubmit",
@@ -480,63 +615,131 @@ class ConversationScopeTests(unittest.TestCase):
                 "finished": True,
             },
         )
-        fresh_picker = {
-            "pid": 4244,
-            "url": "http://127.0.0.1:43212/",
-            "result_path": str(self.root / "fresh-result.json"),
-        }
+        # #14: a browser_pending turn is non-blocking. It no longer probes
+        # picker liveness or relaunches a dead worker; with no choice registered
+        # (missing result file) it auto-resolves to MAST and proceeds at once.
         with (
-            patch(
-                "adamast.hosts.claude_code.runtime.picker_alive",
-                return_value=False,
-            ),
-            patch(
-                "adamast.hosts.claude_code.runtime.start_browser_picker",
-                return_value=fresh_picker,
-            ) as relaunch,
-            patch(
-                "adamast.hosts.claude_code.runtime.open_browser_picker",
-                return_value=True,
-            ) as opened,
-            patch(
-                "adamast.hosts.claude_code.runtime.wait_for_browser_choice",
-                return_value=None,
-            ),
-        ):
-            output = user_prompt_submit({**event, "prompt": "hey again"}, config)
-        relaunch.assert_called_once()
-        opened.assert_called_once_with(fresh_picker)
-        self.assertEqual(output["decision"], "block")
-        state = load_state(config.trace_output, session_id)
-        self.assertEqual(
-            state["selection"]["browser_picker"]["url"],
-            fresh_picker["url"],
-        )
-        self.assertEqual(state["selection"]["pending_task"], "hey again")
-
-        with (
-            patch(
-                "adamast.hosts.claude_code.runtime.picker_alive",
-                return_value=True,
-            ),
             patch(
                 "adamast.hosts.claude_code.runtime.start_browser_picker"
             ) as relaunch,
             patch(
                 "adamast.hosts.claude_code.runtime.open_browser_picker"
             ) as opened,
-            patch(
-                "adamast.hosts.claude_code.runtime.wait_for_browser_choice",
-                return_value="mast",
-            ),
         ):
-            waiting = user_prompt_submit({**event, "prompt": "still here"}, config)
+            output = user_prompt_submit({**event, "prompt": "hey again"}, config)
         relaunch.assert_not_called()
         opened.assert_not_called()
-        self.assertNotIn("decision", waiting)
-        self.assertIn("selected MAST", waiting["systemMessage"])
+        self.assertNotIn("decision", output)
+        self.assertIn("selected MAST", output["systemMessage"])
+        state = load_state(config.trace_output, session_id)
+        self.assertEqual(state["selection"]["status"], "selected")
+        self.assertEqual(state["selection"]["pending_task"], "hey again")
+        # The auto-fallback to MAST is tagged so a later library pick can
+        # supersede it instead of being rejected as "already has a choice".
+        self.assertTrue(state["selection"]["auto_selected"])
 
-    def test_codex_browser_picker_relaunches_after_worker_death(self) -> None:
+    def test_auto_mast_default_is_overridable_by_a_later_library_pick(self) -> None:
+        from adamast.hosts.claude_code.browser_picker import apply_browser_choice
+
+        trace_output = self.routing_root / "program-override"
+        # Simulate the non-blocking selector having auto-bound MAST.
+        ProgramWorkspace(
+            trace_output, repo_path=str(self.project)
+        ).bind_inherited_taxonomy(mast.MAST_ID)
+        session_id = "claude-auto-override"
+        selection = {
+            "status": "selected",
+            "selected_taxonomy_id": mast.MAST_ID,
+            "auto_selected": True,
+            "options": [
+                {
+                    "kind": "taxonomy",
+                    "taxonomy_id": "tax-django-orm-001",
+                    "label": "Django ORM",
+                },
+                {"kind": "disabled", "label": "No AdaMAST"},
+            ],
+        }
+        save_state(
+            trace_output,
+            session_id,
+            {
+                "version": 1,
+                "session_id": session_id,
+                "conversation_id": session_id,
+                "cwd": str(self.project),
+                "episode_sequence": 1,
+                "selection": selection,
+                "finished": True,
+            },
+        )
+        request = {
+            "session_id": session_id,
+            "trace_output": str(trace_output),
+            "store_dir": str(STORE_DIR),
+            "event": {"session_id": session_id, "cwd": str(self.project)},
+        }
+        receipt = apply_browser_choice(request, "tax-django-orm-001")
+        self.assertEqual(receipt["taxonomy_id"], "tax-django-orm-001")
+        self.assertEqual(receipt["status"], "selected")
+        # The program was rebound over the provisional auto-MAST default.
+        self.assertEqual(
+            ProgramWorkspace(trace_output).load()["taxonomy_id"],
+            "tax-django-orm-001",
+        )
+        updated = load_state(trace_output, session_id)
+        self.assertEqual(
+            updated["selection"]["selected_taxonomy_id"], "tax-django-orm-001"
+        )
+        self.assertNotIn("auto_selected", updated["selection"])
+
+    def test_explicit_choice_stays_locked_against_a_different_pick(self) -> None:
+        from adamast.hosts.claude_code.browser_picker import apply_browser_choice
+
+        trace_output = self.routing_root / "program-locked"
+        ProgramWorkspace(
+            trace_output, repo_path=str(self.project)
+        ).bind_inherited_taxonomy(mast.MAST_ID)
+        session_id = "claude-explicit-lock"
+        # No auto_selected flag => the user explicitly chose MAST; it must lock.
+        selection = {
+            "status": "selected",
+            "selected_taxonomy_id": mast.MAST_ID,
+            "options": [
+                {
+                    "kind": "taxonomy",
+                    "taxonomy_id": "tax-django-orm-001",
+                    "label": "Django ORM",
+                },
+            ],
+        }
+        save_state(
+            trace_output,
+            session_id,
+            {
+                "version": 1,
+                "session_id": session_id,
+                "conversation_id": session_id,
+                "cwd": str(self.project),
+                "episode_sequence": 1,
+                "selection": selection,
+                "finished": True,
+            },
+        )
+        request = {
+            "session_id": session_id,
+            "trace_output": str(trace_output),
+            "store_dir": str(STORE_DIR),
+            "event": {"session_id": session_id, "cwd": str(self.project)},
+        }
+        with self.assertRaisesRegex(ValueError, "already has a choice"):
+            apply_browser_choice(request, "tax-django-orm-001")
+        # The explicit MAST binding is untouched.
+        self.assertEqual(
+            ProgramWorkspace(trace_output).load()["taxonomy_id"], mast.MAST_ID
+        )
+
+    def test_codex_browser_pending_auto_resolves_without_relaunch(self) -> None:
         thread_id = "codex-browser-dead"
         event = {
             "hook_event_name": "UserPromptSubmit",
@@ -582,65 +785,26 @@ class ConversationScopeTests(unittest.TestCase):
                 "finished": True,
             },
         )
-        fresh_picker = {
-            "pid": 4246,
-            "url": "http://127.0.0.1:43214/",
-            "result_path": str(self.root / "fresh-codex-result.json"),
-        }
+        # #14 parity with Claude Code: a browser_pending turn on Codex is
+        # non-blocking. It no longer probes picker liveness, relaunches a dead
+        # worker, or times out; with no choice registered it auto-resolves to
+        # MAST and proceeds immediately.
         with (
-            patch(
-                "adamast.hosts.codex.runtime.picker_alive",
-                return_value=False,
-            ),
-            patch(
-                "adamast.hosts.codex.runtime.start_browser_picker",
-                return_value=fresh_picker,
-            ) as relaunch,
-            patch(
-                "adamast.hosts.codex.runtime.open_browser_picker",
-                return_value=True,
-            ) as opened,
-            patch(
-                "adamast.hosts.codex.runtime.wait_for_browser_choice",
-                return_value=None,
-            ),
-        ):
-            output = codex_user_prompt_submit(event, config)
-        relaunch.assert_called_once()
-        opened.assert_called_once_with(fresh_picker)
-        self.assertFalse(output["continue"])
-        self.assertIn("timed out", output["stopReason"])
-        state = codex_load_state(config.trace_output, thread_id)
-        self.assertEqual(
-            state["selection"]["browser_picker"]["url"],
-            fresh_picker["url"],
-        )
-        self.assertEqual(state["selection"]["pending_task"], "hey codex")
-
-        with (
-            patch(
-                "adamast.hosts.codex.runtime.picker_alive",
-                return_value=True,
-            ),
             patch(
                 "adamast.hosts.codex.runtime.start_browser_picker"
             ) as relaunch,
             patch(
                 "adamast.hosts.codex.runtime.open_browser_picker"
             ) as opened,
-            patch(
-                "adamast.hosts.codex.runtime.wait_for_browser_choice",
-                return_value="mast",
-            ),
         ):
-            resumed = codex_user_prompt_submit(
-                {**event, "prompt": "selection complete"},
-                config,
-            )
+            output = codex_user_prompt_submit(event, config)
         relaunch.assert_not_called()
         opened.assert_not_called()
-        self.assertNotIn("continue", resumed)
-        self.assertIn("selected MAST", resumed["systemMessage"])
+        self.assertNotIn("continue", output)
+        self.assertIn("selected MAST", output["systemMessage"])
+        state = codex_load_state(config.trace_output, thread_id)
+        self.assertEqual(state["selection"]["status"], "selected")
+        self.assertEqual(state["selection"]["pending_task"], "hey codex")
 
     def test_picker_page_context_carries_session_identity(self) -> None:
         request = {

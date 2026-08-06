@@ -67,6 +67,13 @@ def _is_managed_hook_entry(entry: Any, *, include_legacy: bool) -> bool:
             for index in range(max(0, len(tokens) - 1))
         ):
             return True
+        # Also match the native plugin launcher (`sh .../bin/adamast-hook ...`)
+        # so a package-CLI uninstall can clean a stray plugin-style registration.
+        if any(
+            token.replace("\\", "/").rsplit("/", 1)[-1].startswith("adamast-hook")
+            for token in tokens
+        ):
+            return True
         if include_legacy and any(token in LEGACY_COMMANDS for token in tokens):
             return True
     return False

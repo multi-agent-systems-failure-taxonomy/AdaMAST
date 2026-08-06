@@ -54,10 +54,13 @@ from adamast.hosts.codex.browser_picker import (
     allowed_option,
     apply_browser_choice,
     open_browser_picker,
-    picker_alive,
     read_browser_choice,
     start_browser_picker,
     wait_for_browser_choice,
+)
+from adamast.hosts.interactive.browser_picker import (
+    SELECTION_TIMEOUT_SECONDS,
+    SELECTION_WAIT_SECONDS,
 )
 from adamast.hosts.interactive.selector import (
     SELECTOR_VERSION,
@@ -471,51 +474,26 @@ def user_prompt_submit(event: dict[str, Any], config: CodexConfig) -> dict | Non
     if status in {"pending", "browser_pending"}:
         choice = None
         if status == "browser_pending":
-            waited_for_picker = False
-            taxonomy_id = read_browser_choice(
+            # Non-blocking: honor a choice already made, else auto-resolve to
+            # the default (MAST). We never wait on the picker (the old block);
+            # retro-applying a later pick mid-conversation is tracked in #29.
+            browser_choice = read_browser_choice(
                 selection.get("browser_picker"),
                 store_dir=config.store_dir,
             )
-            if not taxonomy_id and picker_alive(selection.get("browser_picker")):
-                waited_for_picker = True
-                taxonomy_id = wait_for_browser_choice(
-                    selection.get("browser_picker"),
-                    store_dir=config.store_dir,
-                    timeout_seconds=config.worker_timeout_seconds,
-                )
-            if taxonomy_id:
-                choice = allowed_option(selection, taxonomy_id, config.store_dir)
-                selection["status"] = "pending"
-                if (
-                    prompt
-                    and not selection.get("pending_task")
-                    and not _browser_continuation_prompt(prompt)
-                ):
-                    selection["pending_task"] = prompt
-            else:
-                if (
-                    prompt
-                    and not selection.get("pending_task")
-                    and not _browser_continuation_prompt(prompt)
-                ):
-                    selection["pending_task"] = prompt
-                if waited_for_picker:
-                    save_state(config.trace_output, session_id, state)
-                    return _browser_timeout_output(
-                        selection,
-                        "UserPromptSubmit",
-                    )
-                if not picker_alive(selection.get("browser_picker")):
-                    # The detached picker worker timed out or died; relaunch
-                    # it so the conversation cannot wait on a dead page.
-                    return _launch_selection_browser(
-                        state,
-                        event,
-                        config,
-                        event_name="UserPromptSubmit",
-                    )
-                save_state(config.trace_output, session_id, state)
-                return _browser_timeout_output(selection, "UserPromptSubmit")
+            taxonomy_id = browser_choice or mast.MAST_ID
+            choice = allowed_option(selection, taxonomy_id, config.store_dir)
+            selection["status"] = "pending"
+            # Mark an auto-fallback default (auto-MAST) so a later explicit library
+            # pick can supersede it (see apply_browser_choice). An explicit browser
+            # choice locks the selection as before.
+            selection["auto_selected"] = browser_choice is None
+            if (
+                prompt
+                and not selection.get("pending_task")
+                and not _browser_continuation_prompt(prompt)
+            ):
+                selection["pending_task"] = prompt
 
         if choice is None:
             choice = parse_selection_choice(prompt, selection)
@@ -1210,7 +1188,7 @@ def _launch_selection_browser(
             task_group=config.task_group,
             project_scope=config.project_scope,
             project_id=config.project_id,
-            timeout_seconds=config.worker_timeout_seconds,
+            timeout_seconds=SELECTION_TIMEOUT_SECONDS,
         )
     except (OSError, RuntimeError, ValueError) as exc:
         return _add_context(
@@ -1225,22 +1203,27 @@ def _launch_selection_browser(
     save_state(config.trace_output, _session_id(event), state)
     open_browser_picker(picker)
     if event_name == "UserPromptSubmit":
-        taxonomy_id = wait_for_browser_choice(
+        # Give the user a brief window to choose in the just-opened library
+        # before falling back to MAST. Bounded (SELECTION_WAIT_SECONDS) so the
+        # hook stays responsive; the monitor tab only opens once the selection
+        # resolves here. A later library pick can still supersede an auto-MAST
+        # default (see apply_browser_choice); full switching is tracked in #29.
+        browser_choice = wait_for_browser_choice(
             picker,
             store_dir=config.store_dir,
-            timeout_seconds=config.worker_timeout_seconds,
+            timeout_seconds=SELECTION_WAIT_SECONDS,
         )
-        if taxonomy_id:
-            choice = allowed_option(selection, taxonomy_id, config.store_dir)
-            selection["status"] = "pending"
-            return _accept_selection_choice(
-                state,
-                event,
-                config,
-                choice,
-                original_prompt_continues=True,
-            )
-        return _browser_timeout_output(selection, event_name)
+        taxonomy_id = browser_choice or mast.MAST_ID
+        choice = allowed_option(selection, taxonomy_id, config.store_dir)
+        selection["status"] = "pending"
+        selection["auto_selected"] = browser_choice is None
+        return _accept_selection_choice(
+            state,
+            event,
+            config,
+            choice,
+            original_prompt_continues=True,
+        )
     return _browser_opened_output(selection, event_name)
 
 

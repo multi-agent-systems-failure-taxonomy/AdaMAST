@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 import subprocess
@@ -36,10 +37,77 @@ def host_task_group(task_group: str, *, host: str) -> str:
 
 
 def canonical_project_root(cwd: Path | str | None) -> Path:
-    """Resolve a Git root when available, otherwise the supplied workspace."""
+    """Resolve a Git root when available, otherwise the supplied workspace.
+
+    The first successful resolution for a working directory is pinned in a
+    small on-disk cache. A later transient git failure, or a ``git init`` in a
+    parent directory, therefore cannot silently repartition an existing
+    project's history into a different key. The pin is also a performance win:
+    it avoids shelling out to git on every interactive event.
+    """
     path = Path(cwd or Path.cwd()).expanduser().resolve()
-    top = _git_top_level(path)
-    return Path(top).expanduser().resolve() if top else path
+    key = os.path.normcase(str(path))
+    pinned = _load_roots_cache().get(key)
+    if pinned:
+        pinned_path = Path(pinned)
+        if pinned_path.exists():
+            return pinned_path
+        # The pinned target vanished (project moved/deleted); re-resolve below.
+    root, cacheable = _resolve_project_root(path)
+    if cacheable:
+        _store_root_mapping(key, str(root))
+    return root
+
+
+def _resolve_project_root(path: Path) -> tuple[Path, bool]:
+    """Return ``(root, cacheable)`` for a resolved working directory.
+
+    ``cacheable`` is False only for a *transient* git failure, so a fallback to
+    the raw workspace is never pinned — a later successful resolve can still
+    establish the true git root.
+    """
+    top, transient = _git_top_level(path)
+    if top:
+        return Path(top).expanduser().resolve(), True
+    return path, not transient
+
+
+def _roots_cache_path() -> Path:
+    home = Path(os.environ.get("ADAMAST_HOME", Path.home() / ".adamast"))
+    return home.expanduser() / "project_roots.json"
+
+
+def _load_roots_cache() -> dict[str, str]:
+    try:
+        raw = _roots_cache_path().read_text(encoding="utf-8")
+    except OSError:
+        return {}
+    try:
+        data = json.loads(raw)
+    except (json.JSONDecodeError, ValueError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return {str(k): str(v) for k, v in data.items() if isinstance(v, str)}
+
+
+def _store_root_mapping(key: str, root: str) -> None:
+    """Best-effort persist of ``key -> root``; identity still resolves without it."""
+    cache = _load_roots_cache()
+    if cache.get(key) == root:
+        return
+    cache[key] = root
+    path = _roots_cache_path()
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+        tmp.write_text(
+            json.dumps(cache, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        os.replace(tmp, path)
+    except OSError:
+        return
 
 
 def project_key(
@@ -78,7 +146,13 @@ def project_program_path(
     )
 
 
-def _git_top_level(path: Path) -> str:
+def _git_top_level(path: Path) -> tuple[str, bool]:
+    """Return ``(git toplevel or "", transient_error)``.
+
+    ``transient_error`` is True when git could not be run at all (missing
+    binary, timeout, OS error) — a state that may resolve later. A clean
+    non-zero exit (``not a git repository``) is authoritative, not transient.
+    """
     try:
         completed = subprocess.run(
             ["git", "-C", str(path), "rev-parse", "--show-toplevel"],
@@ -88,5 +162,7 @@ def _git_top_level(path: Path) -> str:
             timeout=3,
         )
     except (OSError, subprocess.SubprocessError):
-        return ""
-    return completed.stdout.strip() if completed.returncode == 0 else ""
+        return "", True
+    if completed.returncode == 0:
+        return completed.stdout.strip(), False
+    return "", False

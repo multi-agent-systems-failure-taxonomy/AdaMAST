@@ -240,6 +240,12 @@ def _is_managed_hook_entry(entry: Any, *, module: str) -> bool:
             for index in range(max(0, len(tokens) - 1))
         ):
             return True
+        # Also match the native plugin launcher (`sh .../bin/adamast-hook ...`).
+        if any(
+            token.replace("\\", "/").rsplit("/", 1)[-1].startswith("adamast-hook")
+            for token in tokens
+        ):
+            return True
     return False
 
 

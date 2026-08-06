@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Adaptive failure-mode taxonomies for coding agents.",
-    "version": "0.2.2"
+    "version": "0.2.2.1"
   },
   "plugins": [
     {
       "name": "adamast",
       "source": "./plugins/adamast",
       "description": "Checkpoint agent work at natural boundaries, record evidence, and learn a project-specific failure taxonomy automatically.",
-      "version": "0.2.2",
+      "version": "0.2.2.1",
       "author": {
         "name": "AdaMAST"
       },

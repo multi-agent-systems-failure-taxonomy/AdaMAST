@@ -7,7 +7,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$RuntimeVersion = "0.2.2"
+$RuntimeVersion = "0.2.2.1"
 $PluginDataDir = if ($env:PLUGIN_DATA) {
     $env:PLUGIN_DATA
 } elseif ($env:CLAUDE_PLUGIN_DATA) {

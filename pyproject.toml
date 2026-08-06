@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adamast"
-version = "0.2.2"
+version = "0.2.2.1"
 description = "Adaptive failure-mode taxonomy runtime for Codex, Claude Code, and custom agent harnesses."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -32,7 +32,15 @@ dependencies = ["openai>=1.40"]
 anthropic = ["anthropic>=0.40"]
 bedrock = ["boto3>=1.43"]
 google = ["google-genai>=1.0"]
-test = ["pytest>=7", "pytest-cov>=5", "ruff>=0.12,<1"]
+test = [
+    "pytest>=7",
+    "pytest-cov>=5",
+    "ruff>=0.12,<1",
+    # Optional provider SDKs so the learning-transport tests actually run
+    # (they skip cleanly without these). See issue #42.
+    "anthropic>=0.40",
+    "boto3>=1.43",
+]
 docs = ["mkdocs-material>=9.5"]
 
 [project.scripts]

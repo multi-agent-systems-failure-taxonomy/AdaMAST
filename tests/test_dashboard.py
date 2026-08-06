@@ -593,6 +593,9 @@ class DashboardDataTests(unittest.TestCase):
             self.assertEqual(checkpoint["turn_id"], "turn-003")
             self.assertEqual(checkpoint["gate"], "stop")
             self.assertEqual(checkpoint["map"][0]["code_id"], "MAST-1")
+            # D8: the Failure Taxonomy tab renders every mode with its category.
+            self.assertTrue(data["failure_modes"])
+            self.assertIn("category", data["failure_modes"][0])
             limited = monitor_snapshot(
                 root,
                 workspace.root,
@@ -667,6 +670,8 @@ class DashboardServerTests(unittest.TestCase):
         self.assertIn("conversation-select", body)
         self.assertIn("Failure modes", body)
         self.assertIn("Checkpoints", body)
+        self.assertIn("Failure taxonomy", body)
+        self.assertIn('id="mode-taxonomy"', body)
         self.assertIn("Past 24h", body)
         self.assertIn("Last N", body)
         self.assertIn("Show clean in failure view", body)

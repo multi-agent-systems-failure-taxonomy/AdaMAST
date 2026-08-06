@@ -853,6 +853,105 @@ class ClaudeCodeInstallerTests(unittest.TestCase):
 
         self.assertRegex(version, r"\d+\.\d+\.\d+")
 
+    def test_hook_contract_verifier_error_suggests_no_verify(self):
+        with tempfile.TemporaryDirectory() as td:
+            executable = Path(td) / "claude"
+            # All markers except hookSpecificOutput.additionalContext -> fails.
+            executable.write_bytes(
+                b"\n".join(
+                    [event.encode() for event in REQUIRED_EVENTS]
+                    + [
+                        b"prevent task completion",
+                        b"show stderr to subagent and continue having it run",
+                        b"show stderr to model and continue conversation",
+                    ]
+                )
+            )
+            completed = unittest.mock.Mock(stdout="2.1.185 (Claude Code)\n")
+            with patch(
+                "adamast.hosts.claude_code.install.subprocess.run",
+                return_value=completed,
+            ), patch(
+                "adamast.hosts.claude_code.install._contract_sources",
+                return_value=[executable],
+            ):
+                with self.assertRaises(RuntimeError) as ctx:
+                    verify_installed_hooks(executable)
+        self.assertIn("--no-verify", str(ctx.exception))
+
+    def test_install_verify_false_skips_verification(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            config = ClaudeCodeConfig(
+                trace_output=root / "program",
+                adamast_model="test-model",
+                store_dir=STORE_DIR,
+            )
+            result = install(root, config, verify=False)
+            self.assertEqual(
+                result["claude_version"], "verification skipped by caller"
+            )
+
+    def test_uninstall_removes_plugin_style_hooks(self):
+        from adamast.hosts.claude_code.uninstall import remove_adamast_hooks
+
+        settings = {
+            "hooks": {
+                "Stop": [
+                    {"hooks": [{"type": "command", "command": (
+                        'sh "${CLAUDE_PLUGIN_ROOT}/bin/adamast-hook" '
+                        "--host claude --event Stop"
+                    )}]},
+                    {"hooks": [{"type": "command", "command": (
+                        "/x/python -m adamast.hosts.claude_code.dispatcher "
+                        "--config /x/adamast.json"
+                    )}]},
+                    {"hooks": [{"type": "command", "command": "echo keep-me"}]},
+                ]
+            }
+        }
+        removed = remove_adamast_hooks(settings, include_legacy=False)
+        self.assertEqual(removed, 2)  # plugin-style + dispatcher-style both cleaned
+        self.assertEqual(len(settings["hooks"]["Stop"]), 1)  # non-adamast survives
+        self.assertIn(
+            "echo keep-me",
+            settings["hooks"]["Stop"][0]["hooks"][0]["command"],
+        )
+
+    def test_browser_selection_is_non_blocking_and_auto_resolves(self):
+        from adamast.core import mast
+        from adamast.hosts.claude_code import runtime as R
+
+        selection = {
+            "options": [
+                {"kind": "mast", "taxonomy_id": mast.MAST_ID, "label": "MAST"}
+            ]
+        }
+        state = {"selection": selection}
+        with tempfile.TemporaryDirectory() as td:
+            config = ClaudeCodeConfig(
+                trace_output=Path(td) / "program",
+                adamast_model="m",
+                store_dir=STORE_DIR,
+            )
+            event = {"session_id": "b14", "cwd": td}
+            accepted = {"systemMessage": "accepted"}
+            with patch.object(
+                R, "start_browser_picker", return_value={"url": "http://x"}
+            ), patch.object(R, "open_browser_picker", return_value=True), patch.object(
+                R, "read_browser_choice", return_value=None
+            ), patch.object(
+                R, "_accept_selection_choice", return_value=accepted
+            ) as acc, patch.object(
+                R, "_browser_timeout_output"
+            ) as timeout_out:
+                out = R._launch_selection_browser(
+                    state, event, config, event_name="UserPromptSubmit"
+                )
+        self.assertIs(out, accepted)  # auto-resolved, never waited/timed out
+        timeout_out.assert_not_called()
+        self.assertEqual(acc.call_args.args[3].get("taxonomy_id"), mast.MAST_ID)
+
     def test_installer_registers_all_events_without_duplication(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

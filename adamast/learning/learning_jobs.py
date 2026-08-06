@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterator
 
 from adamast.core import store
+from adamast.core.mast import MAST_ID
 
 from adamast.core.fsio import read_text_retry, replace_retry, write_text_atomic_retry
 from adamast.llm.learning_calls import outcome_blind_trace
@@ -42,11 +43,27 @@ LEARNING_STATE_KEY = "interactive_learning"
 LEGACY_LEARNING_STATE_KEY = "codex_learning"
 TERMINAL_STATES = {"activated", "no_change", "failed", "rejected"}
 
+# Partial acceptance (F2.1): the independent support review no longer discards
+# the whole candidate when a single code is unsupported. Unsupported codes are
+# dropped and the supported subset is activated, provided at least this many
+# codes survive. A taxonomy only needs to be good-enough; weak-but-supported
+# codes are pruned later by refinement.
+MIN_SUPPORTED_CODES = 3
+
 # A deterministic bad input (for example an unreadable snapshot) makes every
 # re-dispatched job fail identically; without a guard the lifecycle loops
 # forever. After this many consecutive unsuccessful jobs, auto-requeue parks
 # until a job succeeds or an operator clears `consecutive_failures`.
 MAX_CONSECUTIVE_JOB_FAILURES = 2
+
+# D2 cost control: a per-program lifetime cap on auto-launched learning cycles
+# (generation + refinement). Generation is already bounded (it stops once a
+# taxonomy exists, and consecutive failures park it), but refinement re-fires
+# every `k` traces with no lifetime bound — a long session could launch many
+# expensive worker cycles (~hundreds of k tokens each). Once this many cycles
+# have auto-launched, auto-requeue parks until an operator clears `auto_cycles`.
+# Generous by design: normal use never reaches it; it only stops runaways.
+MAX_AUTO_LEARNING_CYCLES = 8
 
 
 class LearningJobError(RuntimeError):
@@ -232,6 +249,13 @@ def enqueue_learning_job(
     return job_id
 
 
+def _record_auto_cycle(workspace: ProgramWorkspace) -> None:
+    """Count one auto-launched learning cycle for the lifetime cost cap (D2)."""
+    with workspace.locked_manifest() as manifest:
+        learning = _manifest_learning_state(manifest)
+        learning["auto_cycles"] = int(learning.get("auto_cycles", 0)) + 1
+
+
 def poll_learning_jobs(
     workspace: ProgramWorkspace,
     *,
@@ -254,6 +278,8 @@ def poll_learning_jobs(
         >= MAX_CONSECUTIVE_JOB_FAILURES
     ):
         return None
+    if int(learning.get("auto_cycles", 0)) >= MAX_AUTO_LEARNING_CYCLES:
+        return None
     launched: list[str] = []
     if not manifest.get("taxonomy_id"):
         if workspace.pending.count() < workspace.generation_retry_after(
@@ -270,6 +296,8 @@ def poll_learning_jobs(
                 enqueue_job("generation")
             ),
         )
+        if launched:
+            _record_auto_cycle(workspace)
         return launched[0] if launched else None
 
     if freeze:
@@ -287,6 +315,8 @@ def poll_learning_jobs(
         refinement_stops=False,
         background_launcher=lambda: launched.append(enqueue_job("refinement")),
     )
+    if launched:
+        _record_auto_cycle(workspace)
     return launched[0] if launched else None
 
 
@@ -947,11 +977,17 @@ def validate_support_review(
         raise LearningJobError(
             "support review omitted candidate code(s): " + ", ".join(sorted(missing))
         )
-    unsupported = [row["id"] for row in normalized_rows if not row["supported"]]
-    if review.get("supported") is not True or unsupported:
-        suffix = ", ".join(unsupported) if unsupported else "top-level verdict"
-        raise LearningJobError(f"independent support review rejected: {suffix}")
-    return {"supported": True, "codes": normalized_rows}
+    # Partial acceptance (F2.1): keep the supported codes and drop the rest
+    # instead of rejecting the whole candidate. The two evidence gates are
+    # unchanged — every candidate code was still quote-checked and reviewed;
+    # we only relax the acceptance threshold, not the evidence standard.
+    supported_rows = [row for row in normalized_rows if row["supported"]]
+    if len(supported_rows) < MIN_SUPPORTED_CODES:
+        raise LearningJobError(
+            "independent support review left too few supported codes: "
+            f"{len(supported_rows)} < {MIN_SUPPORTED_CODES}"
+        )
+    return {"supported": True, "codes": supported_rows}
 
 
 def _attach_support_review(
@@ -959,6 +995,13 @@ def _attach_support_review(
     review: dict[str, Any],
 ) -> None:
     rows = {str(row["id"]): row for row in review["codes"]}
+    # Partial acceptance (F2.1): prune the candidate to the supported subset the
+    # review returned, so dropped codes never leak into the activated taxonomy
+    # or its id/lineage. The record, taxonomy id, and store all derive from
+    # candidate["codes"] downstream.
+    candidate["codes"] = [
+        code for code in candidate["codes"] if str(code["id"]) in rows
+    ]
     for code in candidate["codes"]:
         validation = code["evidence"].setdefault("validation", {})
         validation["independent_support_review"] = rows[str(code["id"])]
@@ -1068,19 +1111,48 @@ def _activate_refinement(
         "summary": candidate["summary"],
         "codes": candidate["codes"],
     }
-    no_change = candidate["decision"] == "no_change" or (
+    declared_no_change = candidate["decision"] == "no_change"
+    same_fingerprint = _code_fingerprint(comparable_current["codes"]) == (
+        _code_fingerprint(comparable_candidate["codes"])
+    )
+    identical = (
         _hash_payload(comparable_current) == _hash_payload(comparable_candidate)
+    )
+    # I2(a): a refinement mints a NEW version only when the code
+    # {id, name, category} set changes (add/delete/rename/merge/split). A
+    # same-fingerprint candidate that only rewrote descriptions/summary is
+    # written back IN PLACE on the parent version (kept, not discarded). A
+    # byte-identical candidate is a true no-op.
+    mint_new_version = not declared_no_change and not same_fingerprint
+    # A same-fingerprint edit on the built-in MAST id can never be persisted:
+    # store.register reserves 'mast' and would raise InvalidTaxonomy. Treat a
+    # description-only "refinement" of MAST as a no-op rather than attempting an
+    # in-place write on the reserved id. (Guarded upstream today, but Phase 2's
+    # auto-MAST default enlarges the population sitting on this id.)
+    update_in_place = (
+        not declared_no_change
+        and same_fingerprint
+        and not identical
+        and parent_id != MAST_ID
+    )
+    outcome_label = (
+        "activated" if (mint_new_version or update_in_place) else "no_change"
     )
     current_id = workspace.load().get("taxonomy_id")
     if current_id not in (parent_id, taxonomy_id):
         raise LearningJobError(
             f"refinement result is stale; project now uses {current_id}"
         )
-    if not no_change:
+    if mint_new_version:
         record = _taxonomy_record(taxonomy_id, candidate, job)
     else:
         taxonomy_id = parent_id
         job["taxonomy_id"] = parent_id
+        record = (
+            _inplace_updated_record(current_record, candidate, parent_id)
+            if update_in_place
+            else None
+        )
 
     source_refs = {
         (str(item.get("taxonomy_id")), str(item.get("filename")))
@@ -1089,7 +1161,7 @@ def _activate_refinement(
     }
     with workspace.locked_manifest() as manifest:
         if manifest.get("active_sessions"):
-            return False, "no_change" if no_change else "activated"
+            return False, outcome_label
         current_id = manifest.get("taxonomy_id")
         if current_id not in (parent_id, taxonomy_id):
             raise LearningJobError(
@@ -1097,7 +1169,7 @@ def _activate_refinement(
             )
         refinement = manifest.setdefault("refinement", {})
         first_activation = current_id == parent_id
-        if not no_change:
+        if mint_new_version:
             _ensure_taxonomy_record(record, store_dir)
             (trace_root / taxonomy_id).mkdir(parents=True, exist_ok=True)
             branch = manifest.get("branch")
@@ -1125,6 +1197,10 @@ def _activate_refinement(
                     ),
                 },
             )
+        elif update_in_place:
+            # Same code set, improved descriptions: persist on the SAME id,
+            # with no new lineage/successor and no counter change (I2(a)).
+            store.register(record, store_dir, replace=True)
         if first_activation:
             remaining = [
                 item
@@ -1145,7 +1221,7 @@ def _activate_refinement(
         refinement["last_error"] = None
         refinement.pop("worker_kind", None)
         refinement.pop("worker_started_unix", None)
-    return True, "no_change" if no_change else "activated"
+    return True, outcome_label
 
 
 def _taxonomy_record(
@@ -1173,6 +1249,30 @@ def _taxonomy_record(
     }
     if isinstance(job.get("source"), dict):
         record["source"] = dict(job["source"])
+    return record
+
+
+def _inplace_updated_record(
+    current_record: dict[str, Any],
+    candidate: dict[str, Any],
+    taxonomy_id: str,
+) -> dict[str, Any]:
+    """Rewrite a taxonomy's content on its OWN id (I2(a) same-fingerprint edit).
+
+    A same-fingerprint refinement only sharpened descriptions/summary; it must
+    not re-parent the record or rewrite how the version was originally created.
+    Minting a fresh record from the job would set ``parent_taxonomy_id`` to the
+    id being written (self-parenting) and clobber the real lineage/provenance,
+    so start from the existing record and replace only the editable content
+    fields.
+    """
+    record = dict(current_record)
+    record["taxonomy_id"] = taxonomy_id
+    record["repo"] = candidate["repo"]
+    record["display_name"] = candidate["display_name"]
+    record["domain"] = candidate["domain"]
+    record["summary"] = candidate["summary"]
+    record["codes"] = candidate["codes"]
     return record
 
 
@@ -1398,6 +1498,26 @@ def _hash_payload(value: Any) -> str:
         ensure_ascii=False,
     ).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
+
+
+def _code_fingerprint(codes: Any) -> str:
+    """Meaningful-change key for a taxonomy (I2(a)).
+
+    Only the code ``{id, name, category}`` set defines a new version — i.e. a
+    code added, deleted, renamed, merged, or split. Description/summary-only
+    edits share a fingerprint and are written back in place rather than minting
+    a successor.
+    """
+    fingerprint = sorted(
+        (
+            str(code.get("id", "")),
+            str(code.get("name", "")),
+            str(code.get("category", "")),
+        )
+        for code in (codes or [])
+        if isinstance(code, dict)
+    )
+    return _hash_payload(fingerprint)
 
 
 def _read_json(path: Path) -> dict[str, Any]:

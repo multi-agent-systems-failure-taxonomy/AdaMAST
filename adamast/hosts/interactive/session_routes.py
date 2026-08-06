@@ -59,15 +59,42 @@ def resolve_conversation_scope(
         _bind_route_branch(resolved, event, host=host)
         return resolved
 
-    migrated = _discover_selected_scope(
+    # One-time bulk migration of legacy pre-scope-record bindings. After it
+    # runs once, brand-new conversations resolve in O(1) via the scope record
+    # above instead of walking the entire routing root on every session start.
+    if _migrate_legacy_scopes(
+        root,
+        scope_dir=scope_dir,
+        state_dir=state_dir,
+        default_task_group=default_task_group,
+        host=host,
+    ):
+        resolved = _read_scope_record(path, root, host=host)
+        if resolved:
+            _bind_route_branch(resolved, event, host=host)
+            return resolved
+
+    # Targeted fallback for a legacy conversation the one-time bulk migration
+    # did not capture: its selection was recorded AFTER the sweep, or it first
+    # resumes here after the ``.migrated`` sentinel dropped. Without this, a
+    # resume from a drifted cwd forks the conversation into a brand-new session
+    # (the exact regression the pre-migration per-event walk prevented). Runs
+    # only on a fast-path miss, and persists a scope record so later events for
+    # this conversation stay O(1).
+    legacy = _discover_legacy_scope_for(
         root,
         session_id,
         state_dir=state_dir,
         default_task_group=default_task_group,
         host=host,
     )
-    target = migrated
-    if target is None and isolate_conversation:
+    if legacy:
+        _persist_scope_record(path, session_id, legacy, event=event, host=host)
+        _bind_route_branch(legacy, event, host=host)
+        return legacy
+
+    target = None
+    if isolate_conversation:
         target = _conversation_branch_route(
             root,
             session_id=session_id,
@@ -87,20 +114,7 @@ def resolve_conversation_scope(
             f"{host_label} conversation scope must remain inside the AdaMAST "
             f"routing root: {target.trace_output}"
         )
-    record = {
-        "version": 3,
-        "session_id": session_id,
-        "host": _normalize_host(host) if host else None,
-        "task_group": target.task_group,
-        "trace_output": str(target.trace_output),
-        "branch_id": target.branch_id,
-        "bound_cwd": str(event.get("cwd") or ""),
-    }
-    path.parent.mkdir(parents=True, exist_ok=True)
-    write_text_atomic_retry(
-        path,
-        json.dumps(record, indent=2, ensure_ascii=False) + "\n",
-    )
+    _persist_scope_record(path, session_id, target, event=event, host=host)
     _bind_route_branch(target, event, host=host)
     return target
 
@@ -281,26 +295,45 @@ def _read_scope_record(
     )
 
 
-def _discover_selected_scope(
+def _migrate_legacy_scopes(
     routing_root: Path,
-    session_id: str,
     *,
+    scope_dir: str,
     state_dir: str,
     default_task_group: str,
     host: str | None = None,
-) -> SessionRoute | None:
-    safe_id = "".join(
-        char if char.isalnum() or char in "._-" else "_"
-        for char in session_id
-    )
-    candidates: list[tuple[int, int, SessionRoute]] = []
-    for path in routing_root.rglob(f"{safe_id}.json"):
+) -> bool:
+    """Migrate legacy per-session state into O(1) scope records, once.
+
+    Older installs bound a conversation only via a ``<state_dir>/<id>.json``
+    state file under its program; resolving a resumed conversation then meant
+    walking the whole routing root (O(all programs)) on *every* new session,
+    because the current cwd may have drifted away from the original program.
+
+    This sweeps that tree a single time, writes a scope record for every legacy
+    selected/disabled conversation (keyed by ``sha256(session_id)`` like the
+    fast path), and drops a ``.migrated`` sentinel in the scope directory so
+    later sessions never walk again. Per host: each host has its own
+    ``scope_dir``/``state_dir`` and therefore its own sentinel.
+
+    Returns True when the sweep ran on this call (so the caller re-checks the
+    scope record), False when migration had already completed.
+    """
+    sentinel = Path(routing_root) / scope_dir / ".migrated"
+    if sentinel.exists():
+        return False
+
+    best: dict[str, tuple[int, int, SessionRoute]] = {}
+    for path in Path(routing_root).rglob("*.json"):
         if path.parent.name != state_dir:
             continue
         try:
             state = json.loads(read_text_retry(path))
             status = str((state.get("selection") or {}).get("status") or "")
             if status not in {"selected", "disabled"}:
+                continue
+            session_id = str(state.get("session_id") or "")
+            if not session_id:
                 continue
             trace_output = path.parent.parent.resolve()
             if not _is_within(trace_output, routing_root):
@@ -315,20 +348,125 @@ def _discover_selected_scope(
             modified = path.stat().st_mtime_ns
         except (OSError, TypeError, ValueError, json.JSONDecodeError):
             continue
-        candidates.append(
-            (
-                sequence,
-                modified,
-                SessionRoute(
-                    task_group=task_group,
-                    trace_output=trace_output,
-                    branch_id=_manifest_branch_id(trace_output),
-                ),
-            )
+        route = SessionRoute(
+            task_group=task_group,
+            trace_output=trace_output,
+            branch_id=_manifest_branch_id(trace_output),
         )
-    if not candidates:
-        return None
-    return max(candidates, key=lambda item: (item[0], item[1]))[2]
+        current = best.get(session_id)
+        if current is None or (sequence, modified) > (current[0], current[1]):
+            best[session_id] = (sequence, modified, route)
+
+    for session_id, (_sequence, _modified, route) in best.items():
+        record_path = _conversation_scope_path(
+            routing_root,
+            session_id,
+            scope_dir=scope_dir,
+        )
+        if record_path.exists():
+            continue
+        record = {
+            "version": 3,
+            "session_id": session_id,
+            "host": _normalize_host(host) if host else None,
+            "task_group": route.task_group,
+            "trace_output": str(route.trace_output),
+            "branch_id": route.branch_id,
+            "bound_cwd": "",
+        }
+        try:
+            record_path.parent.mkdir(parents=True, exist_ok=True)
+            write_text_atomic_retry(
+                record_path,
+                json.dumps(record, indent=2, ensure_ascii=False) + "\n",
+            )
+        except OSError:
+            continue
+
+    try:
+        sentinel.parent.mkdir(parents=True, exist_ok=True)
+        write_text_atomic_retry(sentinel, "1\n")
+    except OSError:
+        pass
+    return True
+
+
+def _discover_legacy_scope_for(
+    routing_root: Path,
+    session_id: str,
+    *,
+    state_dir: str,
+    default_task_group: str,
+    host: str | None = None,
+) -> SessionRoute | None:
+    """Locate one legacy conversation's program by session id.
+
+    The one-time bulk migration only captures legacy state present when it ran.
+    This is the per-session correctness net for the rest: it walks for just
+    *this* conversation's legacy ``<state_dir>/<id>.json`` and returns its
+    route, so resolution never depends on the conversation having existed at
+    sweep time. The caller runs it only on a fast-path miss (no scope record
+    yet), and persists the result, so an already-bound conversation never
+    reaches here.
+    """
+    root = Path(routing_root).expanduser().resolve()
+    best: tuple[int, int, SessionRoute] | None = None
+    for path in root.rglob("*.json"):
+        if path.parent.name != state_dir:
+            continue
+        try:
+            state = json.loads(read_text_retry(path))
+            if str(state.get("session_id") or "") != session_id:
+                continue
+            status = str((state.get("selection") or {}).get("status") or "")
+            if status not in {"selected", "disabled"}:
+                continue
+            trace_output = path.parent.parent.resolve()
+            if not _is_within(trace_output, root):
+                continue
+            if host and _program_host(trace_output) != _normalize_host(host):
+                continue
+            task_group = _task_group_from_program(
+                trace_output,
+                default=default_task_group,
+            )
+            sequence = int(state.get("episode_sequence") or 0)
+            modified = path.stat().st_mtime_ns
+        except (OSError, TypeError, ValueError, json.JSONDecodeError):
+            continue
+        route = SessionRoute(
+            task_group=task_group,
+            trace_output=trace_output,
+            branch_id=_manifest_branch_id(trace_output),
+        )
+        if best is None or (sequence, modified) > (best[0], best[1]):
+            best = (sequence, modified, route)
+    return best[2] if best else None
+
+
+def _persist_scope_record(
+    path: Path,
+    session_id: str,
+    route: SessionRoute,
+    *,
+    event: dict[str, Any],
+    host: str | None,
+) -> None:
+    """Write the durable v3 conversation-scope record for ``session_id``."""
+    record = {
+        "version": 3,
+        "session_id": session_id,
+        "host": _normalize_host(host) if host else None,
+        "task_group": route.task_group,
+        "trace_output": str(route.trace_output),
+        "branch_id": route.branch_id,
+        "bound_cwd": str(event.get("cwd") or ""),
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    write_text_atomic_retry(
+        path,
+        json.dumps(record, indent=2, ensure_ascii=False) + "\n",
+    )
 
 
 def _task_group_from_program(path: Path, *, default: str) -> str:
